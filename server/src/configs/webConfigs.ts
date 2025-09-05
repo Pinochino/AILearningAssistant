@@ -3,15 +3,12 @@ import bodyParser from 'body-parser'
 import express from 'express';
 import mongoose from 'mongoose'
 import { Application, NextFunction, Request, Response } from 'express'
-import { Role, RoleName } from '~/models/Role'
-import { User } from '~/models/User'
 import { runSeed } from '~/data/seed'
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import { create, engine } from 'express-handlebars'
-import multer from 'multer';
+import { create } from 'express-handlebars'
 
-const upload = multer({ dest: '/uploads' })
+
 
 const hbs = create({
   extname: 'hbs',
@@ -30,6 +27,7 @@ const webConfigs = (app: Application) => {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
+  app.use('preview', express.static(path.join(__dirname, 'public', 'uploads')));
   app.use(cookieParser());
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
@@ -38,6 +36,8 @@ const webConfigs = (app: Application) => {
     res.status(500)
     res.render('error', { error: err })
   });
+
+ 
 }
 
 // Create seed
