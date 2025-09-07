@@ -7,6 +7,7 @@ import { ValidatedToken } from "~/models/ValidatedToken";
 import { Role, RoleName } from "~/models/Role";
 import crypto from 'crypto';
 import { JwtPayloadInterface } from "~/types/JwtPayload";
+import emailService from "./emailService";
 
 const authService = {
   authenticate: async ({ email, password }: LoginType): Promise<TokenResponse> => {
@@ -24,25 +25,15 @@ const authService = {
         throw new Error("Invalid credentials")
       }
 
-      const roles: string[] = user.role.map((e: any) => e.name);
-
-      const authPayload: JwtPayloadInterface = {
-        id: user._id,
-        username: user.username ? user.username : '',
-        email: user.email ? user.email : '',
-        roles
-      }
-
-
-      const accessToken = decodeJwt(authPayload)
+      const accessToken = decodeJwt(user)
       const refreshToken = crypto.randomBytes(32).toString('hex');
 
-      // await ValidatedToken.create({
-      //   token: refreshToken,
-      //   userId: user._id,
-      //   issuedAt: Date.now(),
-      //   expiredAt: Date.now() * 60 * 60,
-      // })
+      await ValidatedToken.create({
+        token: refreshToken,
+        userId: user._id,
+        issuedAt: Date.now(),
+        expiredAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+      })
 
       return {
         user: user as UserInterface,
@@ -71,6 +62,13 @@ const authService = {
 
       user = await User.create({ username, email, password, role: role._id })
 
+      await emailService.sendEmail({
+        from: "Tranhunghp22112004@gmail.com",
+        to: user.email as string,
+        subject: "Welcome to LearningAssistant",
+        text: "Thank you for registering with LearningAssistant!"
+      })
+
       return user.populate('role', 'name');
     } catch (error: any) {
       throw new Error("Error in register: " + error?.message)
@@ -95,10 +93,33 @@ const authService = {
       throw new Error("Refresh token is wrong");
     }
 
+    const accessToken = decodeJwt(user);
+
+    return {
+      accessToken: accessToken
+    }
   },
 
-  logout: async (userId: string) => {
+  logout: async (userId: string, refreshToken: string) => {
 
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("Invalid userId")
+    }
+
+    const oldRefreshToken = await ValidatedToken.findOne({
+      userId: user._id,
+      token: refreshToken
+    })
+
+    if (!oldRefreshToken) {
+      throw new Error('Refresh token is wrong');
+    }
+
+    await ValidatedToken.deleteOne({
+      _id: oldRefreshToken._id
+    })
 
   },
 }

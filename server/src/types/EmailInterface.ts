@@ -3,6 +3,7 @@ export interface EmailInterface {
   to: string;
   text: string;
   subject: string;
+  template?: string;
   html?: string;
   attackment?: any;
 }

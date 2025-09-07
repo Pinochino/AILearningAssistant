@@ -2,17 +2,22 @@ import { transporter } from '~/configs/emailConfig'
 import { EmailInterface } from '~/types/EmailInterface'
 
 const emailService = {
-  sendEmail: async ({ from, to, html, text, subject }: EmailInterface) => {
-    const infor = await transporter.sendMail({
-      from,
-      to,
-      subject,
-      text,
-      html: 'home'
-    })
-    console.log('Messge sent: ', infor.messageId)
-  },
+  sendEmail: async ({ from, to, html, text, subject, template }: EmailInterface) => {
+    try {
+      const mailOptions = {
+        from,
+        to,
+        html,
+        text,
+        subject,
+        template
+      }
 
-  sendEmailWithAttackment: async () => {}
+      const infor = await transporter.sendMail(mailOptions)
+      console.log('Messge sent: ', infor.messageId)
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  }
 }
 export default emailService

@@ -19,7 +19,7 @@ const validatedTokenSchema = new Schema(
       type: Schema.Types.Date
     },
     expiredAt: {
-      type: Schema.Types.ObjectId
+      type: Schema.Types.Date
     },
     status: {
       type: Schema.Types.String,

@@ -11,8 +11,9 @@ import { create } from 'express-handlebars'
 
 
 const hbs = create({
-  extname: 'hbs',
-  layoutsDir: path.join(__dirname + "views", "layouts")
+  extname: '.hbs',
+  layoutsDir: path.join(__dirname + "views", "layouts"),
+  partialsDir: path.join(__dirname, 'views', 'partials'),
 })
 
 const webConfigs = (app: Application) => {

@@ -3,7 +3,7 @@ import { Request } from 'express'
 import path from 'path'
 import fs from 'fs'
 
-export const uploadFolder = path.join(__dirname, 'public', 'uploads')
+export const uploadFolder = path.join(__dirname, '..', 'public', 'uploads')
 
 if (!fs.existsSync(uploadFolder)) {
   fs.mkdirSync(uploadFolder, { recursive: true })

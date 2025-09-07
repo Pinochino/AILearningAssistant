@@ -1,12 +1,12 @@
 import { Router } from 'express'
-import authService from '../services/authService.js'
-import authController from '~/controllers/AuthController.js'
+import authController from '~/controllers/AuthController'
+import authenticationMiddleware from '~/middlewares/auth/authenticationMiddleware'
 
 const authRouter = Router()
 
 authRouter.post('/login', authController.login)
 authRouter.post('/register', authController.register)
-// authRouter.post('/refresh', authController.refreshToken)
-// authRouter.post('/logout', authService.authenticate)
+authRouter.post('/refresh-token', authenticationMiddleware, authController.refreshToken)
+authRouter.post('/logout', authenticationMiddleware, authController.logout)
 
 export default authRouter
