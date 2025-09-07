@@ -3,6 +3,8 @@ import DefaultLayout from "../layouts/DefaultLayout";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import AuthLayout from "../layouts/AuthLayout";
+import RegisterPage from "../pages/RegisterPage";
 
 export interface IRouter {
     path?: string;
@@ -24,9 +26,10 @@ const publicRouter: IRouter[] = [
     },
     {
         path: '/auth',
-        layout: DefaultLayout,
+        layout: AuthLayout,
         children: [
-            { path: 'login', Component: LoginPage }
+            { path: 'login', Component: LoginPage },
+            { path: 'register', Component: RegisterPage }
         ]
     },
     {

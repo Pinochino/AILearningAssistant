@@ -3,7 +3,7 @@ import AuthForm from '../components/ui/auth-form'
 
 const LoginPage = () => {
   return (
-    <div>
+    <div className='flex justify-center items-center h-auto w-[100%]'>
       <AuthForm type='login' />
     </div>
   )

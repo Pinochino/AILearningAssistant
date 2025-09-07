@@ -2,7 +2,8 @@ export interface UserInterface {
     username?: string;
     email: string;
     password?: string;
+    remember?: boolean;
 }
 
-export type LoginType = Pick<UserInterface, 'email' | 'password'>
+export type LoginType = Pick<UserInterface, 'email' | 'password' | "remember">
 export type RegisterType = Pick<UserInterface, 'username' | 'email' | 'password'>
