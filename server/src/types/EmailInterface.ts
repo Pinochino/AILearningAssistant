@@ -6,4 +6,5 @@ export interface EmailInterface {
   template?: string;
   html?: string;
   attackment?: any;
+  context?: any
 }

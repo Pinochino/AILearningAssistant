@@ -1,9 +1,9 @@
 import { model, Schema } from 'mongoose'
 
 export enum ValidatedTokenStatus {
-  VALID = 'VALID',
+  ACTIVE = 'ACTIVE',
   REVOKED = 'REVOKED',
-  EXPIRED = 'EXPIED'
+  EXPIRED = 'EXPIRED'
 }
 
 const validatedTokenSchema = new Schema(
@@ -23,7 +23,8 @@ const validatedTokenSchema = new Schema(
     },
     status: {
       type: Schema.Types.String,
-      enum: ValidatedTokenStatus
+      enum: ValidatedTokenStatus,
+      default: ValidatedTokenStatus.ACTIVE
     }
   },
   {

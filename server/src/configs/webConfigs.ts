@@ -20,6 +20,7 @@ const webConfigs = (app: Application) => {
   app.engine('handlebars', hbs.engine)
   app.set('view engine', 'hbs')
   app.set('views', path.join(__dirname + 'views'))
+  app.use(express.json())
   app.use(
     cors({
       credentials: true

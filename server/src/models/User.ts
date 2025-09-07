@@ -19,6 +19,18 @@ const userSchema = new Schema(
         type: Schema.Types.ObjectId,
         ref: 'Role'
       }
+    ],
+    forgotPassword: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'ForgotPassword',
+      }
+    ],
+    validatedToken: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'ValidatedToken'
+      }
     ]
   },
   {

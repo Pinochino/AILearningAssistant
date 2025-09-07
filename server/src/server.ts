@@ -1,9 +1,10 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import express from 'express'
-import webConfigs from './configs/webConfigs.js'
-import routers from './routers/routers'
-import { runSeed } from './data/seed.js'
+import webConfigs from '~/configs/webConfigs'
+import routers from '~/routers/routers'
+import '~/crons/ValidatedTokenClean'
+import '~/crons/ForgotPasswordClean'
 
 const app = express();
 

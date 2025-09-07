@@ -10,7 +10,7 @@ const verifyJwt = (token: string) => {
   return valid
 }
 
-const decodeJwt = (user: any) => {
+const generateAccessToken = (user: any) => {
   const roles: string[] = user.role.map((e: any) => e.name);
 
   const authPayload: JwtPayloadInterface = {
@@ -25,4 +25,4 @@ const decodeJwt = (user: any) => {
   return token;
 }
 
-export { verifyJwt, decodeJwt }
+export { verifyJwt, generateAccessToken }
