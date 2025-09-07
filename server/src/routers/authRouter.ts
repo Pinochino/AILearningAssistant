@@ -1,6 +1,7 @@
 import { Router } from 'express'
+import passport from 'passport'
 import authController from '~/controllers/AuthController'
-import authenticationMiddleware from '~/middlewares/auth/authenticationMiddleware'
+// import GoogleStrategy from 'passport-google-oidc';
 
 const authRouter = Router()
 
@@ -11,5 +12,6 @@ authRouter.post('/logout', authController.logout)
 authRouter.post('/send-otp', authController.sendOtpCode)
 authRouter.post('/forgot-password', authController.forgotPassword)
 authRouter.post('/update-password', authController.forgotPassword)
+authRouter.get('/login/federated/google', passport.authenticate('google'))
 
 export default authRouter

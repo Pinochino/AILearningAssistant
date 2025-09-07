@@ -7,6 +7,8 @@ import { runSeed } from '~/data/seed'
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { create } from 'express-handlebars'
+import morgan from 'morgan';
+import session from 'express-session'
 
 
 
@@ -26,6 +28,7 @@ const webConfigs = (app: Application) => {
       credentials: true
     })
   );
+  app.use(morgan('dev'));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));

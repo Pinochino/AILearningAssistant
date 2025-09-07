@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose'
+import { model, Schema, Types } from 'mongoose'
 
 export enum RoleName {
   USER = 'USER',
@@ -6,7 +6,12 @@ export enum RoleName {
   SUPER_ADMIN = 'SUPER_ADMIN'
 }
 
-const roleSchema = new Schema(
+export interface IRole extends Document {
+  name: RoleName;
+  user: Types.ObjectId[];
+}
+
+const roleSchema = new Schema<IRole>(
   {
     name: {
       type: Schema.Types.String,

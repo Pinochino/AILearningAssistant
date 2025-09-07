@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema, Types } from 'mongoose'
 
-interface ForgotPasswordInterface extends Document {
+export interface ForgotPasswordInterface extends Document {
   otp: string
   userId: Types.ObjectId
   attemps: Schema.Types.Int32

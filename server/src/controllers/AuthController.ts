@@ -1,6 +1,8 @@
 import { Response, Request } from 'express'
 import authService from '~/services/authService'
 
+
+
 const authController = {
   login: async (req: Request, res: Response) => {
     try {
@@ -93,7 +95,7 @@ const authController = {
   },
 
   updatePassord: async (req: Request, res: Response) => {
-    const { id: userId } = req?.user;
+    const { id: userId } = req.user;
 
     const { password: newPassword } = req.body;
     await authService.updatePassword(userId, newPassword);

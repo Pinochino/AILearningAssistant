@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose'
+import { model, Schema, Types } from 'mongoose'
 
 export enum ValidatedTokenStatus {
   ACTIVE = 'ACTIVE',
@@ -6,7 +6,15 @@ export enum ValidatedTokenStatus {
   EXPIRED = 'EXPIRED'
 }
 
-const validatedTokenSchema = new Schema(
+export interface IValidatedToken extends Document {
+  token: string;
+  userId: Types.ObjectId;
+  issuedAt: Date;
+  expiredAt: Date;
+  status: ValidatedTokenStatus;
+}
+
+const validatedTokenSchema = new Schema<IValidatedToken>(
   {
     token: {
       type: Schema.Types.String

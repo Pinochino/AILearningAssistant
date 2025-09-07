@@ -1,8 +1,25 @@
-import { Document, model, Schema } from 'mongoose'
+import { Document, model, Schema, Types } from 'mongoose'
 import { hashedText } from '~/utils/BcryptUtils'
 
+export enum UserProvider {
+  LOCAL = 'LOCAL',
+  GOOGLE = 'GOOGLE',
+  FACEBOOK = 'FACEBOOK',
+};
 
-const userSchema = new Schema(
+export interface IUser extends Document {
+  username: string
+  email: string
+  password: string
+  avatar?: string;
+  role?: Types.ObjectId[];
+  forgotPassword?: Types.ObjectId[];
+  validatedToken?: Types.ObjectId[];
+  provider: UserProvider;
+  providerId: string;
+}
+
+const userSchema = new Schema<IUser>(
   {
     username: {
       type: Schema.Types.String
@@ -14,6 +31,9 @@ const userSchema = new Schema(
     password: {
       type: Schema.Types.String
     },
+    avatar: {
+      type: Schema.Types.String
+    },
     role: [
       {
         type: Schema.Types.ObjectId,
@@ -23,7 +43,7 @@ const userSchema = new Schema(
     forgotPassword: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'ForgotPassword',
+        ref: 'ForgotPassword'
       }
     ],
     validatedToken: [
@@ -31,7 +51,14 @@ const userSchema = new Schema(
         type: Schema.Types.ObjectId,
         ref: 'ValidatedToken'
       }
-    ]
+    ],
+    provider: {
+      type: Schema.Types.String,
+      enum: UserProvider,
+    },
+    providerId: {
+      type: Schema.Types.String,
+    }
   },
   {
     timestamps: true
