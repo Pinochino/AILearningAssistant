@@ -14,6 +14,7 @@
   "dependencies": {
     "@types/express-handlebars": "^6.0.2",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/passport-google-oauth2": "^0.1.10",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",
@@ -33,7 +34,7 @@
     "nodemailer": "^7.0.6",
     "nodemailer-express-handlebars": "^7.0.0",
     "passport": "^0.7.0",
-    "passport-google-oidc": "^0.1.0"
+    "passport-google-oauth2": "^0.2.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

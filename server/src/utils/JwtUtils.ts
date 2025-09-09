@@ -1,7 +1,11 @@
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'
 dotenv.config()
-import jwt from 'jsonwebtoken';
-import { JwtPayloadInterface } from '~/types/JwtPayload';
+import jwt from 'jsonwebtoken'
+import { IUser } from '~/models/User'
+import { JwtPayloadInterface } from '~/types/JwtPayload'
+import crypto from 'crypto'
+import { ValidatedToken } from '~/models/ValidatedToken'
+import { UserInterface } from '~/types/UserInterface'
 
 const secretOrPublicKey = process.env.JWT_ACCESS_KEY as string
 
@@ -11,7 +15,7 @@ const verifyJwt = (token: string) => {
 }
 
 const generateAccessToken = (user: any) => {
-  const roles: string[] = user.role.map((e: any) => e.name);
+  const roles: string[] = user?.role.map((e: any) => e.name)
 
   const authPayload: JwtPayloadInterface = {
     id: user._id,
@@ -22,7 +26,24 @@ const generateAccessToken = (user: any) => {
   const token = jwt.sign(authPayload, secretOrPublicKey, {
     expiresIn: '5m'
   })
-  return token;
+  return token
+}
+const createLoginResponse = async (user: IUser) => {
+  const accessToken = generateAccessToken(user)
+  const refreshToken = crypto.randomBytes(32).toString('hex')
+
+  await ValidatedToken.create({
+    token: refreshToken,
+    userId: user?._id,
+    issuedAt: Date.now(),
+    expiredAt: Date.now() + 7 * 24 * 60 * 60 * 1000
+  })
+
+  return {
+    user: user,
+    accessToken,
+    refreshToken
+  }
 }
 
-export { verifyJwt, generateAccessToken }
+export { verifyJwt, generateAccessToken, createLoginResponse }

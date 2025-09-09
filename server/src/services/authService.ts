@@ -1,48 +1,44 @@
-import { User } from "~/models/User"
+import { IUser, User } from "~/models/User"
 import { TokenResponse } from "~/types/TokenResponse";
 import { LoginType, RegisterType, UserInterface } from "~/types/UserInterface"
 import { compareHashed } from "~/utils/BcryptUtils";
 import { ValidatedToken, ValidatedTokenStatus } from "~/models/ValidatedToken";
 import { Role, RoleName } from "~/models/Role";
 import crypto from 'crypto';
-import { JwtPayloadInterface } from "~/types/JwtPayload";
 import emailService from "./emailService";
-import { validateHeaderName } from "http";
-import { generateAccessToken } from "~/utils/JwtUtils";
-import { transporter } from "~/configs/emailConfig";
+import { createLoginResponse, generateAccessToken } from "~/utils/JwtUtils";
 import { ForgotPassword } from "~/models/ForgotPassword";
+import { UserProviderType } from "~/models/UserProvider";
 
 const authService = {
-  authenticate: async ({ email, password }: LoginType): Promise<TokenResponse> => {
+  authenticate: async ({ email, password, provider }: LoginType): Promise<TokenResponse> => {
     try {
-      const user = await User.findOne({ email }).populate('role', "name");
+      let user;
+      if (provider === UserProviderType.LOCAL) {
+        user = await User.findOne({ email }).populate('role', "name");
+
+        if (!user) {
+          throw new Error("Invalid credentials")
+        }
+
+        const isValid = await compareHashed(password as string,
+          user.password as string);
+
+        if (!isValid) {
+          throw new Error("Invalid credentials")
+        }
+
+      } else if (provider === UserProviderType.GOOGLE) {
+
+      }
+
+      user = await User.findOne({ email });
 
       if (!user) {
-        throw new Error("Invalid credentials")
+        throw new Error('Not found user');
       }
 
-      const isValid = await compareHashed(password as string,
-        user.password as string);
-
-      if (!isValid) {
-        throw new Error("Invalid credentials")
-      }
-
-      const accessToken = generateAccessToken(user)
-      const refreshToken = crypto.randomBytes(32).toString('hex');
-
-      await ValidatedToken.create({
-        token: refreshToken,
-        userId: user._id,
-        issuedAt: Date.now(),
-        expiredAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
-      })
-
-      return {
-        user: user as UserInterface,
-        accessToken,
-        refreshToken
-      };
+      return createLoginResponse(user);
 
     } catch (error: any) {
       throw new Error("Error in login: " + error?.message)
@@ -226,6 +222,9 @@ const authService = {
 
     user.password = newPassword;
     await user.save();
-  }
+  },
+
+
+
 }
 export default authService
