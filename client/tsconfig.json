@@ -13,7 +13,10 @@
     "jsx": "react-jsx",
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    // "paths": {
+    //   "@/*": ["./src/*"]
+    // }
   },
   "include": ["src"]
 }

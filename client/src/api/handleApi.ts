@@ -1,12 +1,12 @@
-import { AxiosInterceptorOptions } from "axios";
+import { AxiosRequestConfig } from "axios";
 import axiosClient from "./axiosClient.js"
 
 type methodType = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
-interface IHandleApi extends AxiosInterceptorOptions{
+interface IHandleApi extends AxiosRequestConfig {
     url: string;
     method: methodType;
-    data: any;
+    data?: any;
 }
 
 

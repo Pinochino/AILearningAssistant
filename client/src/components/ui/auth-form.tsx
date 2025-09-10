@@ -1,7 +1,11 @@
 import { Button, Checkbox, Flex, Form, Input, Typography } from "antd";
 import { FormProps } from "antd/es/form/Form";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useAppDispatch } from "../../redux/hooks";
 import { LoginType, RegisterType } from "../../types/UserInterface";
-import { Link } from "react-router-dom";
+import authService from "../../services/AuthService";
+import { setAccessToken } from "../../utils/AccessToken";
 
 const { Title } = Typography;
 
@@ -12,13 +16,38 @@ interface IAuthForm {
 }
 
 const AuthForm = ({ type = "login" }: IAuthForm) => {
-  const [form] = Form.useForm();
 
-  const onFinish: FormProps<LoginType | RegisterType>["onFinish"] = (
+  const [form] = Form.useForm();
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const onFinish: FormProps<LoginType | RegisterType>["onFinish"] = async (
     values
   ) => {
     console.log("Success:", values);
+    setLoading(true)
+    try {
+      const result = await dispatch(authService.login(values));
+
+      if (authService.login.fulfilled.match(result)) {
+        setAccessToken(result.payload.data.accessToken);
+        navigate('/', { replace: true })
+      } else {
+        setErr("Login fail")
+      }
+
+
+
+    } catch (error: any) {
+      setErr(error.message)
+    } finally {
+      setLoading(false)
+    }
   };
+
 
   const onFinishFailed: FormProps<
     LoginType | RegisterType
@@ -26,11 +55,20 @@ const AuthForm = ({ type = "login" }: IAuthForm) => {
     console.log("Failed:", errorInfo);
   };
 
+
+  if (err) {
+    return <h2>Error: {err}</h2>
+  }
+
+  if (loading) {
+    return <h2>This website have been loading</h2>
+  }
+
   return (
     <Form
       name="auth"
-      // labelCol={{ span: 8 }}
-      // wrapperCol={{ span: 16 }}
+      // labelCol={{ span: 3 }}
+      wrapperCol={{ span: 24 }}
       style={{ minWidth: "30%", padding: 20, height: "100%" }}
       // initialValues={{ remember: true }}
       onFinish={onFinish}
@@ -73,7 +111,11 @@ const AuthForm = ({ type = "login" }: IAuthForm) => {
       </Form.Item>
 
       <Form.Item<LoginType | RegisterType>
-        label="Password"
+        label={(
+          <div className="w-[100%] flex justify-between items-center">
+            <span>Password</span>
+            <Link to={"/auth/forgot-password"}>Forgot password</Link>
+          </div>)}
         name="password"
         rules={[{ required: true, message: "Please input your password!" }]}
       >
@@ -88,10 +130,10 @@ const AuthForm = ({ type = "login" }: IAuthForm) => {
         name="remember"
         valuePropName="checked"
         label={null}
-        
+
       >
         <Flex justify="between" align="center" className="w-[100%] flex justify-between items-center">
-          {type === 'login' &&   <Checkbox>Remember me</Checkbox>}
+          {type === 'login' && <Checkbox>Remember me</Checkbox>}
           <div>
             {type === "login" ? (
               <Link to={"/auth/register"}>I don't have an account</Link>
@@ -103,7 +145,7 @@ const AuthForm = ({ type = "login" }: IAuthForm) => {
       </Form.Item>
 
       <Form.Item label={null} className="flex justify-center ">
-        <Button type="primary" htmlType="submit" className="w-[100%]">
+        <Button type="primary" htmlType="submit" className="w-[100%]" loading={loading}>
           Submit
         </Button>
       </Form.Item>
