@@ -3,4 +3,7 @@ export const authUrls = {
     register: '/auth/register',
     logout: '/auth/logout',
     refreshToken: '/auth/refresh-token',
+    sendOtp: '/auth/send-otp',
+    fotgotPassword: '/auth/forgot-password',
+    
 }

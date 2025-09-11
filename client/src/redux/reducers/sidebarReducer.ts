@@ -5,7 +5,7 @@ interface ISidebarSlice {
 }
 
 const initialState: ISidebarSlice = {
-    sidebarToggle: true,
+    sidebarToggle: false,
 }
 
 const sidebarSlice = createSlice({

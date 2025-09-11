@@ -22,7 +22,7 @@ const authService = {
     }),
     logout: createAsyncThunk(authUrls.logout, async (_, { rejectWithValue }) => {
         try {
-            const res = await handleApi({ url: authUrls.logout, method: 'POST',  withCredentials: true })
+            const res = await handleApi({ url: authUrls.logout, method: 'POST', withCredentials: true })
             const result = await res.data;
 
             if (res.status < 200 || res.status > 300) {
@@ -35,7 +35,36 @@ const authService = {
         } catch (error: any) {
             return rejectWithValue(error.message)
         }
-    })
+    }),
+    sendOtp: async (email: string) => {
+        try {
+            const res = await handleApi({ url: authUrls.sendOtp, data: email, method: 'POST' })
+
+            if (res.status < 200 || res.status > 300) {
+                throw new Error(res.statusText);
+            }
+
+            const data = await res.data;
+            return data;
+        } catch (error: any) {
+            throw new Error(error.message)
+        }
+    },
+
+    forgotPassword: async (otp: string, newPassword: string) => {
+        try {
+            const res = await handleApi({ url: authUrls.fotgotPassword, method: 'POST', data: { otp, newPassword } })
+            
+            if (res.status < 200 || res.status > 300) {
+                throw new Error(res.statusText);
+            }
+
+            const data = await res.data;
+            return data;
+        } catch (error: any) {
+            throw new Error(error.message);
+        }
+    }
 }
 
 export default authService;
