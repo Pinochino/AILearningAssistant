@@ -1,8 +1,8 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
+import React from 'react'
+import { Outlet } from 'react-router-dom'
 
 interface IDefaultLayout {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 const DefaultLayout = ({ children }: IDefaultLayout) => {
   return (
@@ -10,7 +10,7 @@ const DefaultLayout = ({ children }: IDefaultLayout) => {
       {children}
       <Outlet />
     </div>
-  );
-};
+  )
+}
 
-export default DefaultLayout;
+export default DefaultLayout

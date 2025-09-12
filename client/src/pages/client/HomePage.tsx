@@ -1,13 +1,13 @@
 import { Button } from 'antd'
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { useCookies } from 'react-cookie';
-import authService from '../../services/AuthService';
-import { useAppDispatch } from '../../redux/hooks';
+import { useNavigate } from 'react-router-dom'
+import { useCookies } from 'react-cookie'
+import authService from '../../services/AuthService'
+import { useAppDispatch } from '../../redux/hooks'
 
 const HomePage = () => {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const [cookies, setCookie, removeCookie] = useCookies(['REFRESH_TOKEN'])
 
   // console.log(cookies.REFRESH_TOKEN)
@@ -20,8 +20,8 @@ const HomePage = () => {
   }
 
   return (
-    <div>HomePage
-
+    <div>
+      HomePage
       <Button onClick={handleLogout}>Logout</Button>
     </div>
   )

@@ -1,33 +1,39 @@
-import { Button, Space, Table, Tag } from 'antd';
-import type { TableProps } from 'antd';
-import getAllData from '../../hooks/getAllData';
-import { authUrls } from '../../constant/AuthUrls';
-import { userUrls } from '../../constant/UserUrls';
+import React from 'react'
+import { Button, Space, Tag } from 'antd'
+import type { TableProps } from 'antd'
+import { userUrls } from '../../constant/UserUrls'
+import FilterTable from '../../components/ui/tables/FilterTable'
 
-
-interface DataType {
-  _id: string;
-  username: string;
-  email: number;
-  roles: string[];
+export interface UsersDataType {
+  key: React.Key
+  _id: string
+  username: string
+  email: number
+  roles: string[]
 }
 
-const columns: TableProps<DataType>['columns'] = [
+const columns: TableProps<UsersDataType>['columns'] = [
   {
     title: 'Id',
     dataIndex: '_id',
     key: '_id',
-    render: (text) => <a>{text}</a>,
+    render: (text) => <a>{text}</a>
   },
   {
     title: 'Username',
     dataIndex: 'username',
+    showSorterTooltip: { target: 'full-header' },
     key: 'username',
+    onFilter: (value, record) => record.username.indexOf(value as string) === 0,
+    sorter: (a, b) => a.username.length - b.username.length,
+    sortDirections: ['descend']
   },
   {
     title: 'Email',
     dataIndex: 'email',
     key: 'email',
+    sorter: (a, b) => a.email - b.email,
+    filterSearch: true
   },
   {
     title: 'Roles',
@@ -36,72 +42,36 @@ const columns: TableProps<DataType>['columns'] = [
     render: (_, { roles }) => (
       <>
         {(Array.isArray(roles) ? Array.from(roles) : []).map((role) => {
-          let color = role.length > 5 ? 'geekblue' : 'green';
+          let color = role.length > 5 ? 'geekblue' : 'green'
           if (role === 'loser') {
-            color = 'volcano';
+            color = 'volcano'
           }
           return (
             <Tag color={color} key={role}>
               {role?.name || 'USER'}
             </Tag>
-          );
+          )
         })}
       </>
     ),
+    filterSearch: true
   },
   {
     title: 'Action',
     key: 'action',
     render: (_, record) => (
-      <Space size="middle">
-        <Button color="cyan" variant="solid">Update</Button>
-        <Button danger >Delete</Button>
+      <Space size='middle'>
+        <Button color='cyan' variant='solid'>
+          Update
+        </Button>
+        <Button danger>Delete</Button>
       </Space>
-    ),
-  },
-];
-
-// const data: DataType[] = [
-//   {
-//     key: '1',
-//     name: 'John Brown',
-//     age: 32,
-//     address: 'New York No. 1 Lake Park',
-//     tags: ['nice', 'developer'],
-//   },
-//   {
-//     key: '2',
-//     name: 'Jim Green',
-//     age: 42,
-//     address: 'London No. 1 Lake Park',
-//     tags: ['loser'],
-//   },
-//   {
-//     key: '3',
-//     name: 'Joe Black',
-//     age: 32,
-//     address: 'Sydney No. 1 Lake Park',
-//     tags: ['cool', 'teacher'],
-//   },
-// ];
+    )
+  }
+]
 
 const UserManagementPage = () => {
+  return <FilterTable<UsersDataType> url={userUrls.getUsers} columns={columns} />
+}
 
-  const { data, isLoading, error } = getAllData({ url: userUrls.getUsers, limit: 10, order: 'asc' });
-
-
-  if (isLoading) {
-    return <h2>This website have been loading</h2>
-  }
-
-  if (error) {
-    return <h2>Error: {error.message}</h2>
-  }
-
-  return (
-    <Table<DataType> columns={columns} dataSource={data?.data.data ?? []} />
-  )
-
-};
-
-export default UserManagementPage;
+export default UserManagementPage

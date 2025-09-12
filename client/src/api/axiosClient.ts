@@ -1,47 +1,47 @@
-import axios from "axios";
-import { getAccessToken, setAccessToken } from "../utils/AccessToken";
+import axios from 'axios'
+import { getAccessToken, setAccessToken } from '../utils/AccessToken'
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:9000/api/",
+  baseURL: 'http://localhost:9000/api/',
   timeout: 5000,
-  withCredentials: true,
-});
+  withCredentials: true
+})
 
-let isRefreshing = false;
+let isRefreshing = false
 let failedQueue: {
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}[] = [];
+  resolve: (value?: unknown) => void
+  reject: (reason?: unknown) => void
+}[] = []
 
 const processQueue = (error: any, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
-      prom.reject(error);
+      prom.reject(error)
     } else {
-      prom.resolve(token);
+      prom.resolve(token)
     }
-  });
+  })
 
-  failedQueue = [];
-};
+  failedQueue = []
+}
 
 // Add a request interceptor
 axiosClient.interceptors.request.use(
   function (config) {
     // Do something before request is sent
-    const token = getAccessToken();
+    const token = getAccessToken()
     if (token) {
-      config.headers[`Authorization`] = `Bearer ${token}`;
+      config.headers[`Authorization`] = `Bearer ${token}`
     }
 
-    return config;
+    return config
   },
   function (error: any) {
     // Do something with request error
-    return Promise.reject(error);
+    return Promise.reject(error)
   },
   { synchronous: true, runWhen: () => true /* This function returns true */ }
-);
+)
 
 // Add a response interceptor
 axiosClient.interceptors.response.use(
@@ -49,58 +49,58 @@ axiosClient.interceptors.response.use(
     // Any status code that lie within the range of 2xx cause this function to trigger
     // Do something with response data
 
-    return response;
+    return response
   },
   async function onRejected(error) {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
 
-    const originalRequest = error.config;
+    const originalRequest = error.config
 
     if (error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
-          failedQueue.push({ resolve, reject });
+          failedQueue.push({ resolve, reject })
         })
           .then((token) => {
-            originalRequest.headers[`Authorization`] = `Bearer ` + token;
-            return axiosClient(originalRequest);
+            originalRequest.headers[`Authorization`] = `Bearer ` + token
+            return axiosClient(originalRequest)
           })
           .catch((err) => {
-            return Promise.reject(err);
-          });
+            return Promise.reject(err)
+          })
       }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
+      originalRequest._retry = true
+      isRefreshing = true
 
       try {
         const { data } = await axios.post(
           `http://localhost:9000/api/auth/refresh-token`,
           {},
           {
-            withCredentials: true,
+            withCredentials: true
           }
-        );
+        )
 
-        const newToken = data.accessToken;
-        setAccessToken(newToken);
-        processQueue(null, newToken);
+        const newToken = data.accessToken
+        setAccessToken(newToken)
+        processQueue(null, newToken)
 
-        originalRequest.headers[`Authorization`] = `Bearer ` + newToken;
-        return axiosClient(originalRequest);
+        originalRequest.headers[`Authorization`] = `Bearer ` + newToken
+        return axiosClient(originalRequest)
       } catch (error) {
-        processQueue(error, null);
-        setAccessToken(null);
+        processQueue(error, null)
+        setAccessToken(null)
         // window.location.href = `/auth/logout`;
-        return Promise.reject(error);
+        return Promise.reject(error)
       } finally {
-        isRefreshing = false;
+        isRefreshing = false
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
-export default axiosClient;
+export default axiosClient

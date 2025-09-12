@@ -1,7 +1,7 @@
-let accessToken: string | null = null;
+let accessToken: string | null = null
 
 export const setAccessToken = (token: string | null) => {
-  accessToken = token;
-};
+  accessToken = token
+}
 
-export const getAccessToken = () => accessToken;
+export const getAccessToken = () => accessToken
