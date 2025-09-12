@@ -1,24 +1,63 @@
-import { User } from "~/models/User";
-import { QueryInterface } from "~/types/QueryInterface";
+import { User } from '~/models/User'
+import { QueryInterface } from '~/types/QueryInterface'
+import { UserInterface } from '~/types/UserInterface'
 
 const userService = {
-
-  getUsers: async ({ limit, order, search, skip, sortBy }: QueryInterface) => {
+  getUsers: async ({ limit, order, search, skip, sortBy }: QueryInterface): Promise<UserInterface[]> => {
     const users = await User.find()
       .sort(sortBy)
       .limit(limit ? limit : 0)
       .skip(skip ? skip : 0)
+      .populate('roles', 'name')
+      .lean<UserInterface[]>()
+      .select('username email')
       .exec()
-    return users;
+    return users
   },
 
   getUser: async (userId: string) => {
-    const user = await User.findById(userId);
-    return user;
+    const user = await User.findById(userId)
+    return user
   },
 
+  deleteUser: async (userId: string) => {
+    await User.deleteOne({
+      _id: userId
+    })
+  },
 
+  deleteUsers: async () => {
+    await User.deleteMany({
+    })
+  },
 
+  updateUser: async (userId: string, props: UserInterface) => {
+    try {
+      const oldUser = await User.findOne({
+        _id: userId
+      })
+
+      if (!oldUser) {
+        throw new Error('User not found')
+      }
+
+      const newUser = await User.updateOne(
+        {
+          _id: oldUser._id
+        },
+        {
+          username: props.username,
+          email: props.email,
+          password: props.password,
+          roles: props.roles
+        }
+      )
+
+      return newUser
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  }
 }
 
-export default userService;
+export default userService

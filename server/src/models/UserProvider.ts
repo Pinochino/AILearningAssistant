@@ -26,4 +26,4 @@ const userProviderSchema = new Schema<IUserProvider>({
   }
 })
 
-export const UserProvider = model('UserProvider', userProviderSchema);
+export const UserProvider = model('UserProvider', userProviderSchema)

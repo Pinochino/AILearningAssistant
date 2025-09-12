@@ -1,6 +1,6 @@
 export interface JwtResponse {
-  username: string;
-  email: string;
-  iat: number;
-  exp: number;
+  username: string
+  email: string
+  iat: number
+  exp: number
 }

@@ -7,8 +7,8 @@ export enum RoleName {
 }
 
 export interface IRole extends Document {
-  name: RoleName;
-  user: Types.ObjectId[];
+  name: RoleName
+  user: Types.ObjectId[]
 }
 
 const roleSchema = new Schema<IRole>(

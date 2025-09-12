@@ -1,114 +1,99 @@
-import { IUser, User } from "~/models/User"
-import { TokenResponse } from "~/types/TokenResponse";
-import { LoginType, RegisterType, UserInterface } from "~/types/UserInterface"
-import { compareHashed } from "~/utils/BcryptUtils";
-import { ValidatedToken, ValidatedTokenStatus } from "~/models/ValidatedToken";
-import { Role, RoleName } from "~/models/Role";
-import crypto from 'crypto';
-import emailService from "./emailService";
-import { createLoginResponse, generateAccessToken } from "~/utils/JwtUtils";
-import { ForgotPassword } from "~/models/ForgotPassword";
-import { UserProviderType } from "~/models/UserProvider";
+import { User } from '~/models/User'
+import { TokenResponse } from '~/types/TokenResponse'
+import { LoginType, RegisterType } from '~/types/UserInterface'
+import { compareHashed } from '~/utils/BcryptUtils'
+import { ValidatedToken, ValidatedTokenStatus } from '~/models/ValidatedToken'
+import { Role, RoleName } from '~/models/Role'
+import emailService from './emailService'
+import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils'
+import { ForgotPassword } from '~/models/ForgotPassword'
+import { Types } from 'mongoose'
 
 const authService = {
-  authenticate: async ({ email, password, provider }: LoginType): Promise<TokenResponse> => {
+  authenticate: async ({ email, password }: LoginType): Promise<TokenResponse> => {
     try {
-      let user;
-      if (provider === UserProviderType.LOCAL) {
-        user = await User.findOne({ email }).populate('role', "name");
-
-        if (!user) {
-          throw new Error("Invalid credentials")
-        }
-
-        const isValid = await compareHashed(password as string,
-          user.password as string);
-
-        if (!isValid) {
-          throw new Error("Invalid credentials")
-        }
-
-      } else if (provider === UserProviderType.GOOGLE) {
-
-      }
-
-      user = await User.findOne({ email });
+      const user = await User.findOne({ email }).populate('roles', 'name')
 
       if (!user) {
-        throw new Error('Not found user');
+        throw new Error('Invalid credentials')
       }
 
-      return createLoginResponse(user);
+      const isValid = await compareHashed(password as string, user.password as string)
 
+      if (!isValid) {
+        throw new Error('Invalid credentials')
+      }
+
+      return createLoginResponse(user)
     } catch (error: any) {
-      throw new Error("Error in login: " + error?.message)
+      throw new Error('Error in login: ' + error?.message)
     }
   },
 
   createUser: async ({ email, username, password }: RegisterType) => {
     try {
-      console.log(email)
       let user = await User.findOne({ email })
 
       if (user) {
-        throw new Error("User already have been existed")
+        throw new Error('User already have been existed')
       }
 
-      let role = await Role.findOne({ name: RoleName.USER });
+      let role = await Role.findOne({ name: RoleName.USER })
       if (!role) {
-        role = await Role.create({ name: RoleName.USER });
+        role = await Role.create({ name: RoleName.USER })
       }
 
-      user = await User.create({ username, email, password, role: role._id })
+      const roles: Types.ObjectId[] = [];
+      roles.push(role._id)
+
+      user = await User.create({ username, email, password, roles})
 
       await emailService.sendEmail({
-        from: "Tranhunghp22112004@gmail.com",
+        from: 'Tranhunghp22112004@gmail.com',
         to: user.email as string,
-        subject: "Welcome to LearningAssistant",
-        text: "Thank you for registering with LearningAssistant!"
+        subject: 'Welcome to LearningAssistant',
+        template: 'welcome',
+        context: {username: user.username}
       })
 
-      return user.populate('role', 'name');
+      return user.populate('roles', 'name')
     } catch (error: any) {
-      throw new Error("Error in register: " + error?.message)
-
+      throw new Error('Error in register: ' + error?.message)
     }
-
   },
 
   refreshToken: async (refreshToken: string) => {
-
     const validToken = await ValidatedToken.findOne({
-      token: refreshToken,
+      token: refreshToken
     })
 
     if (!validToken) {
-      throw new Error("Refresh token is wrong");
+      throw new Error('Refresh token is wrong')
     }
 
-    const user = await User.findById(validToken?.userId);
+    const user = await User.findById(validToken?.userId).populate('roles', 'name')
 
     if (!user) {
-      throw new Error("User id is not valid");
+      throw new Error('User id is not valid')
     }
 
     if (validToken.status !== ValidatedTokenStatus.ACTIVE) {
-      throw new Error("Refresh token is not active")
+      throw new Error('Refresh token is not active')
     }
 
-    const checkTime = validToken.expiredAt;
+    const checkTime = validToken.expiredAt
 
     if (!checkTime) {
-      throw new Error("Expired at is null");
+      throw new Error('Expired at is null')
     }
 
     if (checkTime < new Date()) {
       validToken.status = ValidatedTokenStatus.EXPIRED
-      await validToken.save();
-      throw new Error("Refresh token is expired")
+      await validToken.save()
+      throw new Error('Refresh token is expired')
     }
 
-    const accessToken = generateAccessToken(user);
+    const accessToken = generateAccessToken(user)
 
     return {
       accessToken: accessToken
@@ -116,24 +101,22 @@ const authService = {
   },
 
   logout: async (refreshToken: string) => {
-
     const oldRefreshToken = await ValidatedToken.findOne({
       token: refreshToken
     })
 
     if (!oldRefreshToken) {
-      throw new Error('Refresh token is wrong');
+      throw new Error('Refresh token is wrong')
     }
 
-    const user = await User.findById(oldRefreshToken.userId);
+    const user = await User.findById(oldRefreshToken.userId)
 
     if (!user) {
-      throw new Error("Invalid userId")
+      throw new Error('Invalid userId')
     }
 
-
     oldRefreshToken.status = ValidatedTokenStatus.REVOKED
-    await oldRefreshToken.save();
+    await oldRefreshToken.save()
   },
 
   cleanUpTokens: async () => {
@@ -144,22 +127,21 @@ const authService = {
         { expiredAt: { $lt: new Date() } }
       ]
     })
-
   },
 
   sendOtp: async (email: string) => {
     const user = await User.findOne({ email })
 
     if (!user) {
-      throw new Error("Email is wrong");
+      throw new Error('Email is wrong')
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000)
 
     await emailService.sendEmail({
-      from: "Tranhunghp22112004@gmail.com",
+      from: 'Tranhunghp22112004@gmail.com',
       to: user.email as string,
-      subject: "Forgot password",
+      subject: 'Forgot password',
       text: `Your OTP code is ${otp}`,
       template: 'otp',
       context: { otp }
@@ -171,14 +153,14 @@ const authService = {
       expired: new Date(Date.now() + 30 * 1000)
     })
 
-    return otp;
+    return otp
   },
 
   forgotPassword: async (otp: string, email: string, newPassword: string) => {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email })
 
     if (!user) {
-      throw new Error("Email is wrong")
+      throw new Error('Email is wrong')
     }
 
     const oldForgotPassword = await ForgotPassword.findOne({
@@ -187,15 +169,14 @@ const authService = {
     })
 
     if (!oldForgotPassword) {
-      throw new Error("Otp or email is wrong")
+      throw new Error('Otp or email is wrong')
     }
 
+    user.password = newPassword
+    await user.save()
 
-    user.password = newPassword;
-    await user.save();
-
-    oldForgotPassword.isUsed = true;
-    await oldForgotPassword.save();
+    oldForgotPassword.isUsed = true
+    await oldForgotPassword.save()
   },
 
   cleanUpOtps: async () => {
@@ -214,17 +195,14 @@ const authService = {
   },
 
   updatePassword: async (userId: string, newPassword: string) => {
-    const user = await User.findById(userId);
+    const user = await User.findById(userId)
 
     if (!user) {
-      throw new Error("User not found")
+      throw new Error('User not found')
     }
 
-    user.password = newPassword;
-    await user.save();
-  },
-
-
-
+    user.password = newPassword
+    await user.save()
+  }
 }
 export default authService

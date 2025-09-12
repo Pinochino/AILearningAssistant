@@ -1,21 +1,20 @@
-import { Request, Response } from "express";
-import path from "path";
-import { uploadFolder } from "~/configs/multerConfig";
+import { Request, Response } from 'express'
+import path from 'path'
+import { uploadFolder } from '~/configs/multerConfig'
 
 const fileController = {
   downloadFile: async (req: Request, res: Response) => {
-    const { fileName } = req.params;
+    const { fileName } = req.params
     const file = path.join(uploadFolder, `${fileName}`)
-    res.download(file);
+    res.download(file)
   },
 
   uploadFile: async (req: Request, res: Response) => {
-    const files = req.files;
+    const files = req.files
     console.log(files)
     res.send({ msg: `Upload file successfully` })
-    return;
+    return
   }
-
 }
 
-export default fileController;
+export default fileController

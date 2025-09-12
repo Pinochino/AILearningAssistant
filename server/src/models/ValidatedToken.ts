@@ -7,11 +7,11 @@ export enum ValidatedTokenStatus {
 }
 
 export interface IValidatedToken extends Document {
-  token: string;
-  userId: Types.ObjectId;
-  issuedAt: Date;
-  expiredAt: Date;
-  status: ValidatedTokenStatus;
+  token: string
+  userId: Types.ObjectId
+  issuedAt: Date
+  expiredAt: Date
+  status: ValidatedTokenStatus
 }
 
 const validatedTokenSchema = new Schema<IValidatedToken>(

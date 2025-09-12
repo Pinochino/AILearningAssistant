@@ -1,22 +1,58 @@
-import { Request, Response } from "express";
-import userService from "~/services/userService";
+import { Request, Response } from 'express'
+import userService from '~/services/userService'
+import { responseUtils } from '~/utils/ResponseUtils'
 
 const userController = {
-
   getAllUsers: async (req: Request, res: Response) => {
     try {
       const { limit, order, search, skip, sortBy } = req.query
-      const users = await userService.getUsers(req.query);
-      res.status(200).json({
-        msg: `Get users successfully`,
-        data: users,
-      })
-      return;
+      const users = await userService.getUsers(req.query)
+      responseUtils({ req, res, code: 200, message: `Get user successfully`, data: users })
     } catch (error: any) {
-      res.status(500).json({ error: error.message })
-      return;
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  getUser: async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params
+      const user = await userService.getUser(userId)
+      responseUtils({ req, res, code: 200, message: `Get user successfully`, data: user })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  deleteOne: async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params
+      await userService.deleteUser(userId)
+      responseUtils({ req, res, code: 200, message: `Delete user successfully` })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  deleteMany: async (req: Request, res: Response) => {
+    try {
+      await userService.deleteUsers();
+      responseUtils({ req, res, code: 200, message: `Delete all user success` })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  updateUser: async (req: Request, res: Response) => {
+    try {
+      const user = req.user
+      console.log(user)
+      console.log(req.body)
+      const result = await userService.updateUser(user.id, req.body)
+      responseUtils({ req, res, code: 400, message: `Update user successfully`, data: result})
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
     }
   }
 }
 
-export default userController;
+export default userController

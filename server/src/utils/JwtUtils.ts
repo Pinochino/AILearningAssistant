@@ -15,7 +15,7 @@ const verifyJwt = (token: string) => {
 }
 
 const generateAccessToken = (user: any) => {
-  const roles: string[] = user?.role.map((e: any) => e.name)
+  const roles: string[] = user?.roles.map((e: any) => e.name)
 
   const authPayload: JwtPayloadInterface = {
     id: user._id,
@@ -28,7 +28,7 @@ const generateAccessToken = (user: any) => {
   })
   return token
 }
-const createLoginResponse = async (user: IUser) => {
+const createLoginResponse = async (user: any) => {
   const accessToken = generateAccessToken(user)
   const refreshToken = crypto.randomBytes(32).toString('hex')
 
@@ -39,8 +39,20 @@ const createLoginResponse = async (user: IUser) => {
     expiredAt: Date.now() + 7 * 24 * 60 * 60 * 1000
   })
 
+  console.log('Role: ', user.roles)
+  const role = user.roles.map((r: any) => r.name)
+
+  console.log(role)
+
+  const payload = {
+    username: user.username,
+    email: user.email,
+    avatar: user.avatar,
+    role
+  }
+
   return {
-    user: user,
+    user: payload,
     accessToken,
     refreshToken
   }

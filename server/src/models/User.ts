@@ -6,7 +6,7 @@ export interface IUser extends Document {
   email: string
   password: string
   avatar?: string
-  role?: Types.ObjectId[]
+  roles?: Types.ObjectId[]
   forgotPassword?: Types.ObjectId[]
   validatedToken?: Types.ObjectId[]
   provider?: Types.ObjectId[]
@@ -27,7 +27,7 @@ const userSchema = new Schema<IUser>(
     avatar: {
       type: Schema.Types.String
     },
-    role: [
+    roles: [
       {
         type: Schema.Types.ObjectId,
         ref: 'Role'

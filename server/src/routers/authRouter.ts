@@ -12,24 +12,24 @@ authRouter.post('/logout', authController.logout)
 authRouter.post('/send-otp', authController.sendOtpCode)
 authRouter.post('/forgot-password', authController.forgotPassword)
 authRouter.post('/update-password', authController.forgotPassword)
-authRouter.get('/google',
+authRouter.get(
+  '/google',
   passport.authenticate('google', {
-    scope:
-      ['email', 'profile'],
-    session: false,
-  },
-  ));
+    scope: ['email', 'profile'],
+    session: false
+  })
+)
 authRouter.get(
   '/google/callback',
   passport.authenticate('google', {
     session: false,
     failureRedirect: '/google/failure'
-  }), 
-  function(req: Request, res: Response) {
-    const accessToken = generateAccessToken(req.user);
+  }),
+  function (req: Request, res: Response) {
+    const accessToken = generateAccessToken(req.user)
     res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`)
-    return;
-  });
-
+    return
+  }
+)
 
 export default authRouter
