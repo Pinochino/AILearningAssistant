@@ -14,18 +14,18 @@ const { Content } = Layout
 
 const AdminLayout = ({ children }: IAdminLayout) => {
   const {
-    token: { colorBgContainer, borderRadiusLG }
+    token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
 
   const { user } = useAppSelector((state: RootState) => state.auth.login)
   console.log(user)
 
   if (!user || !user.role.some((e: string) => e === 'ADMIN' || e === 'SUPER_ADMIN')) {
-    return <Navigate to='/forbidden' replace />
+    return <Navigate to="/forbidden" replace />
   }
 
   return (
-    <Layout className='h-[100vh]'>
+    <Layout className="h-[100vh]">
       <ASidebar />
       <Layout>
         <AHeader />
@@ -35,7 +35,7 @@ const AdminLayout = ({ children }: IAdminLayout) => {
               padding: 24,
               minHeight: 360,
               background: colorBgContainer,
-              borderRadius: borderRadiusLG
+              borderRadius: borderRadiusLG,
             }}
           >
             {children}

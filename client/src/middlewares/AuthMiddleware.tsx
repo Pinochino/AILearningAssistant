@@ -11,7 +11,7 @@ interface IAuthMiddleware {
 const AuthMiddleware = ({ children }: IAuthMiddleware) => {
   const accessToken = getAccessToken()
   if (!accessToken) {
-    return <Navigate to='/auth/login' replace />
+    return <Navigate to="/auth/login" replace />
   }
 
   return <>{children}</>

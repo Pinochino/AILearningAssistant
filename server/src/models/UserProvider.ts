@@ -1,4 +1,5 @@
 import { Document, model, Schema, Types } from 'mongoose'
+import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 export enum UserProviderType {
   LOCAL = 'LOCAL',
@@ -6,7 +7,7 @@ export enum UserProviderType {
   FACEBOOK = 'FACEBOOK'
 }
 
-interface IUserProvider extends Document {
+interface IUserProvider extends SoftDeleteDocument {
   userId: Types.ObjectId
   provider: UserProviderType
   providerId: string
@@ -26,4 +27,11 @@ const userProviderSchema = new Schema<IUserProvider>({
   }
 })
 
-export const UserProvider = model('UserProvider', userProviderSchema)
+userProviderSchema.plugin(MongooseDelete, {
+  deletedAt: true,
+  deletedBy: true,
+  deletedByType: String,
+  overrideMethods: 'all'
+})
+
+export const UserProvider = model<IUserProvider, SoftDeleteModel<IUserProvider>>('UserProvider', userProviderSchema)

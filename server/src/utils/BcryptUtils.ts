@@ -3,7 +3,9 @@ import bcrypt from 'bcrypt'
 const saltRounds = 10
 
 const hashedText = async (data: string | Buffer) => {
+  console.log(data)
   const hashed = await bcrypt.hash(data, saltRounds)
+
   return hashed
 }
 

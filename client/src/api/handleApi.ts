@@ -14,7 +14,7 @@ const handleApi = ({ url, method = 'GET', data, ...props }: IHandleApi) => {
     url,
     method,
     data,
-    ...props
+    ...props,
   })
 }
 export default handleApi

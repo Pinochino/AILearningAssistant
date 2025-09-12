@@ -1,0 +1,8 @@
+format prettier: pnpm run prettier:fix
+format eslint: pnpm run lint:fix
+
+BE: 
+pnpm build
+pnpm dev
+
+FE: pnpm run dev

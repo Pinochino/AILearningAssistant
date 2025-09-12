@@ -1,4 +1,5 @@
 import { model, Schema, Types } from 'mongoose'
+import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 export enum ValidatedTokenStatus {
   ACTIVE = 'ACTIVE',
@@ -6,7 +7,7 @@ export enum ValidatedTokenStatus {
   EXPIRED = 'EXPIRED'
 }
 
-export interface IValidatedToken extends Document {
+export interface IValidatedToken extends SoftDeleteDocument {
   token: string
   userId: Types.ObjectId
   issuedAt: Date
@@ -40,4 +41,14 @@ const validatedTokenSchema = new Schema<IValidatedToken>(
   }
 )
 
-export const ValidatedToken = model('ValidatedToken', validatedTokenSchema)
+validatedTokenSchema.plugin(MongooseDelete, {
+  deletedAt: true,
+  deletedBy: true,
+  deletedByType: String,
+  overrideMethods: 'all'
+})
+
+export const ValidatedToken = model<IValidatedToken, SoftDeleteModel<IValidatedToken>>(
+  'ValidatedToken',
+  validatedTokenSchema
+)

@@ -1,3 +1,3 @@
 export const userUrls = {
-  getUsers: '/users/list'
+  getUsers: '/users/list',
 }

@@ -23,11 +23,11 @@ const emailHbs = create({
 })
 
 // Gắn plugin handlebars cho transporter
-transporter.use(
-  'compile',
-  hbs({
-    viewEngine: emailHbs,
-    viewPath: path.join(__dirname, '..', 'views', 'email'),
-    extName: '.hbs'
-  })
-)
+// transporter.use(
+//   'compile',
+//   hbs({
+//     viewEngine: emailHbs,
+//     viewPath: path.join(__dirname, '..', 'views', 'email'),
+//     extName: '.hbs'
+//   })
+// )

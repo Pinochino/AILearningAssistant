@@ -7,7 +7,7 @@ interface IAuthLayout {
 
 const AuthLayout = ({ children }: IAuthLayout) => {
   return (
-    <div className='h-[100vh] flex justify-center items-center'>
+    <div className="h-[100vh] flex justify-center items-center">
       {children}
       <Outlet />
     </div>

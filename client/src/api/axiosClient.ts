@@ -4,7 +4,7 @@ import { getAccessToken, setAccessToken } from '../utils/AccessToken'
 const axiosClient = axios.create({
   baseURL: 'http://localhost:9000/api/',
   timeout: 5000,
-  withCredentials: true
+  withCredentials: true,
 })
 
 let isRefreshing = false
@@ -40,7 +40,7 @@ axiosClient.interceptors.request.use(
     // Do something with request error
     return Promise.reject(error)
   },
-  { synchronous: true, runWhen: () => true /* This function returns true */ }
+  { synchronous: true, runWhen: () => true /* This function returns true */ },
 )
 
 // Add a response interceptor
@@ -79,8 +79,8 @@ axiosClient.interceptors.response.use(
           `http://localhost:9000/api/auth/refresh-token`,
           {},
           {
-            withCredentials: true
-          }
+            withCredentials: true,
+          },
         )
 
         const newToken = data.accessToken
@@ -100,7 +100,7 @@ axiosClient.interceptors.response.use(
     }
 
     return Promise.reject(error)
-  }
+  },
 )
 
 export default axiosClient

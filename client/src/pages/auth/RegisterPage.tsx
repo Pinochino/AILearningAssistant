@@ -1,10 +1,10 @@
+import AuthForm from '@/components/ui/forms/auth-form'
 import React from 'react'
-import AuthForm from '../../components/ui/forms/auth-form'
 
 const RegisterPage = () => {
   return (
-    <div className='flex justify-center items-center h-auto w-[100%]'>
-      <AuthForm type='register' />
+    <div className="flex justify-center items-center h-auto w-[100%]">
+      <AuthForm type="register" />
     </div>
   )
 }

@@ -9,7 +9,7 @@ import { useAppSelector } from '@/redux/hooks'
 const { Header } = Layout
 const AHeader = () => {
   const {
-    token: { colorBgContainer, borderRadiusLG }
+    token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
 
   const dispatch = useDispatch()
@@ -22,13 +22,13 @@ const AHeader = () => {
   return (
     <Header style={{ background: colorBgContainer }}>
       <Button
-        type='text'
+        type="text"
         icon={sidebarToggle ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         onClick={handleToggleSidebar}
         style={{
           fontSize: '16px',
           width: 64,
-          height: 64
+          height: 64,
         }}
       />
     </Header>

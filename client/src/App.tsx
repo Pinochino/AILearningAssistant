@@ -19,8 +19,8 @@ function App() {
           '/auth/refresh-token',
           {},
           {
-            withCredentials: true
-          }
+            withCredentials: true,
+          },
         )
         const result = await res.data
         console.log(result.data.accessToken)
@@ -56,7 +56,14 @@ function App() {
               {e.children &&
                 e.children.map((child, k: number) => {
                   const ChildPage = child.Component as React.ElementType
-                  return <Route key={k} path={child.path} index={child.index as boolean} element={<ChildPage />} />
+                  return (
+                    <Route
+                      key={k}
+                      path={child.path}
+                      index={child.index as boolean}
+                      element={<ChildPage />}
+                    />
+                  )
                 })}
             </Route>
           )
@@ -88,7 +95,14 @@ function App() {
               {e.children &&
                 e.children.map((child, k: number) => {
                   const ChildPage = child.Component as React.ElementType
-                  return <Route key={k} path={child.path} index={child.index as boolean} element={<ChildPage />} />
+                  return (
+                    <Route
+                      key={k}
+                      path={child.path}
+                      index={child.index as boolean}
+                      element={<ChildPage />}
+                    />
+                  )
                 })}
             </Route>
           )

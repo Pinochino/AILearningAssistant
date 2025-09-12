@@ -4,7 +4,7 @@ import authService from '../../services/AuthService.js'
 import { PayloadAction } from '@reduxjs/toolkit'
 
 interface IAuthSlice {
-  user: any | null
+  user?: any | null
   loading: 'idle' | 'pending' | 'success' | 'failed'
   error: string | null
 }
@@ -13,17 +13,17 @@ const initialState = {
   login: {
     user: null,
     loading: 'idle',
-    error: null
+    error: null,
   } as IAuthSlice,
   register: {
     user: null,
     loading: 'idle',
-    error: null
+    error: null,
   } as IAuthSlice,
   logout: {
     loading: 'idle',
-    error: null
-  } as IAuthSlice
+    error: null,
+  } as IAuthSlice,
 }
 
 const authSlice = createSlice({
@@ -31,35 +31,43 @@ const authSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    ;(builder.addCase(authService.login.pending, (state) => {
-      state.login.loading = 'pending'
-    }),
-      builder.addCase(authService.login.fulfilled, (state, action) => {
-        ;((state.login.loading = 'success'), (state.login.user = action.payload.data.user))
-        // state.login.refreshToken = action.payload?.data?.refreshToken;
-      }),
-      builder.addCase(authService.login.rejected, (state, action) => {
-        ;((state.login.loading = 'failed'), (state.login.error = action.error.message as string))
-      }))
-    ;(builder.addCase(authService.logout.pending, (state) => {
-      state.logout.loading = 'pending'
-    }),
-      builder.addCase(authService.logout.fulfilled, (state) => {
-        ;((state.logout.loading = 'success'), (state.login.user = null))
-      }),
-      builder.addCase(authService.logout.rejected, (state, action) => {
-        ;((state.logout.loading = 'failed'), (state.logout.error = action.error.message as string))
-      }))
-    builder.addCase(authService.register.pending, (state) => {
-      state.register.loading = 'pending'
-    })
-    builder.addCase(authService.register.fulfilled, (state, action) => {
-      ;((state.register.loading = 'success'), (state.register.user = action.payload))
-    })
-    builder.addCase(authService.register.rejected, (state, action) => {
-      ;((state.register.loading = 'failed'), (state.register.error = action.error.message as string))
-    })
-  }
+    builder
+      .addCase(authService.login.pending, (state) => {
+        state.login.loading = 'pending'
+      })
+      .addCase(authService.login.fulfilled, (state, action) => {
+        state.login.loading = 'success'
+        state.login.user = action.payload.data.user
+      })
+      .addCase(authService.login.rejected, (state, action) => {
+        state.login.loading = 'failed'
+        state.login.error = action.error.message as string
+      })
+      .addCase(authService.register.pending, (state) => {
+        state.register.loading = 'pending'
+      })
+      .addCase(authService.register.fulfilled, (state, action) => {
+        state.register.loading = 'success'
+        state.register.user = action.payload
+      })
+      .addCase(authService.register.rejected, (state, action) => {
+        state.register.loading = 'failed';
+        state.register.error = action.error.message as string;
+      })
+      .addCase(authService.logout.pending, (state) => {
+        state.logout.loading = 'pending'
+      })
+      .addCase(authService.logout.fulfilled, (state) => {
+        state.logout.loading = 'success'
+        state.login.user = null
+      })
+      .addCase(authService.logout.rejected, (state, action) => {
+        state.logout.loading = 'failed'
+        state.logout.error = action.error.message as string
+      })
+
+
+  },
 })
 
 export const authReducer = authSlice.reducer

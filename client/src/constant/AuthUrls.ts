@@ -4,5 +4,6 @@ export const authUrls = {
   logout: '/auth/logout',
   refreshToken: '/auth/refresh-token',
   sendOtp: '/auth/send-otp',
-  fotgotPassword: '/auth/forgot-password'
+  verifyOtp: '/auth/verify-otp',
+  fotgotPassword: '/auth/forgot-password',
 }

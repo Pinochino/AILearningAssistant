@@ -4,7 +4,7 @@ import { sidebarReducer } from './sidebarReducer'
 
 const reducers = combineReducers({
   auth: authReducer,
-  sidebar: sidebarReducer
+  sidebar: sidebarReducer,
 })
 
 export default reducers

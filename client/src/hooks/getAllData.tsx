@@ -23,7 +23,7 @@ export default function getAllData({ url, ...param }: IGetAllData) {
       handleApi({
         url: `${url}?${queryString}`,
         method: 'GET',
-        withCredentials: true
-      })
+        withCredentials: true,
+      }),
   })
 }

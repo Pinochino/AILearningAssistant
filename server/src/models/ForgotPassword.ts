@@ -1,6 +1,7 @@
-import mongoose, { Document, Schema, Types } from 'mongoose'
+import mongoose, { Schema, Types } from 'mongoose'
+import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
-export interface ForgotPasswordInterface extends Document {
+export interface ForgotPasswordInterface extends SoftDeleteDocument {
   otp: string
   userId: Types.ObjectId
   attemps: Schema.Types.Int32
@@ -35,4 +36,14 @@ const forgotPasswordSchema = new Schema<ForgotPasswordInterface>(
   }
 )
 
-export const ForgotPassword = mongoose.model('ForgotPassword', forgotPasswordSchema)
+forgotPasswordSchema.plugin(MongooseDelete, {
+  deletedAt: true,
+  deletedBy: true,
+  deletedByType: String,
+  overrideMethods: 'all'
+})
+
+export const ForgotPassword = mongoose.model<ForgotPasswordInterface, SoftDeleteModel<ForgotPasswordInterface>>(
+  'ForgotPassword',
+  forgotPasswordSchema
+)

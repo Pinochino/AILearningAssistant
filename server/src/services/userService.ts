@@ -27,8 +27,7 @@ const userService = {
   },
 
   deleteUsers: async () => {
-    await User.deleteMany({
-    })
+    await User.deleteMany({})
   },
 
   updateUser: async (userId: string, props: UserInterface) => {
@@ -53,7 +52,40 @@ const userService = {
         }
       )
 
+      console.log(newUser)
+
       return newUser
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  },
+
+  softDeleteUser: async (userId: string) => {
+    try {
+      const deletedUser = await User.delete({
+        _id: userId
+      })
+      return deletedUser
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  },
+
+  restoreUser: async (userId: string) => {
+    try {
+      const user = await User.restore({
+        _id: userId
+      })
+      return user
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  },
+
+  findDeletedUser: async () => {
+    try {
+      const deletedUsers = await User.findDeleted({})
+      return deletedUsers
     } catch (error: any) {
       throw new Error(error.message)
     }

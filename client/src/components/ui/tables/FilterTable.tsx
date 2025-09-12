@@ -42,7 +42,7 @@ function FilterTable<T extends { key: React.Key }>({ url, columns }: IFilterTabl
             return true
           })
           setSelectedRowKeys(newSelectedRowKeys)
-        }
+        },
       },
       {
         key: 'even',
@@ -56,9 +56,9 @@ function FilterTable<T extends { key: React.Key }>({ url, columns }: IFilterTabl
             return false
           })
           setSelectedRowKeys(newSelectedRowKeys)
-        }
-      }
-    ]
+        },
+      },
+    ],
   }
 
   if (isLoading) {

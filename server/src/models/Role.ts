@@ -1,4 +1,5 @@
 import { model, Schema, Types } from 'mongoose'
+import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 export enum RoleName {
   USER = 'USER',
@@ -6,7 +7,7 @@ export enum RoleName {
   SUPER_ADMIN = 'SUPER_ADMIN'
 }
 
-export interface IRole extends Document {
+export interface IRole extends SoftDeleteDocument {
   name: RoleName
   user: Types.ObjectId[]
 }
@@ -30,4 +31,6 @@ const roleSchema = new Schema<IRole>(
   }
 )
 
-export const Role = model('Role', roleSchema)
+roleSchema.plugin(MongooseDelete, { deletedAt: true, deletedBy: true, deletedByType: String, overrideMethods: 'all' })
+
+export const Role = model<IRole, SoftDeleteModel<IRole>>('Role', roleSchema)

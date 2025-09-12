@@ -12,8 +12,8 @@ const queryClient = new QueryClient()
 
 const ReactQueryDevtoolsProduction = React.lazy(() =>
   import('@tanstack/react-query-devtools/build/modern/production.js').then((d) => ({
-    default: d.ReactQueryDevtools
-  }))
+    default: d.ReactQueryDevtools,
+  })),
 )
 
 createRoot(document.getElementById('root') as HTMLElement).render(
@@ -27,5 +27,5 @@ createRoot(document.getElementById('root') as HTMLElement).render(
         </Provider>
       </CookiesProvider>
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 )

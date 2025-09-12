@@ -24,6 +24,12 @@ const authController = {
   register: async (req: Request, res: Response) => {
     try {
       const user = await authService.createUser(req.body)
+      res.cookie('REFRESH_TOKEN', user?.refreshToken, {
+        maxAge: 60 * 1000,
+        sameSite: 'strict',
+        httpOnly: false,
+        expires: new Date(Date.now() * 60 * 60 * 1000)
+      })
       responseUtils({ req, res, code: 200, message: `Register successfully`, data: user })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
@@ -79,6 +85,16 @@ const authController = {
       const { password: newPassword } = req.body
       await authService.updatePassword(userId, newPassword)
       responseUtils({ req, res, code: 200, message: `Update password successfully` })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  verifyOtp: async (req: Request, res: Response) => {
+    try {
+      const { otp, email } = req.body
+      const result = await authService.verifyOtp(otp, email)
+      responseUtils({ req, res, code: 200, message: 'Verify otp successfully', data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

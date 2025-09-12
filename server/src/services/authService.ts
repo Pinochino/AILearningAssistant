@@ -43,20 +43,21 @@ const authService = {
         role = await Role.create({ name: RoleName.USER })
       }
 
-      const roles: Types.ObjectId[] = [];
+      const roles: Types.ObjectId[] = []
       roles.push(role._id)
 
-      user = await User.create({ username, email, password, roles})
+      user = await User.create({ username, email, password, roles })
 
       await emailService.sendEmail({
         from: 'Tranhunghp22112004@gmail.com',
         to: user.email as string,
         subject: 'Welcome to LearningAssistant',
         template: 'welcome',
-        context: {username: user.username}
+        context: { username: user.username }
       })
 
-      return user.populate('roles', 'name')
+      await user.populate('roles', 'name')
+      return createLoginResponse(user)
     } catch (error: any) {
       throw new Error('Error in register: ' + error?.message)
     }
@@ -142,9 +143,9 @@ const authService = {
       from: 'Tranhunghp22112004@gmail.com',
       to: user.email as string,
       subject: 'Forgot password',
-      text: `Your OTP code is ${otp}`,
-      template: 'otp',
-      context: { otp }
+      text: `Your otp is ${otp}`
+      // template: 'otp',
+      // context: { otp: otp }
     })
 
     await ForgotPassword.create({
@@ -154,6 +155,28 @@ const authService = {
     })
 
     return otp
+  },
+
+  verifyOtp: async (otp: string, email: string) => {
+    try {
+      const user = await User.findOne({
+        email
+      })
+
+      if (!user) {
+        throw new Error('Email is wrong')
+      }
+
+      const checkOtp = await ForgotPassword.findOne({
+        otp,
+        expiredAt: { $gte: new Date() },
+        userId: user._id,
+        isUsed: false
+      })
+      return checkOtp
+    } catch (error: any) {
+      throw new Error(error)
+    }
   },
 
   forgotPassword: async (otp: string, email: string, newPassword: string) => {

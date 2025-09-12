@@ -35,7 +35,7 @@ const userController = {
 
   deleteMany: async (req: Request, res: Response) => {
     try {
-      await userService.deleteUsers();
+      await userService.deleteUsers()
       responseUtils({ req, res, code: 200, message: `Delete all user success` })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
@@ -44,11 +44,38 @@ const userController = {
 
   updateUser: async (req: Request, res: Response) => {
     try {
-      const user = req.user
-      console.log(user)
-      console.log(req.body)
-      const result = await userService.updateUser(user.id, req.body)
-      responseUtils({ req, res, code: 400, message: `Update user successfully`, data: result})
+      const { userId } = req.params
+      const result = await userService.updateUser(userId, req.body)
+      responseUtils({ req, res, code: 400, message: `Update user successfully`, data: result })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  softDelete: async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params
+      const result = await userService.softDeleteUser(userId)
+      responseUtils({ req, res, code: 400, message: `Soft delete user successfully`, data: result })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  restoreUser: async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params
+      const result = await userService.restoreUser(userId)
+      responseUtils({ req, res, code: 400, message: `Restore user successfully`, data: result })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  findDeletedUsers: async (req: Request, res: Response) => {
+    try {
+      const result = await userService.findDeletedUser()
+      responseUtils({ req, res, code: 400, message: `Get all deleted user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

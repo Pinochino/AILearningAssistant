@@ -17,7 +17,7 @@ const columns: TableProps<UsersDataType>['columns'] = [
     title: 'Id',
     dataIndex: '_id',
     key: '_id',
-    render: (text) => <a>{text}</a>
+    render: (text) => <a>{text}</a>,
   },
   {
     title: 'Username',
@@ -26,14 +26,14 @@ const columns: TableProps<UsersDataType>['columns'] = [
     key: 'username',
     onFilter: (value, record) => record.username.indexOf(value as string) === 0,
     sorter: (a, b) => a.username.length - b.username.length,
-    sortDirections: ['descend']
+    sortDirections: ['descend'],
   },
   {
     title: 'Email',
     dataIndex: 'email',
     key: 'email',
     sorter: (a, b) => a.email - b.email,
-    filterSearch: true
+    filterSearch: true,
   },
   {
     title: 'Roles',
@@ -54,20 +54,20 @@ const columns: TableProps<UsersDataType>['columns'] = [
         })}
       </>
     ),
-    filterSearch: true
+    filterSearch: true,
   },
   {
     title: 'Action',
     key: 'action',
     render: (_, record) => (
-      <Space size='middle'>
-        <Button color='cyan' variant='solid'>
+      <Space size="middle">
+        <Button color="cyan" variant="solid">
           Update
         </Button>
         <Button danger>Delete</Button>
       </Space>
-    )
-  }
+    ),
+  },
 ]
 
 const UserManagementPage = () => {

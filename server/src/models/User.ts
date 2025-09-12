@@ -1,7 +1,8 @@
-import { Document, model, Schema, Types } from 'mongoose'
+import { model, Query, Schema, Types } from 'mongoose'
 import { hashedText } from '~/utils/BcryptUtils'
+import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
-export interface IUser extends Document {
+export interface IUser extends SoftDeleteDocument {
   username: string
   email: string
   password: string
@@ -57,7 +58,9 @@ const userSchema = new Schema<IUser>(
   }
 )
 
-userSchema.pre('save', async function (next) {
+userSchema.plugin(MongooseDelete, { deletedBy: true, deletedByType: String, deletedAt: true, overrideMethods: 'all' })
+
+userSchema.pre<IUser>('save', async function (next) {
   try {
     const hashedhPassword = await hashedText(this.password as string)
     this.password = hashedhPassword
@@ -66,4 +69,17 @@ userSchema.pre('save', async function (next) {
   }
 })
 
-export const User = model('User', userSchema)
+userSchema.pre<Query<any, IUser>>('updateOne', async function (next) {
+  try {
+    const update = this.getUpdate() as any
+    if (update) {
+      update.password = await hashedText(update.password)
+      this.setUpdate(update)
+    }
+    next()
+  } catch (err: any) {
+    next(err)
+  }
+})
+
+export const User = model<IUser, SoftDeleteModel<IUser>>('User', userSchema)
