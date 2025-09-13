@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCookies } from 'react-cookie'
 import authService from '../../services/AuthService'
 import { useAppDispatch } from '../../redux/hooks'
+import WhisperWeb from '@/services/speech_recognition/WhisperWeb'
 
 const HomePage = () => {
   const dispatch = useAppDispatch()
@@ -23,6 +24,7 @@ const HomePage = () => {
     <div>
       HomePage
       <Button onClick={handleLogout}>Logout</Button>
+      <WhisperWeb />
     </div>
   )
 }
