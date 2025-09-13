@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { useCookies } from 'react-cookie'
 import authService from '../../services/AuthService'
 import { useAppDispatch } from '../../redux/hooks'
-import WhisperWeb from '@/services/speech_recognition/WhisperWeb'
+import WhisperWeb from '@/components/ui/speech_recognition/WhisperWeb'
+import TextToSpeechClient from '@/components/ui/text-to-speech-client/TextToSpeechClient'
+import ReactTranslator from '@/components/ui/multilingual_translation/ReactTranslator'
 
 const HomePage = () => {
   const dispatch = useAppDispatch()
@@ -24,7 +26,7 @@ const HomePage = () => {
     <div>
       HomePage
       <Button onClick={handleLogout}>Logout</Button>
-      <WhisperWeb />
+     <TextToSpeechClient />
     </div>
   )
 }
