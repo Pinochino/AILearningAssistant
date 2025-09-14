@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose'
+import { model, Schema, Types } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 export enum ScheduleRecurrence {
@@ -14,6 +14,9 @@ interface ISchedule extends SoftDeleteDocument {
   endTime: Date
   recurrence: ScheduleRecurrence
   notificationEnabled: boolean
+  notifications: Types.ObjectId[]
+  subjectId: Types.ObjectId
+  userId: Types.ObjectId
 }
 
 const scheduleSchema = new Schema<ISchedule>({
@@ -31,6 +34,20 @@ const scheduleSchema = new Schema<ISchedule>({
   notificationEnabled: {
     type: Schema.Types.Boolean,
     default: false
+  },
+  notifications: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Notification'
+    }
+  ],
+  subjectId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Subject'
+  },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   }
 })
 

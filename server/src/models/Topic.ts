@@ -1,9 +1,10 @@
-import mongoose, { model, Schema } from 'mongoose'
+import mongoose, { model, Schema, Types } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 interface ITopic extends SoftDeleteDocument {
   title: string
-  order_index: number
+  orderIndex: Types.ObjectId
+  studyProgress: Types.ObjectId[]
 }
 
 const topicSchema = new Schema<ITopic>(
@@ -11,10 +12,17 @@ const topicSchema = new Schema<ITopic>(
     title: {
       type: Schema.Types.String
     },
-    order_index: {
-      type: Schema.Types.Number,
-      default: 0
-    }
+    orderIndex: {
+      type: Schema.Types.ObjectId,
+      ref: 'Subject',
+      required: true
+    },
+    studyProgress: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'StudyProgress'
+      }
+    ]
   },
   {
     timestamps: true

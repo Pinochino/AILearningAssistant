@@ -1,9 +1,12 @@
-import { model, Schema } from 'mongoose'
+import { model, Schema, Types } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 interface IQuizz extends SoftDeleteDocument {
   title: string
-  createdAt: Date
+  quizQuestions: Types.ObjectId[]
+  quizResults: Types.ObjectId[]
+  userId: Types.ObjectId
+  subjectId: Types.ObjectId
 }
 
 const quizzSchema = new Schema<IQuizz>(
@@ -11,9 +14,25 @@ const quizzSchema = new Schema<IQuizz>(
     title: {
       type: Schema.Types.String
     },
-    createdAt: {
-      type: Schema.Types.Date,
-      default: new Date()
+    quizQuestions: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'QuizzQuestion'
+      }
+    ],
+    quizResults: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'QuizzResult'
+      }
+    ],
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    subjectId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Subject'
     }
   },
   {

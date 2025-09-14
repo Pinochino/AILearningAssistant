@@ -12,9 +12,13 @@
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
+    "@huggingface/hub": "^2.6.4",
+    "@huggingface/inference": "^4.8.0",
+    "@huggingface/transformers": "^3.7.3",
     "@types/express-handlebars": "^6.0.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport-google-oauth2": "^0.1.10",
+    "@xenova/transformers": "^2.17.2",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cloudinary": "^2.7.0",

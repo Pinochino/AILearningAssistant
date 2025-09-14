@@ -24,7 +24,7 @@ const studyProgressSchema = new Schema<IStudyProgress>(
       type: Schema.Types.Date
     },
     ai_recommendation: {
-      type: Schema.Types.ObjectId,
+      type: Schema.Types.Mixed,
       default: {}
     }
   },

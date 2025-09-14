@@ -26,7 +26,7 @@ const notificationSchema = new Schema<INotification>(
     },
     sendAt: {
       type: Schema.Types.Date,
-      default: new Date()
+      default: Date.now
     }
   },
   {

@@ -1,10 +1,18 @@
 import { model, Schema } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
+export enum ResourceType {
+  PDF = 'PDF',
+  DOCX = 'DOCX',
+  PPTX = 'PPTX',
+  VIDEO = 'VIDEO',
+  OTHER = 'OTHER'
+}
+
 interface IResource extends SoftDeleteDocument {
   title: string
   description?: string
-  resourceType: string
+  resourceType: ResourceType
   path: string
 }
 
@@ -17,7 +25,8 @@ const resourceSchema = new Schema<IResource>(
       type: Schema.Types.String
     },
     resourceType: {
-      type: Schema.Types.String
+      type: Schema.Types.String,
+      enum: ResourceType
     },
     path: {
       type: Schema.Types.String

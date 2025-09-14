@@ -10,7 +10,7 @@ export enum QuizzQuestionType {
 interface IQuizzQuestion extends SoftDeleteDocument {
   quizzType: QuizzQuestionType
   questionText: string
-  correctAnswer: string
+  correctAnswer: Array<string>
 }
 
 const quizzQuestionSchema = new Schema<IQuizzQuestion>(
@@ -22,9 +22,11 @@ const quizzQuestionSchema = new Schema<IQuizzQuestion>(
     questionText: {
       type: Schema.Types.String
     },
-    correctAnswer: {
-      type: Schema.Types.String
-    }
+    correctAnswer: [
+      {
+        type: Schema.Types.String
+      }
+    ]
   },
   { timestamps: true }
 )

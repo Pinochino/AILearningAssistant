@@ -8,22 +8,34 @@ export interface IUser extends SoftDeleteDocument {
   password: string
   avatar?: string
   roles?: Types.ObjectId[]
+  provider?: Types.ObjectId[]
   forgotPassword?: Types.ObjectId[]
   validatedToken?: Types.ObjectId[]
-  provider?: Types.ObjectId[]
+  subjects?: Types.ObjectId[]
+  notes?: Types.ObjectId[]
+  schedules?: Types.ObjectId[]
+  notifications?: Types.ObjectId[]
+  studyProgress?: Types.ObjectId[]
 }
 
 const userSchema = new Schema<IUser>(
   {
     username: {
-      type: Schema.Types.String
+      type: Schema.Types.String,
+      required: [true, 'Username is required'],
+      trim: true
     },
     email: {
       type: Schema.Types.String,
-      unique: true
+      unique: true,
+      required: [true, 'Email is required'],
+      index: true,
+      trim: true
     },
     password: {
-      type: Schema.Types.String
+      type: Schema.Types.String,
+      required: [true, 'Password is required'],
+      min: [6, 'Password has at least 3 character']
     },
     avatar: {
       type: Schema.Types.String
@@ -51,6 +63,36 @@ const userSchema = new Schema<IUser>(
         type: Schema.Types.ObjectId,
         ref: 'UserProvider'
       }
+    ],
+    subjects: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Subject'
+      }
+    ],
+    notes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Note'
+      }
+    ],
+    schedules: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Schedule'
+      }
+    ],
+    notifications: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Notification'
+      }
+    ],
+    studyProgress: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'StudyProgress'
+      }
     ]
   },
   {
@@ -62,8 +104,10 @@ userSchema.plugin(MongooseDelete, { deletedBy: true, deletedByType: String, dele
 
 userSchema.pre<IUser>('save', async function (next) {
   try {
-    const hashedhPassword = await hashedText(this.password as string)
-    this.password = hashedhPassword
+    if (this.isModified('password')) {
+      this.password = await hashedText(this.password as string)
+    }
+    next()
   } catch (err: any) {
     next(err)
   }
@@ -72,7 +116,7 @@ userSchema.pre<IUser>('save', async function (next) {
 userSchema.pre<Query<any, IUser>>('updateOne', async function (next) {
   try {
     const update = this.getUpdate() as any
-    if (update) {
+    if (update.password && typeof update.password === 'string') {
       update.password = await hashedText(update.password)
       this.setUpdate(update)
     }
