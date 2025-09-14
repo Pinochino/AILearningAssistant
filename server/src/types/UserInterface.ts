@@ -1,6 +1,7 @@
 import { UserProviderType } from '~/models/UserProvider'
 
 export interface UserInterface {
+  id: string
   username?: string
   email: string
   password?: string

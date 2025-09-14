@@ -1,7 +1,7 @@
 import { model, Schema, Types } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
-interface ISubject extends SoftDeleteDocument {
+export interface ISubject extends SoftDeleteDocument {
   name: string
   description?: string
   topics: Types.ObjectId[]
@@ -11,13 +11,16 @@ interface ISubject extends SoftDeleteDocument {
   schedules: Types.ObjectId[]
   notifications: Types.ObjectId[]
   studyProgress: Types.ObjectId[]
+  userId: Types.ObjectId
 }
 
 const subjectSchema = new Schema<ISubject>(
   {
     name: {
       type: Schema.Types.String,
-      required: [true, `Subject's name is required`]
+      required: [true, `Subject's name is required`],
+      unique: [true, `Subject's name is unique`],
+      trim: true
     },
     description: {
       type: Schema.Types.String
@@ -63,7 +66,11 @@ const subjectSchema = new Schema<ISubject>(
         type: Schema.Types.ObjectId,
         ref: 'StudyProgress'
       }
-    ]
+    ],
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    }
   },
   {
     timestamps: true

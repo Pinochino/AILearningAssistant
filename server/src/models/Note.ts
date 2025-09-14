@@ -2,7 +2,7 @@ import { model, Schema, Types } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument } from 'mongoose-delete'
 
 interface INote extends SoftDeleteDocument {
-  title: string
+  title?: string
   content: string
   userId: Types.ObjectId
   subjectId: Types.ObjectId
