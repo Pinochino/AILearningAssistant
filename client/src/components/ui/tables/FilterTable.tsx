@@ -1,18 +1,27 @@
-import { Table, TableProps } from 'antd'
+import { Button, Modal, Table, TableProps } from 'antd'
 import React, { useState } from 'react'
 import getAllData from '../../../hooks/getAllData'
 import { ColumnsType } from 'antd/es/table'
+import { useAppDispatch, useAppSelector } from '@/redux/hooks'
+import { RootState } from '@/redux/store'
+import { closeModal, openModal } from '@/redux/reducers/diaglogReducer'
 
 interface IFilterTable<T> {
   url: string
+  createMode?: boolean
   columns: ColumnsType<T>
 }
 
 type TableRowSelection<T extends object = object> = TableProps<T>['rowSelection']
 
-function FilterTable<T extends { key: React.Key }>({ url, columns }: IFilterTable<T>) {
+function FilterTable<T extends { key: React.Key }>({ url, columns, createMode }: IFilterTable<T>) {
   const { data, isLoading, error } = getAllData({ url, limit: 10, order: 'asc' })
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const { isOpen } = useAppSelector((state: RootState) => state.modal.createUser)
+  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
+  const [modalText, setModalText] = useState<string>('Content of the modal');
+
+  const dispatch = useAppDispatch();
 
   const handleSelection = (newSelectedRowKeys: React.Key[]) => {
     console.log(`selectedRowKeys changed: `, newSelectedRowKeys)
@@ -69,14 +78,51 @@ function FilterTable<T extends { key: React.Key }>({ url, columns }: IFilterTabl
     return <h2>Error: {error.message}</h2>
   }
 
+  const showModal = () => {
+    dispatch(openModal(isOpen))
+  }
+
+  const handleOk = () => {
+    setModalText("The modal will be closed after two seconds");
+    setConfirmLoading(true)
+    setTimeout(() => {
+      dispatch(closeModal(isOpen))
+      setConfirmLoading(false);
+    }, 2000)
+  }
+
+  const handleCancel = () => {
+    console.log('Clicked cancel button');
+    dispatch(closeModal(isOpen))
+  }
+
   return (
-    <Table<T>
-      columns={columns}
-      dataSource={data?.data.data ?? []}
-      rowSelection={rowSelection}
-      onChange={handleFilterandSorter}
-      showSorterTooltip={{ target: 'sorter-icon' }}
-    />
+    <div>
+      {
+        createMode === true &&
+        <>
+          <div className='flex justify-end'>  <Button
+            onClick={showModal}
+            type='primary'>Create</Button></div>
+          <Modal
+            title="Title"
+            open={isOpen}
+            onOk={handleOk}
+            confirmLoading={confirmLoading}
+            onCancel={handleCancel}
+          >
+            <p>{modalText}</p>
+          </Modal>
+        </>
+      }
+      <Table<T>
+        columns={columns}
+        dataSource={data?.data.data ?? []}
+        rowSelection={rowSelection}
+        onChange={handleFilterandSorter}
+        showSorterTooltip={{ target: 'sorter-icon' }}
+      />
+    </div>
   )
 }
 

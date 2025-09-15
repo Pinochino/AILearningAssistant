@@ -4,7 +4,7 @@ import authService from '../../services/AuthService.js'
 import { PayloadAction } from '@reduxjs/toolkit'
 
 interface IAuthSlice {
-  user?: any | null
+  user: any | null
   loading: 'idle' | 'pending' | 'success' | 'failed'
   error: string | null
 }
@@ -24,6 +24,11 @@ const initialState = {
     loading: 'idle',
     error: null,
   } as IAuthSlice,
+  loginWithGoogle: {
+    loading: 'idle',
+    error: null,
+    user: null,
+  } as IAuthSlice
 }
 
 const authSlice = createSlice({
@@ -60,12 +65,13 @@ const authSlice = createSlice({
       .addCase(authService.logout.fulfilled, (state) => {
         state.logout.loading = 'success'
         state.login.user = null
+        state.loginWithGoogle.user = null
       })
       .addCase(authService.logout.rejected, (state, action) => {
         state.logout.loading = 'failed'
         state.logout.error = action.error.message as string
       })
-
+   
 
   },
 })

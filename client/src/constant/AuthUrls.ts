@@ -6,4 +6,5 @@ export const authUrls = {
   sendOtp: '/auth/send-otp',
   verifyOtp: '/auth/verify-otp',
   fotgotPassword: '/auth/forgot-password',
+  loginGoogle: '/auth/google/callback',
 }

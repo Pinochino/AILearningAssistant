@@ -54,6 +54,18 @@ const AuthForm = ({ type = 'login' }: IAuthForm) => {
     }
   }
 
+  const handleLoginWithGoogle = async () => {
+    try {
+      console.log('Click')
+      window.location.href = "http://localhost:9000/api/auth/google"
+
+     
+
+    } catch (error: any) {
+      setErr(error.message)
+    }
+  }
+
   const onFinishFailed: FormProps<LoginType | RegisterType>['onFinishFailed'] = (errorInfo) => {
     console.log('Failed:', errorInfo)
   }
@@ -149,7 +161,9 @@ const AuthForm = ({ type = 'login' }: IAuthForm) => {
       </Form.Item>
 
       <Form.Item label={null} className="flex justify-center ">
-        <Button  htmlType="submit" className="w-[100%]" loading={loading} icon={<GoogleOutlined />} danger>
+        <Button   className="w-[100%]" loading={loading} icon={<GoogleOutlined />} danger
+        onClick={() => handleLoginWithGoogle()}
+        >
           Login with google
         </Button>
       </Form.Item>

@@ -97,6 +97,8 @@ const authService = {
       throw new Error(error.message)
     }
   },
+
+  
 }
 
 export default authService

@@ -3,6 +3,7 @@ import AuthLayout from '@/layouts/AuthLayout'
 import DefaultLayout from '@/layouts/DefaultLayout'
 import Dashboard from '@/pages/admin/Dashboard'
 import UserManagementPage from '@/pages/admin/UserManagmentPage'
+import AuthCallback from '@/pages/auth/AuthCallback'
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
 import LoginPage from '@/pages/auth/LoginPage'
 import NewPasswordPage from '@/pages/auth/NewPasswordPage'
@@ -33,6 +34,7 @@ const publicRouter: IRouter[] = [
       { path: 'forgot-password', Component: ForgotPasswordPage },
       { path: 'verify-otp', Component: VerificationOtpPage },
       { path: 'new-password', Component: NewPasswordPage },
+      { path: 'callback', Component: AuthCallback },
     ],
   },
   {
