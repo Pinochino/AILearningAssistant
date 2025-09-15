@@ -10,7 +10,7 @@ import { ForgotPassword } from '~/models/ForgotPassword'
 import { Types } from 'mongoose'
 
 const authService = {
-  authenticate: async ({ email, password }: LoginType): Promise<TokenResponse> => {
+  authenticate: async ({ email, password }: LoginType) => {
     try {
       const user = await User.findOne({ email }).populate('roles', 'name')
 

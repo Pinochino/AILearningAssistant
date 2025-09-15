@@ -10,10 +10,9 @@ const authController = {
 
       const user = await authService.authenticate(req.body)
       res.cookie('REFRESH_TOKEN', user.refreshToken, {
-        maxAge: 60 * 1000,
         sameSite: 'strict',
         httpOnly: false,
-        expires: new Date(Date.now() * 60 * 60 * 1000)
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 ngày
       })
       responseUtils({ req, res, code: 200, message: `Login successfully`, data: user })
     } catch (error: any) {

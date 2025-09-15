@@ -1,7 +1,12 @@
 import { Request, Router, Response } from 'express'
 import passport from 'passport'
 import authController from '~/controllers/AuthController'
+import { ValidatedToken } from '~/models/ValidatedToken'
 import { generateAccessToken } from '~/utils/JwtUtils'
+import crypto from 'crypto'
+import { User } from '~/models/User'
+import { Role, RoleName } from '~/models/Role'
+import { Types } from 'mongoose'
 
 const authRouter = Router()
 
@@ -26,9 +31,27 @@ authRouter.get(
     session: false,
     failureRedirect: '/google/failure'
   }),
-  function (req: Request, res: Response) {
-    const accessToken = generateAccessToken(req.user)
-    res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`)
+  async function (req: Request, res: Response) {
+    const user = req.user
+
+    const accessToken = generateAccessToken(user)
+    const refreshToken = crypto.randomBytes(32).toString('hex')
+
+    await ValidatedToken.create({
+      token: refreshToken,
+      userId: user?.id,
+      issuedAt: Date.now(),
+      expiredAt: Date.now() + 7 * 24 * 60 * 60 * 1000
+    })
+
+    res.cookie('REFRESH_TOKEN', refreshToken, {
+      maxAge: 60 * 1000,
+      sameSite: 'strict',
+      httpOnly: false,
+      expires: new Date(Date.now() * 60 * 60 * 1000)
+    })
+
+    res.redirect(`http://localhost:5173/auth/callback?token=${accessToken}`)
     return
   }
 )

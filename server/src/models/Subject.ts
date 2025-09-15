@@ -5,13 +5,13 @@ export interface ISubject extends SoftDeleteDocument {
   name: string
   description?: string
   topics: Types.ObjectId[]
+  userId: Types.ObjectId
   resources: Types.ObjectId[]
   notes: Types.ObjectId[]
   quizzes: Types.ObjectId[]
   schedules: Types.ObjectId[]
   notifications: Types.ObjectId[]
   studyProgress: Types.ObjectId[]
-  userId: Types.ObjectId
 }
 
 const subjectSchema = new Schema<ISubject>(

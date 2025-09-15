@@ -1,3 +1,4 @@
+import dotenv from 'dotenv'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 import express from 'express'
@@ -9,6 +10,7 @@ import path from 'path'
 import { create } from 'express-handlebars'
 import morgan from 'morgan'
 import passport from '~/configs/passport'
+dotenv.config()
 
 const hbs = create({
   extname: '.hbs',
@@ -46,6 +48,7 @@ const webConfigs = (app: Application) => {
 // Create seed
 async function main() {
   try {
+    // process.env.MONGO_URL as string
     await mongoose.connect(`mongodb://localhost:27017/test`)
     console.log(`Connect database success`)
     await runSeed()

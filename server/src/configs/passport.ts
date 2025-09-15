@@ -6,6 +6,8 @@ import { User } from '~/models/User'
 import { UserProvider, UserProviderType } from '~/models/UserProvider'
 const GoogleStrategy = require('passport-google-oauth2').Strategy
 import crypto from 'crypto'
+import { Role, RoleName } from '~/models/Role'
+import { Types } from 'mongoose'
 
 passport.use(
   new GoogleStrategy(
@@ -28,6 +30,19 @@ passport.use(
           })
         }
 
+        let oldRole = await Role.findOne({
+          name: RoleName.USER
+        })
+
+        if (!oldRole) {
+          oldRole = await Role.create({
+            name: RoleName.USER
+          })
+        }
+
+        const roles: Types.ObjectId[] = []
+        roles.push(oldRole._id)
+
         let oldUser = await User.findOne({
           provider: {
             $in: [oldUserProvider._id]
@@ -36,11 +51,12 @@ passport.use(
 
         if (!oldUser) {
           oldUser = await User.create({
-            username: profile.familyName + ' ' + profile.givenName,
+            username: profile.displayName,
             email: profile.email,
             avatar: profile.picture,
             password: crypto.randomBytes(32).toString('hex'),
-            provider: [oldUserProvider._id]
+            provider: [oldUserProvider._id],
+            roles
           })
         }
 

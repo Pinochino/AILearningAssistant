@@ -16,6 +16,7 @@ export interface IUser extends SoftDeleteDocument {
   schedules?: Types.ObjectId[]
   notifications?: Types.ObjectId[]
   studyProgress?: Types.ObjectId[]
+  resources?: Types.ObjectId[]
 }
 
 const userSchema = new Schema<IUser>(
@@ -92,6 +93,12 @@ const userSchema = new Schema<IUser>(
       {
         type: Schema.Types.ObjectId,
         ref: 'StudyProgress'
+      }
+    ],
+    resources: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Resource'
       }
     ]
   },
