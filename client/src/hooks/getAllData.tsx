@@ -24,6 +24,8 @@ export default function getAllData({ url, ...param }: IGetAllData) {
         url: `${url}?${queryString}`,
         method: 'GET',
         withCredentials: true,
-      }),
+      })
+      .then((res) => res.data)
+      .catch((error) => console.log(error)),
   })
 }
