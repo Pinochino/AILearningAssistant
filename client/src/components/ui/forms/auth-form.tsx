@@ -10,13 +10,8 @@ import { GoogleOutlined } from '@ant-design/icons'
 
 const { Title } = Typography
 
-type authFormType = 'login' | 'register'
 
-interface IAuthForm {
-  type: authFormType
-}
-
-const AuthForm = ({ type = 'login' }: IAuthForm) => {
+const AuthForm = () => {
   const [form] = Form.useForm()
   const [err, setErr] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -27,7 +22,6 @@ const AuthForm = ({ type = 'login' }: IAuthForm) => {
   const onFinish: FormProps<LoginType | RegisterType>['onFinish'] = async (values) => {
     setLoading(true)
     try {
-      if (type === 'login') {
         const result = await dispatch(authService.login(values))
 
         if (authService.login.fulfilled.match(result)) {
@@ -36,17 +30,6 @@ const AuthForm = ({ type = 'login' }: IAuthForm) => {
         } else {
           setErr('Login fail')
         }
-      } else if (type === 'register') {
-        const result = await dispatch(authService.register(values))
-
-        console.log(result)
-        if (authService.register.fulfilled.match(result)) {
-          setAccessToken(result.payload.data.accessToken)
-          navigate('/', { replace: true })
-        } else {
-          setErr('Register fail')
-        }
-      }
     } catch (error: any) {
       setErr(error.message)
     } finally {
@@ -92,21 +75,8 @@ const AuthForm = ({ type = 'login' }: IAuthForm) => {
       layout="vertical"
       className="shadow-xl"
     >
-      {type === 'login' ? (
         <Title className="text-center !text-3xl">Login Page</Title>
-      ) : (
-        <Title className="text-center !text-3xl">Register Page</Title>
-      )}
-
-      {type === 'register' && (
-        <Form.Item<RegisterType>
-          label="Username"
-          name="username"
-          rules={[{ required: true, message: 'Please input your username!' }]}
-        >
-          <Input type="text" autoComplete="additional-name" placeholder="Enter your username..." />
-        </Form.Item>
-      )}
+      
 
       <Form.Item<RegisterType | RegisterType>
         label="Email"
@@ -118,14 +88,12 @@ const AuthForm = ({ type = 'login' }: IAuthForm) => {
 
       <Form.Item<LoginType | RegisterType>
         label={
-          type === 'login' ? (
+           (
             <div className="w-[100%] flex justify-between items-center">
               <span>Password</span>
               <Link to={'/auth/forgot-password'}>Forgot password</Link>
             </div>
-          ) : (
-            'Password'
-          )
+          ) 
         }
         name="password"
         rules={[{ required: true, message: 'Please input your password!' }]}
@@ -143,13 +111,8 @@ const AuthForm = ({ type = 'login' }: IAuthForm) => {
           align="center"
           className="w-[100%] flex justify-between items-center"
         >
-          {type === 'login' && <Checkbox>Remember me</Checkbox>}
           <div>
-            {type === 'login' ? (
               <Link to={'/auth/register'}>I don't have an account</Link>
-            ) : (
-              <Link to={'/auth/login'}>I already have an account</Link>
-            )}
           </div>
         </Flex>
       </Form.Item>

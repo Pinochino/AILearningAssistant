@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { authUrls } from '../constant/AuthUrls'
-import { LoginType, RegisterType } from '../types/UserInterface'
+import { LoginType } from '../types/UserInterface'
 import handleApi from '../api/handleApi'
 import { setAccessToken } from '../utils/AccessToken'
 
@@ -9,27 +9,6 @@ const authService = {
     try {
       const res = await handleApi({
         url: authUrls.login,
-        method: 'POST',
-        data,
-        withCredentials: true,
-      })
-      const result = await res.data
-      setAccessToken(result.accessToken)
-
-      if (res.status < 200 || res.status > 300) {
-        return rejectWithValue(res.statusText)
-      }
-
-      return result
-    } catch (error: any) {
-      return rejectWithValue(error.message)
-    }
-  }),
-
-  register: createAsyncThunk(authUrls.register, async (data: RegisterType, { rejectWithValue }) => {
-    try {
-      const res = await handleApi({
-        url: authUrls.register,
         method: 'POST',
         data,
         withCredentials: true,

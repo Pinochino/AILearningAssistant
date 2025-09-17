@@ -23,12 +23,12 @@ const authController = {
   register: async (req: Request, res: Response) => {
     try {
       const user = await authService.createUser(req.body)
-      res.cookie('REFRESH_TOKEN', user?.refreshToken, {
-        maxAge: 60 * 1000,
-        sameSite: 'strict',
-        httpOnly: false,
-        expires: new Date(Date.now() * 60 * 60 * 1000)
-      })
+      // res.cookie('REFRESH_TOKEN', user?.refreshToken, {
+      //   maxAge: 60 * 1000,
+      //   sameSite: 'strict',
+      //   httpOnly: false,
+      //   expires: new Date(Date.now() * 60 * 60 * 1000)
+      // })
       responseUtils({ req, res, code: 200, message: `Register successfully`, data: user })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })

@@ -15,11 +15,6 @@ const initialState = {
     loading: 'idle',
     error: null,
   } as IAuthSlice,
-  register: {
-    user: null,
-    loading: 'idle',
-    error: null,
-  } as IAuthSlice,
   logout: {
     loading: 'idle',
     error: null,
@@ -47,17 +42,6 @@ const authSlice = createSlice({
       .addCase(authService.login.rejected, (state, action) => {
         state.login.loading = 'failed'
         state.login.error = action.error.message as string
-      })
-      .addCase(authService.register.pending, (state) => {
-        state.register.loading = 'pending'
-      })
-      .addCase(authService.register.fulfilled, (state, action) => {
-        state.register.loading = 'success'
-        state.register.user = action.payload
-      })
-      .addCase(authService.register.rejected, (state, action) => {
-        state.register.loading = 'failed';
-        state.register.error = action.error.message as string;
       })
       .addCase(authService.logout.pending, (state) => {
         state.logout.loading = 'pending'

@@ -48,13 +48,13 @@ const authService = {
 
       user = await User.create({ username, email, password, roles })
 
-      await emailService.sendEmail({
-        from: 'Tranhunghp22112004@gmail.com',
-        to: user.email as string,
-        subject: 'Welcome to LearningAssistant',
-        template: 'welcome',
-        context: { username: user.username }
-      })
+      // await emailService.sendEmail({
+      //   from: 'Tranhunghp22112004@gmail.com',
+      //   to: user.email as string,
+      //   subject: 'Welcome to LearningAssistant',
+      //   template: 'welcome',
+      //   context: { username: user.username }
+      // })
 
       await user.populate('roles', 'name')
       return createLoginResponse(user)

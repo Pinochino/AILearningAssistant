@@ -1,5 +1,5 @@
 import { Button, Form, GetRef, Modal, Table, TableProps } from 'antd'
-import React, { useEffect, useState, createContext, useContext } from 'react'
+import React, { useEffect, useState, createContext, useContext, JSX, useRef } from 'react'
 import getAllData from '../../../hooks/getAllData'
 import { ColumnsType } from 'antd/es/table'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
@@ -14,7 +14,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { restrictToHorizontalAxis, restrictToVerticalAxis } from '@dnd-kit/modifiers'
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers'
 import {
   arrayMove,
   horizontalListSortingStrategy,
@@ -23,14 +23,18 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import CreateUser from '../forms/CreateUser'
+import type { FormInstance, InputRef } from 'antd'
+import FormModal from '../forms/FormModal'
 
 interface IFilterTable<T> {
   url: string
-  createMode?: boolean
   columns: ColumnsType<T>
+  createMode?: boolean
+  handleShowModal?: () => void
 }
 
-type FormInstance<T> = GetRef<typeof Form<T>>
+// type FormInstance<T> = GetRef<typeof Form<T>>
 
 const Row: React.FC<Readonly<RowProps>> = (props) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -51,8 +55,6 @@ const Row: React.FC<Readonly<RowProps>> = (props) => {
 interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
   'data-row-key': string
 }
-
-
 
 // Drag Column sorting
 interface HeaderCellProps extends React.HtmlHTMLAttributes<HTMLTableCellElement> {
@@ -99,28 +101,116 @@ const TableBodyCell: React.FC<BodyCellProps> = (props) => {
   return <td {...props} style={{ ...props.style, ...dragActiveStyle(dragState, props.id) }} />
 }
 
+interface EditableRowProps {
+  index: number;
+}
+
+const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
+  const [form] = Form.useForm();
+  return (
+    <Form form={form} component={false}>
+      <EditableContext.Provider value={form}>
+        <tr {...props} />
+      </EditableContext.Provider>
+    </Form>
+  );
+};
+
+interface EditableCellProps<T> {
+  title: React.ReactNode;
+  editable: boolean;
+  dataIndex: keyof T;
+  record: T;
+  handleSave: (record: T) => void;
+}
+
+const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps<T>>> = ({
+  title,
+  editable,
+  children,
+  dataIndex,
+  record,
+  handleSave,
+  ...restProps
+}) => {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<InputRef>(null);
+  const form = useContext(EditableContext)!;
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+    }
+  }, [editing]);
+
+  const toggleEdit = () => {
+    setEditing(!editing);
+    form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+  };
+
+  const save = async () => {
+    try {
+      const values = await form.validateFields();
+
+      toggleEdit();
+      handleSave({ ...record, ...values });
+    } catch (errInfo) {
+      console.log('Save failed:', errInfo);
+    }
+  };
+
+  let childNode = children;
+
+  if (editable) {
+    childNode = editing ? (
+      <Form.Item
+        style={{ margin: 0 }}
+        name={dataIndex}
+        rules={[{ required: true, message: `${title} is required.` }]}
+      >
+        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+      </Form.Item>
+    ) : (
+      <div
+        className="editable-cell-value-wrap"
+        style={{ paddingInlineEnd: 24 }}
+        onClick={toggleEdit}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  return <td {...restProps}>{childNode}</td>;
+};
+
 const EditableContext = React.createContext<FormInstance<any> | null>(null)
 
 type TableRowSelection<T extends object = object> = TableProps<T>['rowSelection']
 
-function FilterTable<T extends { key: React.Key }>({ url, columns, createMode }: IFilterTable<T>) {
+function FilterTable<T extends { key: React.Key }>({ url, columns, createMode, handleShowModal }: IFilterTable<T>) {
   const { data, isLoading, error } = getAllData({ url, limit: 10, order: 'asc' })
   const [dataSource, setDataSource] = useState<any[]>([])
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
-  const { isOpen } = useAppSelector((state: RootState) => state.modal.createUser)
-  const [confirmLoading, setConfirmLoading] = useState<boolean>(false)
-  const [modalText, setModalText] = useState<string>('Content of the modal')
   const [dragIndex, setDragIndex] = useState<DragIndexState>({ active: -1, over: -1 })
   const [columnData, setColumnData] = useState(() =>
-    (columns).map((e: any, index: number) => ({
+    columns.map((e: any, index: number) => ({
       ...e,
       key: `${index}`,
       onHeaderCell: () => ({ id: `${index}` }),
       onCell: () => ({ id: `${index}` }),
     })),
   )
+  const { title, modalType, isOpen, pathApi } = useAppSelector((state: RootState) => state.modal.createUser)
 
   const dispatch = useAppDispatch()
+
+  const [count, setCount] = useState(2);
+
+  const handleDelete = (key: React.Key) => {
+    const newData = dataSource.filter((item) => item.key !== key);
+    setDataSource(newData);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -131,31 +221,28 @@ function FilterTable<T extends { key: React.Key }>({ url, columns, createMode }:
   )
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
-
-    if (!over) return;
+    if (!over) return
 
     if (columnData.some((c) => c.key === active.id)) {
       if (active.id !== over?.id) {
         setColumnData((prevState: any) => {
-        const activeIndex = prevState.findIndex((i: any) => i.key === active.id)
-        const overIndex = prevState.findIndex((i: any) => i.key === over?.id)
-        return arrayMove(prevState, activeIndex, overIndex)
-      })
+          const activeIndex = prevState.findIndex((i: any) => i.key === active.id)
+          const overIndex = prevState.findIndex((i: any) => i.key === over?.id)
+          return arrayMove(prevState, activeIndex, overIndex)
+        })
+      }
     }
-    }
-
 
     if (dataSource.some((a) => a.key === active.id)) {
-       if (active.id !== over?.id) {
-      setDataSource((prev) => {
-        const activeIndex = prev.findIndex((i) => i.key === active.id)
-        const overIndex = prev.findIndex((i) => i.key === over?.id)
-        return arrayMove(prev, activeIndex, overIndex)
-      })
-    }
+      if (active.id !== over?.id) {
+        setDataSource((prev) => {
+          const activeIndex = prev.findIndex((i) => i.key === active.id)
+          const overIndex = prev.findIndex((i) => i.key === over?.id)
+          return arrayMove(prev, activeIndex, overIndex)
+        })
+      }
     }
 
-   
     setDragIndex({ active: -1, over: -1 })
   }
 
@@ -234,44 +321,23 @@ function FilterTable<T extends { key: React.Key }>({ url, columns, createMode }:
     return <h2>Error: {error.message}</h2>
   }
 
-  const showModal = () => {
-    dispatch(openModal(isOpen))
-  }
 
-  const handleOk = () => {
-    setModalText('The modal will be closed after two seconds')
-    setConfirmLoading(true)
-    setTimeout(() => {
-      dispatch(closeModal(isOpen))
-      setConfirmLoading(false)
-    }, 2000)
-  }
-
-  const handleCancel = () => {
-    console.log('Clicked cancel button')
-    dispatch(closeModal(isOpen))
-  }
 
   return (
     <div>
       {createMode === true && (
         <>
           <div className="flex justify-end">
-            <Button onClick={showModal} type="primary">
+            <Button onClick={handleShowModal} type="primary">
               Create
             </Button>
           </div>
-          <Modal
-            title="Title"
-            open={isOpen}
-            onOk={handleOk}
-            confirmLoading={confirmLoading}
-            onCancel={handleCancel}
-          >
-            <p>{modalText}</p>
-          </Modal>
+          <FormModal<T> title={title} open={isOpen}>
+            {modalType === 'createUser' && <CreateUser />}
+          </FormModal>
         </>
       )}
+
       <DndContext
         sensors={sensors}
         modifiers={[restrictToHorizontalAxis]}
@@ -284,23 +350,24 @@ function FilterTable<T extends { key: React.Key }>({ url, columns, createMode }:
           strategy={horizontalListSortingStrategy}
         >
           <SortableContext
-          items={dataSource.map((col: any) => col.key)}
-          strategy={verticalListSortingStrategy}
+            items={dataSource.map((col: any) => col.key)}
+            strategy={verticalListSortingStrategy}
           >
             <DragIndexContext.Provider value={dragIndex}>
-            <Table<T>
-            components={{
-              header: { cell: TableHeaderCell },
-              body: { cell: TableBodyCell, row: Row },
-            }}
-            rowKey={'key'}
-            columns={columnData}
-            dataSource={dataSource ?? []}
-            rowSelection={rowSelection}
-            onChange={handleFilterandSorter}
-            showSorterTooltip={{ target: 'sorter-icon' }}
-          />
-          </DragIndexContext.Provider>
+              <Table<T>
+                components={{
+                  header: { cell: TableHeaderCell },
+                  body: { cell: TableBodyCell, row: Row },
+                }}
+                rowKey={'key'}
+                columns={columnData}
+                dataSource={dataSource ?? []}
+                rowSelection={rowSelection}
+                onChange={handleFilterandSorter}
+                showSorterTooltip={{ target: 'sorter-icon' }}
+                pagination={{ pageSize: 7 }}
+              />
+            </DragIndexContext.Provider>
           </SortableContext>
         </SortableContext>
         <DragOverlay>

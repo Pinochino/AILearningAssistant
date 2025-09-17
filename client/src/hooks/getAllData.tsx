@@ -18,7 +18,7 @@ export default function getAllData({ url, ...param }: IGetAllData) {
   const queryString = buildQuery(param)
 
   return useQuery({
-    queryKey: ['getAllData', queryString],
+    queryKey: [`${url}`, queryString],
     queryFn: () =>
       handleApi({
         url: `${url}?${queryString}`,

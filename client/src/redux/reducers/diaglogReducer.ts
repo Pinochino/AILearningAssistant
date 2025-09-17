@@ -1,27 +1,40 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { FormInstance } from "antd";
+import { stat } from "fs";
 
-interface IModalSlicer {
+type modalSlicerType = 'createUser' | 'updateUser'
+
+interface IModalSlicer<T> {
   isOpen: boolean;
-  content: any
+  title: string ;
+  modalType: modalSlicerType | null
+  pathApi: string | null
+
 }
 
 const initialState = {
   createUser: {
     isOpen: false,
-    content: null
-  } as IModalSlicer
-} 
+    title: '',
+    modalType: null,
+    pathApi: null
+  } as IModalSlicer<any>
+}
 const modalSlicer = createSlice({
   name: 'diaglog',
   initialState,
   reducers: {
     openModal: (state, action) => {
       state.createUser.isOpen = true
-      state.createUser.content = action.payload
+      state.createUser.title = action.payload.title ?? null
+      state.createUser.modalType = action.payload.modalType ?? null
+      state.createUser.pathApi = action.payload.pathApi ?? null
     },
-    closeModal: (state, action) => {
+    closeModal: (state) => {
       state.createUser.isOpen = false
-      state.createUser.content = action.payload
+      state.createUser.title = ''
+      state.createUser.modalType = null
+      state.createUser.pathApi = null
     }
   }
 })
