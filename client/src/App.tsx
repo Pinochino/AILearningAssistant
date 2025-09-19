@@ -1,115 +1,41 @@
-import React, { useEffect, useState } from 'react'
-import './index.css'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { IRouter, privateRouter, publicRouter } from './routers/routers'
-import DefaultLayout from './layouts/DefaultLayout'
-import AuthLayout from './layouts/AuthLayout'
-import AuthMiddleware from './middlewares/AuthMiddleware'
-import AdminLayout from './layouts/AdminLayout'
-import axiosClient from './api/axiosClient'
-import { setAccessToken } from './utils/AccessToken'
+import { useAuth, AuthProvider } from './hooks/useAuth';
+import { NavigationProvider } from './hooks/useNavigation';
+import { LoginForm } from './components/auth/LoginForm';
+import { DashboardLayout } from './components/layout/DashboardLayout';
+import { PageRouter } from './components/PageRouter';
+import { React } from 'react';
 
-function App() {
-  const [ready, setReady] = useState(false)
+function AppContent() {
+  const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    const handleRefreshToken = async () => {
-      try {
-        const res = await axiosClient.post(
-          '/auth/refresh-token',
-          {},
-          {
-            withCredentials: true,
-          },
-        )
-        const result = await res.data
-        console.log(result.data.accessToken)
-        setAccessToken(result.data.accessToken)
-      } catch (error) {
-        console.error('Refresh token hết hạn hoặc không hợp lệ:', error)
-        setAccessToken(null)
-      } finally {
-        setReady(true)
-      }
-    }
-    handleRefreshToken()
-  }, [])
+  if (isLoading) {
+    return (
+      <div className="size-full flex items-center justify-center">
+        <div className="text-center space-y-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
-  if (!ready) return <div>Loading...</div>
+  if (!user) {
+    return <LoginForm />;
+  }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {publicRouter.map((e: IRouter, index: number) => {
-          let Layout: React.ElementType = React.Fragment
-
-          if (e.layout === DefaultLayout) {
-            Layout = DefaultLayout
-          } else if (e.layout === AuthLayout) {
-            Layout = AuthLayout
-          }
-
-          const Page = e.Component as React.ElementType
-
-          return (
-            <Route key={index} path={e.path} element={<Layout>{Page ? <Page /> : <></>}</Layout>}>
-              {e.children &&
-                e.children.map((child, k: number) => {
-                  const ChildPage = child.Component as React.ElementType
-                  return (
-                    <Route
-                      key={k}
-                      path={child.path}
-                      index={child.index as boolean}
-                      element={<ChildPage />}
-                    />
-                  )
-                })}
-            </Route>
-          )
-        })}
-
-        {privateRouter.map((e: IRouter, index: number) => {
-          let Layout: React.ElementType = React.Fragment
-
-          if (e.layout === DefaultLayout) {
-            Layout = DefaultLayout
-          } else if (e.layout === AuthLayout) {
-            Layout = AuthLayout
-          } else if (e.layout === AdminLayout) {
-            Layout = AdminLayout
-          }
-
-          const Page = e.Component as React.ElementType
-
-          return (
-            <Route
-              key={index}
-              path={e.path}
-              element={
-                <AuthMiddleware>
-                  <Layout>{Page ? <Page /> : <></>}</Layout>
-                </AuthMiddleware>
-              }
-            >
-              {e.children &&
-                e.children.map((child, k: number) => {
-                  const ChildPage = child.Component as React.ElementType
-                  return (
-                    <Route
-                      key={k}
-                      path={child.path}
-                      index={child.index as boolean}
-                      element={<ChildPage />}
-                    />
-                  )
-                })}
-            </Route>
-          )
-        })}
-      </Routes>
-    </BrowserRouter>
-  )
+    <NavigationProvider>
+      <DashboardLayout>
+        <PageRouter />
+      </DashboardLayout>
+    </NavigationProvider>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
