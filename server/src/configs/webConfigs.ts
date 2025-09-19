@@ -49,7 +49,8 @@ const webConfigs = (app: Application) => {
 async function main() {
   try {
     // process.env.MONGO_URL as string
-    await mongoose.connect(`mongodb://localhost:27017/test`)
+    // `mongodb://localhost:27017/test`
+    await mongoose.connect(process.env.MONGO_URL as string)
     console.log(`Connect database success`)
     await runSeed()
   } catch (error: any) {

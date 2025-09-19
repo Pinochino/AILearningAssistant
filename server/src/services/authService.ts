@@ -30,7 +30,7 @@ const authService = {
     }
   },
 
-  createUser: async ({ email, username, password }: RegisterType) => {
+  createUser: async ({ email, username, password, roles }: RegisterType) => {
     try {
       let user = await User.findOne({ email })
 
@@ -38,15 +38,19 @@ const authService = {
         throw new Error('User already have been existed')
       }
 
-      let role = await Role.findOne({ name: RoleName.USER })
-      if (!role) {
-        role = await Role.create({ name: RoleName.USER })
-      }
+      const rolePromises = Array.from(roles).map(async (r) => {
+        const role = await Role.findOne({
+          _id: r,
+          name: { $ne: RoleName.SUPER_ADMIN }
+        })
+        return role._id
+      })
 
-      const roles: Types.ObjectId[] = []
-      roles.push(role._id)
+      const newRoles = (await Promise.all(rolePromises)).filter(Boolean)
 
-      user = await User.create({ username, email, password, roles })
+      console.log(`newRoles: `, newRoles)
+
+      user = await User.create({ username, email, password, roles: newRoles })
 
       // await emailService.sendEmail({
       //   from: 'Tranhunghp22112004@gmail.com',
@@ -57,7 +61,7 @@ const authService = {
       // })
 
       await user.populate('roles', 'name')
-      return createLoginResponse(user)
+      return user
     } catch (error: any) {
       throw new Error('Error in register: ' + error?.message)
     }

@@ -44,7 +44,8 @@
     "nodemailer-express-handlebars": "^7.0.0",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
-    "redis": "^5.8.2"
+    "redis": "^5.8.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
@@ -81,11 +82,10 @@
     }
   },
   "lint-staged": {
-     "*.js": [
-   "eslint — fix",
-   "prettier — write",
-   "git add"
- ]
+    "*.js": [
+      "eslint — fix",
+      "prettier — write",
+      "git add"
+    ]
   }
-  
 }
