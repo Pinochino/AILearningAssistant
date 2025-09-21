@@ -53,8 +53,8 @@
       target: 'esnext',
       outDir: 'build',
     },
-    server: {
-      port: 5173,
-      open: true,
+    css: {
+      devSourcemap: true
     },
+  
   });

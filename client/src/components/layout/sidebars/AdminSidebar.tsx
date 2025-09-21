@@ -1,116 +1,90 @@
-import React from "react";
-import {
-  Brain,
-  Users,
-  BookOpen,
-  BarChart3,
-  Settings,
-  PieChart,
-  FileText,
-  Gamepad2,
-} from "lucide-react";
-import { cn } from "../../ui/utils";
-import { Button } from "../../ui/button";
-import { Badge } from "../../ui/badge";
-import { useNavigation } from "../../../hooks/useNavigation";
+import React from 'react'
+import { Brain, Users, BookOpen, BarChart3, Settings, PieChart, FileText, Gamepad2 } from 'lucide-react'
+import { cn } from '../../ui/utils'
+import { Button } from '../../ui/button'
+import { Badge } from '../../ui/badge'
+import { useNavigation } from '../../../hooks/useNavigation'
 
 interface AdminSidebarProps {
-  isOpen: boolean;
+  isOpen: boolean
 }
 
 const menuItems = [
   {
-    id: "dashboard",
-    label: "Tổng quan",
+    id: 'dashboard',
+    label: 'Tổng quan',
     icon: BarChart3,
-    badge: null,
+    badge: null
   },
   {
-    id: "users",
-    label: "Quản lý người dùng",
+    id: 'users',
+    label: 'Quản lý người dùng',
     icon: Users,
-    badge: null,
+    badge: null
   },
   {
-    id: "subjects",
-    label: "Quản lý môn học",
+    id: 'subjects',
+    label: 'Quản lý môn học',
     icon: BookOpen,
-    badge: null,
+    badge: null
   },
   {
-    id: "content",
-    label: "Nội dung học tập",
+    id: 'content',
+    label: 'Nội dung học tập',
     icon: FileText,
-    badge: null,
+    badge: null
   },
   {
-    id: "settings",
-    label: "Cài đặt hệ thống",
+    id: 'settings',
+    label: 'Cài đặt hệ thống',
     icon: Settings,
-    badge: null,
-  },
-];
+    badge: null
+  }
+]
 
 export function AdminSidebar({ isOpen }: AdminSidebarProps) {
-  const { currentPage, navigateTo } = useNavigation();
+  const { currentPage, navigateTo } = useNavigation()
 
   const handleItemClick = (itemId: string) => {
-    navigateTo(itemId);
-  };
+    navigateTo(itemId)
+  }
 
   return (
     <aside
-      className={cn(
-        "bg-sidebar border-r border-sidebar-border transition-all duration-300",
-        isOpen ? "w-64" : "w-16",
-      )}
+      className={cn('bg-sidebar border-r border-sidebar-border transition-all duration-300', isOpen ? 'w-64' : 'w-16')}
     >
-      <div className="p-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-sidebar-primary rounded-lg p-2">
-            <Brain className="h-6 w-6 text-sidebar-primary-foreground" />
+      <div className='p-4'>
+        <div className='flex items-center gap-3'>
+          <div className='bg-sidebar-primary rounded-lg p-2'>
+            <Brain className='h-6 w-6 text-sidebar-primary-foreground' />
           </div>
           {isOpen && (
             <div>
-              <h1 className="font-semibold text-sidebar-foreground">
-                AI Learning
-              </h1>
-              <p className="text-xs text-sidebar-foreground/70">
-                Admin Panel
-              </p>
+              <h1 className='font-semibold text-sidebar-foreground'>AI Learning</h1>
+              <p className='text-xs text-sidebar-foreground/70'>Admin Panel</p>
             </div>
           )}
         </div>
       </div>
 
-      <nav className="px-2 space-y-1">
+      <nav className='px-2 space-y-1'>
         {menuItems.map((item) => (
           <div key={item.id}>
             <Button
-              variant={
-                currentPage === item.id ? "secondary" : "ghost"
-              }
+              variant={currentPage === item.id ? 'secondary' : 'ghost'}
               className={cn(
-                "w-full justify-start gap-3",
-                !isOpen && "px-2",
-                currentPage === item.id &&
-                "bg-sidebar-accent text-sidebar-accent-foreground",
+                'w-full justify-start gap-3',
+                !isOpen && 'px-2',
+                currentPage === item.id && 'bg-sidebar-accent text-sidebar-accent-foreground'
               )}
               onClick={() => handleItemClick(item.id)}
             >
-              <item.icon
-                className={cn("h-5 w-5", !isOpen && "mx-auto")}
-              />
+              <item.icon className={cn('h-5 w-5', !isOpen && 'mx-auto')} />
               {isOpen && (
                 <>
-                  <span className="flex-1 text-left">
-                    {item.label}
-                  </span>
+                  <span className='flex-1 text-left'>{item.label}</span>
                   {item.badge && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs"
-                    >
+                    <Badge variant='secondary' className='text-xs'>
                       {item.badge}
                     </Badge>
                   )}
@@ -121,5 +95,5 @@ export function AdminSidebar({ isOpen }: AdminSidebarProps) {
         ))}
       </nav>
     </aside>
-  );
+  )
 }
