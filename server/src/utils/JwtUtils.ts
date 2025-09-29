@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import jwt from 'jsonwebtoken'
-import { IUser } from '~/models/User'
+import { IUser, User } from '~/models/User'
 import { JwtPayloadInterface } from '~/types/JwtPayload'
 import crypto from 'crypto'
 import { ValidatedToken } from '~/models/ValidatedToken'

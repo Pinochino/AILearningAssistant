@@ -7,7 +7,7 @@ export async function runSeed() {
   if (!superAdminRole) {
     await Role.insertMany([
       {
-        name: RoleName.ADMIN
+        name: RoleName.TEACHER
       },
       {
         name: RoleName.SUPER_ADMIN
@@ -29,6 +29,11 @@ export async function runSeed() {
       email: adminEmail,
       password: '123456',
       roles: superAdminRole?._id
+    })
+
+    await Role.create({
+      name: superAdminRole?.name,
+      user: adminUser._id
     })
   }
 }

@@ -14,6 +14,7 @@ export const setAccessToken = (token: string | null) => {
 
 // Request interceptor
 axiosClient.interceptors.request.use((config) => {
+  console.log(accessToken)
   if (accessToken && config.headers) {
     config.headers.Authorization = `Bearer ${accessToken}`
   }

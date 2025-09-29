@@ -99,40 +99,40 @@ export function EditUser() {
     studentId: ''
   })
 
-  useEffect(() => {
-    // Simulate API call
-    const fetchUser = async () => {
-      setIsLoading(true)
-      try {
-        // Simulate delay
-        await new Promise((resolve) => setTimeout(resolve, 500))
+  // useEffect(() => {
+  //   // Simulate API call
+  //   const fetchUser = async () => {
+  //     setIsLoading(true)
+  //     try {
+  //       // Simulate delay
+  //       await new Promise((resolve) => setTimeout(resolve, 500))
 
-        const foundUser = mockUsers.find((u) => u.id === userId)
-        if (foundUser) {
-          setUser(foundUser)
-          setFormData({
-            name: foundUser.name,
-            email: foundUser.email,
-            role: foundUser.role,
-            status: foundUser.status,
-            phone: foundUser.phone || '',
-            address: foundUser.address || '',
-            bio: foundUser.bio || '',
-            studentId: foundUser.studentId || ''
-          })
-        }
-      } catch (error) {
-        toast.error('Không thể tải thông tin người dùng')
-        navigateTo('users')
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  //       const foundUser = mockUsers.find((u) => u.id === userId)
+  //       if (foundUser) {
+  //         setUser(foundUser)
+  //         setFormData({
+  //           name: foundUser.name,
+  //           email: foundUser.email,
+  //           role: foundUser.role,
+  //           status: foundUser.status,
+  //           phone: foundUser.phone || '',
+  //           address: foundUser.address || '',
+  //           bio: foundUser.bio || '',
+  //           studentId: foundUser.studentId || ''
+  //         })
+  //       }
+  //     } catch (error) {
+  //       toast.error('Không thể tải thông tin người dùng')
+  //       navigateTo('users')
+  //     } finally {
+  //       setIsLoading(false)
+  //     }
+  //   }
 
-    if (userId) {
-      fetchUser()
-    }
-  }, [userId, navigateTo])
+  //   if (userId) {
+  //     fetchUser()
+  //   }
+  // }, [userId, navigateTo])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({

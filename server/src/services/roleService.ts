@@ -16,6 +16,19 @@ const roleService = {
     } catch (error: any) {
       throw new Error(error)
     }
+  },
+  getUsersByRoleId: async (roleId: string) => {
+    try {
+      const role = await Role.findById(roleId).select('name users')
+
+      if (!role) {
+        throw new Error('Role is not existed')
+      }
+
+      return role.populate('users')
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
   }
 }
 export default roleService

@@ -7,7 +7,6 @@ import { Role, RoleName } from '~/models/Role'
 import emailService from './emailService'
 import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils'
 import { ForgotPassword } from '~/models/ForgotPassword'
-import { Types } from 'mongoose'
 
 const authService = {
   authenticate: async ({ email, password }: LoginType) => {
@@ -24,6 +23,16 @@ const authService = {
         throw new Error('Invalid credentials')
       }
 
+      await User.updateOne(
+        {
+          _id: user._id
+        },
+        {
+          isActive: true,
+          lastLogin: new Date()
+        }
+      )
+
       return createLoginResponse(user)
     } catch (error: any) {
       throw new Error('Error in login: ' + error?.message)
@@ -32,38 +41,41 @@ const authService = {
 
   createUser: async ({ email, username, password, roles }: RegisterType) => {
     try {
-      let user = await User.findOne({ email })
-
-      if (user) {
-        throw new Error('User already have been existed')
+      // 1. Kiểm tra user tồn tại
+      const existingUser = await User.findOne({ email })
+      if (existingUser) {
+        throw new Error('User already exists')
       }
 
-      const rolePromises = Array.from(roles).map(async (r) => {
-        const role = await Role.findOne({
-          _id: r,
-          name: { $ne: RoleName.SUPER_ADMIN }
-        })
-        return role._id
+      // 2. Lấy danh sách roles hợp lệ (ngoại trừ SUPER_ADMIN)
+      const roleDocs = await Role.find({
+        _id: { $in: roles },
+        name: { $ne: RoleName.SUPER_ADMIN }
       })
 
-      const newRoles = (await Promise.all(rolePromises)).filter(Boolean)
+      if (!roleDocs.length) {
+        throw new Error('No valid roles found')
+      }
 
-      console.log(`newRoles: `, newRoles)
+      const roleIds = roleDocs.map((role) => role._id)
 
-      user = await User.create({ username, email, password, roles: newRoles })
+      // 3. Tạo user
+      const user = await User.create({
+        username,
+        email,
+        password,
+        roles: roleIds
+      })
 
-      // await emailService.sendEmail({
-      //   from: 'Tranhunghp22112004@gmail.com',
-      //   to: user.email as string,
-      //   subject: 'Welcome to LearningAssistant',
-      //   template: 'welcome',
-      //   context: { username: user.username }
-      // })
+      // 4. Cập nhật roles để gán user (nếu Role có field "users")
+      await Role.updateMany({ _id: { $in: roleIds } }, { $addToSet: { users: user._id } })
 
+      // 5. Populate role name cho user
       await user.populate('roles', 'name')
+
       return user
     } catch (error: any) {
-      throw new Error('Error in register: ' + error?.message)
+      throw new Error(`Error in register: ${error.message}`)
     }
   },
 
@@ -119,6 +131,15 @@ const authService = {
     if (!user) {
       throw new Error('Invalid userId')
     }
+
+    await User.updateOne(
+      {
+        _id: user._id
+      },
+      {
+        isActive: false
+      }
+    )
 
     oldRefreshToken.status = ValidatedTokenStatus.REVOKED
     await oldRefreshToken.save()
