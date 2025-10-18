@@ -19,8 +19,9 @@ const roleService = {
   },
   getUsersByRoleId: async (roleId: string) => {
     try {
-      const role = await Role.findById(roleId).select('name users')
+      const role = await Role.findById(roleId).populate('users')
 
+      console.log(role)
       if (!role) {
         throw new Error('Role is not existed')
       }

@@ -18,6 +18,11 @@ import {
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { GoogleGenAI, GoogleGenAi } from '@google/genai'
+
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_KEY
+
+console.log(GEMINI_API_KEY)
 
 interface ChatMessage {
   id: string
@@ -111,12 +116,13 @@ const mockAIFeatures = [
 ]
 
 export function AITutor() {
-  const [messages, setMessages] = useState<ChatMessage[]>(mockChatHistory)
+  const [messages, setMessages] = useState<string | null>(null)
   const [inputValue, setInputValue] = useState('')
   const [selectedSubject, setSelectedSubject] = useState('all')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -165,6 +171,17 @@ export function AITutor() {
 
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const ai = new GoogleGenAI({apiKey: GEMINI_API_KEY});
+
+  const sendMessageToGemini = async () => {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-001',
+      contents: inputValue,
+    });
+    setMessages(response.text)
+    setInputValue('')
   }
 
   return (
@@ -222,7 +239,7 @@ export function AITutor() {
 
             {/* Messages */}
             <CardContent className='flex-1 overflow-y-auto p-4 space-y-4'>
-              {messages.map((message) => (
+              {/* {Array.from(messages || []).map((message) => (
                 <div
                   key={message.id}
                   className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -237,9 +254,8 @@ export function AITutor() {
 
                   <div className={`max-w-[80%] space-y-1`}>
                     <div
-                      className={`p-3 rounded-lg ${
-                        message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                      }`}
+                      className={`p-3 rounded-lg ${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                        }`}
                     >
                       <p className='whitespace-pre-wrap'>{message.content}</p>
                     </div>
@@ -263,7 +279,8 @@ export function AITutor() {
                     </Avatar>
                   )}
                 </div>
-              ))}
+              ))} */}
+              <p>{messages}</p>
 
               {isTyping && (
                 <div className='flex gap-3 justify-start'>
@@ -305,7 +322,7 @@ export function AITutor() {
                   onKeyPress={handleKeyPress}
                   disabled={isTyping}
                 />
-                <Button onClick={handleSendMessage} disabled={!inputValue.trim() || isTyping} className='gap-2'>
+                <Button onClick={sendMessageToGemini} disabled={!inputValue.trim() || isTyping} className='gap-2'>
                   <Send className='h-4 w-4' />
                 </Button>
               </div>

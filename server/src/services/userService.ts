@@ -1,7 +1,7 @@
 import { Role, RoleName } from '~/models/Role'
 import { User } from '~/models/User'
 import { QueryInterface } from '~/types/QueryInterface'
-import { UserInterface } from '~/types/UserInterface'
+import { EditUserInterface, UserInterface } from '~/types/UserInterface'
 
 const userService = {
   getUsers: async ({ limit, order, search, skip, sortBy }: QueryInterface): Promise<UserInterface[]> => {
@@ -30,7 +30,7 @@ const userService = {
   },
 
   getUser: async (userId: string) => {
-    const user = await User.findById(userId)
+    const user = await User.findById(userId).populate('roles', 'name')
     return user
   },
 
@@ -44,7 +44,7 @@ const userService = {
     await User.deleteMany({})
   },
 
-  updateUser: async (userId: string, props: UserInterface) => {
+  updateUser: async (userId: string, props: EditUserInterface) => {
     try {
       const oldUser = await User.findOne({
         _id: userId
@@ -54,19 +54,21 @@ const userService = {
         throw new Error('User not found')
       }
 
-      const newUser = await User.updateOne(
-        {
-          _id: oldUser._id
-        },
-        {
-          username: props.username,
-          email: props.email,
-          password: props.password,
-          roles: props.roles
+      if (props.addRoleId || props.removeRoleId) {
+        if (props.removeRoleId) {
+          await User.findByIdAndUpdate(oldUser._id, {
+            $pull: { roles: props.removeRoleId }
+          })
         }
-      )
 
-      console.log(newUser)
+        if (props.addRoleId) {
+          await User.findByIdAndUpdate(oldUser._id, {
+            $addToSet: { roles: props.addRoleId }
+          })
+        }
+      }
+
+      const newUser = await User.findById(oldUser._id)
 
       return newUser
     } catch (error: any) {

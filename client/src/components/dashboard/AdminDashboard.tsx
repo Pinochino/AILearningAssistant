@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Badge } from '../ui/badge'
@@ -22,6 +22,8 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSection'
 import { AnnouncementCreator } from '../dashboard/AnnouncementCreator'
+import { handleApi } from '../../api/handleApi'
+import GetRoleCountByName from '../../hooks/getRoleCount'
 
 const userStats = [
   {
@@ -188,6 +190,8 @@ export function AdminDashboard() {
     }
   ])
 
+  const [userStat, setUserStat] = useState(userStats)
+
   const handleCreateAnnouncement = (title: string, content: string) => {
     const newAnn: Announcement = {
       id: Date.now().toString(),
@@ -198,6 +202,28 @@ export function AdminDashboard() {
     }
     setAnnouncements((prev) => [newAnn, ...prev])
   }
+
+  const { data: userCount } = GetRoleCountByName("USER");
+  const { data: adminCount } = GetRoleCountByName("SUPER_ADMIN")
+  const { data: teacherCount } = GetRoleCountByName("TEACHER")
+
+  useEffect(() => {
+
+    if (userCount?.data || adminCount?.data || teacherCount?.data) {
+      const countRoles: number[] = [
+        userCount?.data || 0,
+        adminCount?.data || 0,
+        teacherCount?.data || 0,
+      ]
+
+      setUserStat((prev) => prev.map((item, index) => ({
+        ...item,
+        count: countRoles[index]
+      })))
+    }
+
+  }, [userCount, adminCount, teacherCount])
+
 
   return (
     <div className='space-y-6'>
@@ -236,14 +262,14 @@ export function AdminDashboard() {
 
       {/* Stats Overview */}
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-        {userStats.map((stat) => (
+        {userStat.map((stat) => (
           <Card key={stat.role}>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
               <CardTitle className='text-sm font-medium'>{stat.role}</CardTitle>
               <Users className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{stat.count.toLocaleString()}</div>
+              <div className='text-2xl font-bold'>{stat.count}</div>
               <p className='text-xs text-muted-foreground'>
                 <span className={stat.change.startsWith('+') ? 'text-green-600' : 'text-muted-foreground'}>
                   {stat.change}
@@ -465,9 +491,8 @@ export function AdminDashboard() {
                       <div className='flex items-center gap-2'>
                         <span className='text-lg font-semibold'>{stat.avgScore}%</span>
                         <div
-                          className={`flex items-center gap-1 ${
-                            stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                          }`}
+                          className={`flex items-center gap-1 ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                            }`}
                         >
                           {stat.trend === 'up' ? (
                             <TrendingUp className='h-4 w-4' />

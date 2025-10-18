@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useNavigation } from '../../hooks/useNavigation'
 import { handleApi } from '../../api/handleApi'
 import React from 'react'
-import { keepPreviousData, QueryClient, useMutation, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useFetchCountUserByTeacherRole, useFetchCountUserByUserRole, useGetUsers } from '../../services/UserService'
 
 const mockUsers = [
@@ -58,6 +58,9 @@ const mockUsers = [
 ]
 
 const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser }) => {
+
+  console.log("User: ", users?.name)
+
   return (
     <>
       {Array.from(users || []).map((user: any, index: number) => (
@@ -76,7 +79,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
             <div className='space-y-1'>
               <div className='flex items-center gap-2'>
                 <h3 className='font-medium'>{user.name}</h3>
-                <Badge variant={getRoleBadgeVariant(user.roles[0]?.name)}>{getRoleLabel(user.roles[0]?.name)}</Badge>
+                <Badge variant={getRoleBadgeVariant(user.roles[0]?.name || user.name)}>{getRoleLabel(user.roles[0]?.name) || user.name}</Badge>
                 <Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>
                   {user.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
                 </Badge>
@@ -94,7 +97,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
             <Button variant='outline' size='sm'>
               <Eye className='h-4 w-4' />
             </Button>
-            <Button variant='outline' size='sm' onClick={() => navigateTo('edit-user', { userId: user.id })}>
+            <Button variant='outline' size='sm' onClick={() => navigateTo('edit-user', { userId: user._id })}>
               <Edit className='h-4 w-4' />
             </Button>
             <Button variant='outline' size='sm'>
@@ -112,8 +115,9 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
 
 export function UserManagement() {
   const { navigateTo } = useNavigation()
-  const queryClient = new QueryClient()
+  const queryClient = useQueryClient()
 
+  const [userData, setUserData] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState<string | null>()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -122,12 +126,9 @@ export function UserManagement() {
     email: '',
     password: '',
     roles: []
-  })
+  });
+  const [userByRoleId, setUserByRoleId] = useState([]);
 
-  // const { isPending, error, data } = useQuery({
-  //   queryKey: ['getUsers'],
-  //   queryFn: () => getUsers()
-  // })
 
   const { mutate: handleDeleteUser } = useMutation({
     mutationFn: async (userId: string) => {
@@ -136,16 +137,13 @@ export function UserManagement() {
     onMutate: async (userId: string) => {
       await queryClient.cancelQueries({ queryKey: ['users'] })
 
-      // Lưu lại cache cũ để rollback nếu lỗi
       const previousUsers = queryClient.getQueryData<any[]>(['users'])
 
-      // Xóa ngay user khỏi cache
       queryClient.setQueryData<any[]>(['users'], (old) => (old ? old.filter((user) => user._id !== userId) : []))
 
       return { previousUsers }
     },
     onError: (_err, _userId, context) => {
-      // rollback nếu API fail
       if (context?.previousUsers) {
         queryClient.setQueryData(['users'], context.previousUsers)
       }
@@ -279,6 +277,18 @@ export function UserManagement() {
     mutate()
   }
 
+  useEffect(() => {
+    if (usersByRoleId) {
+      setUserByRoleId(usersByRoleId?.data?.users)
+    }
+  }, [usersByRoleId])
+
+  useEffect(() => {
+    if (users) {
+      setUserData(users)
+    }
+  }, [users])
+
   return (
     <div className='space-y-6'>
       {/* Header */}
@@ -406,8 +416,8 @@ export function UserManagement() {
         <CardContent>
           <div className='space-y-4'>
             {usersByRoleId
-              ? DisplayUsers({ users: usersByRoleId, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })
-              : DisplayUsers({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })}
+              ? DisplayUsers({ users: userByRoleId, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })
+              : DisplayUsers({ users: userData, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })}
           </div>
         </CardContent>
       </Card>

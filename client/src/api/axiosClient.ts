@@ -3,8 +3,7 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 
 const axiosClient = axios.create({
   baseURL: 'http://localhost:9000/api',
-  timeout: 5000,
-  withCredentials: true, // ⚡ cần để gửi kèm cookie refresh
+  withCredentials: true, 
 })
 
 let accessToken: string | null = null
