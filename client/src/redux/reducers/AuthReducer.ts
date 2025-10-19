@@ -1,6 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
 import authService from '../../services/AuthService'
-import { UserInterface } from '../../types/UserInterface'
 
 interface IAuthSlice {
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
