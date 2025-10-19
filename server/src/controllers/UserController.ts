@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import roleService from '~/services/roleService'
 import userService from '~/services/userService'
 import { responseUtils } from '~/utils/ResponseUtils'
 
@@ -7,7 +6,6 @@ const userController = {
   getAllUsers: async (req: Request, res: Response) => {
     try {
       const { limit, order, search, skip, sortBy } = req.query
-      console.log(search)
       const users = await userService.getUsers(req.query)
       responseUtils({ req, res, code: 200, message: `Get user successfully`, data: users })
     } catch (error: any) {
@@ -78,25 +76,6 @@ const userController = {
     try {
       const result = await userService.findDeletedUser()
       responseUtils({ req, res, code: 400, message: `Get all deleted user successfully`, data: result })
-    } catch (error: any) {
-      responseUtils({ req, res, code: 400, message: error.message })
-    }
-  },
-
-  countUserByRoleName: async (req: Request, res: Response) => {
-    try {
-      const { roleName } = req.params
-      const usersNumber = await userService.countUserByRole(roleName)
-      responseUtils({ req, res, code: 200, message: `Get users by role success`, data: usersNumber })
-    } catch (error: any) {
-      responseUtils({ req, res, code: 400, message: error.message })
-    }
-  },
-
-  countUserActive: async (req: Request, res: Response) => {
-    try {
-      const usersNumber = await userService.countUserIsActive()
-      responseUtils({ req, res, code: 200, message: `Get users isActive`, data: usersNumber })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

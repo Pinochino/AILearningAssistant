@@ -19,16 +19,6 @@ const roleController = {
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
-  },
-
-  getUserByRole: async (req: Request, res: Response) => {
-    try {
-      const { roleId } = req.params
-      const role = await roleService.getUsersByRoleId(roleId)
-      responseUtils({ req, res, code: 200, message: `Get users Succesfully`, data: role })
-    } catch (error: any) {
-      responseUtils({ req, res, code: 400, message: error.message })
-    }
   }
 }
 

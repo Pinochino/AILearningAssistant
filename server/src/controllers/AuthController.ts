@@ -22,7 +22,7 @@ const authController = {
   register: async (req: Request, res: Response) => {
     try {
       console.log(req.body)
-      const user = await authService.createUser({ ...req.body })
+      const user = await authService.createUser(req.body)
       // res.cookie('REFRESH_TOKEN', user?.refreshToken, {
       //   maxAge: 60 * 1000,
       //   sameSite: 'strict',
