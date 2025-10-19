@@ -1,19 +1,37 @@
 {
   "compilerOptions": {
-    "module": "commonjs", // Quy định output module được sử dụng
+    "module": "commonjs",
     "moduleResolution": "node",
-    "target": "ES2023", // Target output cho code
-    "outDir": "dist", // Đường dẫn output cho thư mục build
+    "target": "ES2023",
+    "outDir": "dist",
     "esModuleInterop": true,
-    "strict": true /* Enable all strict type-checking options. */,
-    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-    "baseUrl": ".", // Đường dẫn base cho các import
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
     "paths": {
-      "~/*": ["src/*"] // Đường dẫn tương đối cho các import (alias)
-    }
+      "~/*": ["src/*"]
+    },
+    "types": ["node", "express", "passport"]
   },
-  "files": ["src/type.d.ts"], // Các file dùng để defined global type cho dự án
-  "include": ["src/**/*"] // Đường dẫn include cho các file cần build,
-  // "types": ["node", "express", "passport"],
-  // "typeRoots": ["./src/types", "./node_modules/@types"]
+  "files": ["src/type.d.ts"],
+  "include": [
+    "src/server.ts",
+    "src/configs/webConfigs.ts",
+    "src/database/**/*.ts",
+    "src/data/seed.ts",
+    "src/models/**/*.ts",
+    "src/routes/**/*.ts",
+    "src/services/classes.services.ts",
+    "src/types/**/*.ts",
+    "src/utils/**/*.ts"
+  ],
+  "exclude": [
+    "src/configs/passport.ts",
+    "src/controllers/AuthController.ts",
+    "src/routers/authRouter.ts",
+    "src/services/authService.ts",
+    "src/crons/**/*",
+    "src/routers/routers.ts"
+  ],
+  "typeRoots": ["./node_modules/@types", "./src/types"]
 }
