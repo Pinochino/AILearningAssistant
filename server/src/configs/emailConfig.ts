@@ -4,6 +4,11 @@ dotenv.config()
 import nodemailer from 'nodemailer'
 import hbs from 'nodemailer-express-handlebars'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+// ESM-compatible __filename/__dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,

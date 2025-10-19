@@ -4,24 +4,29 @@ import bodyParser from 'body-parser'
 import express from 'express'
 import mongoose from 'mongoose'
 import { Application, NextFunction, Request, Response } from 'express'
-import { runSeed } from '~/data/seed'
+import { runSeed } from '../data/seed'
 import cookieParser from 'cookie-parser'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { create } from 'express-handlebars'
 import morgan from 'morgan'
-import passport from '~/configs/passport'
+import passport from '../configs/passport'
 dotenv.config()
+
+// ESM-compatible __filename/__dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const hbs = create({
   extname: '.hbs',
-  layoutsDir: path.join(__dirname + 'views', 'layouts'),
+  layoutsDir: path.join(__dirname, 'views', 'layouts'),
   partialsDir: path.join(__dirname, 'views', 'partials')
 })
 
 const webConfigs = (app: Application) => {
   app.engine('handlebars', hbs.engine)
   app.set('view engine', 'hbs')
-  app.set('views', path.join(__dirname + 'views'))
+  app.set('views', path.join(__dirname, 'views'))
   app.use(express.json())
   app.use(
     cors({
@@ -33,7 +38,7 @@ const webConfigs = (app: Application) => {
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(express.static(path.join(__dirname, 'public')))
-  app.use('preview', express.static(path.join(__dirname, 'public', 'uploads')))
+  app.use('/preview', express.static(path.join(__dirname, 'public', 'uploads')))
   app.use(cookieParser())
   app.use(passport.initialize())
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
