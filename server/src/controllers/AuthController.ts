@@ -22,7 +22,7 @@ const authController = {
   register: async (req: Request, res: Response) => {
     try {
       console.log(req.body)
-      const user = await authService.createUser(req.body)
+      const user = await authService.createUser({ ...req.body })
       // res.cookie('REFRESH_TOKEN', user?.refreshToken, {
       //   maxAge: 60 * 1000,
       //   sameSite: 'strict',
@@ -80,7 +80,7 @@ const authController = {
 
   updatePassord: async (req: Request, res: Response) => {
     try {
-      const { id: userId } = req.user as any
+      const { id: userId } = req.user
       const { password: newPassword } = req.body
       await authService.updatePassword(userId, newPassword)
       responseUtils({ req, res, code: 200, message: `Update password successfully` })
