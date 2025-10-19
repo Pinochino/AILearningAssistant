@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Button } from '../ui/button'
-import { Badge } from '../ui/badge'
-import { Progress } from '../ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
-import { Input } from '../ui/input'
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Progress } from '../ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Input } from '../ui/input';
 import {
   Trophy,
   Award,
@@ -24,8 +24,8 @@ import {
   CheckCircle,
   Circle,
   Lock
-} from 'lucide-react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 // Mock data for achievements
 const mockAchievements = [
@@ -40,7 +40,7 @@ const mockAchievements = [
     isEarned: true,
     earnedAt: '2024-09-15',
     progress: 100,
-    requirement: 'Học 7 ngày liên tiếp'
+    requirement: 'Học 7 ngày liên tiếp',
   },
   {
     id: '2',
@@ -53,7 +53,7 @@ const mockAchievements = [
     isEarned: true,
     earnedAt: '2024-09-10',
     progress: 100,
-    requirement: 'Điểm TB ≥ 90% trong 5 quiz'
+    requirement: 'Điểm TB ≥ 90% trong 5 quiz',
   },
   {
     id: '3',
@@ -66,7 +66,7 @@ const mockAchievements = [
     isEarned: false,
     earnedAt: null,
     progress: 75,
-    requirement: 'Hoàn thành 50 bài học'
+    requirement: 'Hoàn thành 50 bài học',
   },
   {
     id: '4',
@@ -79,7 +79,7 @@ const mockAchievements = [
     isEarned: false,
     earnedAt: null,
     progress: 60,
-    requirement: 'Học 100 flashcard'
+    requirement: 'Học 100 flashcard',
   },
   {
     id: '5',
@@ -92,7 +92,7 @@ const mockAchievements = [
     isEarned: false,
     earnedAt: null,
     progress: 30,
-    requirement: 'Hoàn thành quiz < 2 phút'
+    requirement: 'Hoàn thành quiz < 2 phút',
   },
   {
     id: '6',
@@ -105,7 +105,7 @@ const mockAchievements = [
     isEarned: false,
     earnedAt: null,
     progress: 40,
-    requirement: 'Điểm A+ tất cả môn'
+    requirement: 'Điểm A+ tất cả môn',
   },
   {
     id: '7',
@@ -118,7 +118,7 @@ const mockAchievements = [
     isEarned: false,
     earnedAt: null,
     progress: 40,
-    requirement: 'Học 30 ngày liên tiếp'
+    requirement: 'Học 30 ngày liên tiếp',
   },
   {
     id: '8',
@@ -131,9 +131,9 @@ const mockAchievements = [
     isEarned: false,
     earnedAt: null,
     progress: 20,
-    requirement: '100% điểm trong 10 quiz toán'
-  }
-]
+    requirement: '100% điểm trong 10 quiz toán',
+  },
+];
 
 const mockLeaderboard = [
   {
@@ -143,7 +143,7 @@ const mockLeaderboard = [
     totalPoints: 2450,
     rank: 1,
     achievements: 12,
-    streak: 15
+    streak: 15,
   },
   {
     id: '2',
@@ -152,7 +152,7 @@ const mockLeaderboard = [
     totalPoints: 2200,
     rank: 2,
     achievements: 10,
-    streak: 8
+    streak: 8,
   },
   {
     id: '3',
@@ -161,7 +161,7 @@ const mockLeaderboard = [
     totalPoints: 1950,
     rank: 3,
     achievements: 9,
-    streak: 12
+    streak: 12,
   },
   {
     id: '4',
@@ -170,7 +170,7 @@ const mockLeaderboard = [
     totalPoints: 1800,
     rank: 4,
     achievements: 8,
-    streak: 5
+    streak: 5,
   },
   {
     id: '5',
@@ -179,9 +179,9 @@ const mockLeaderboard = [
     totalPoints: 1650,
     rank: 5,
     achievements: 6,
-    streak: 7
-  }
-]
+    streak: 7,
+  },
+];
 
 const mockStats = {
   totalPoints: 1650,
@@ -191,114 +191,95 @@ const mockStats = {
   totalStudyTime: 45.5,
   averageScore: 85,
   rank: 5,
-  totalStudents: 150
-}
+  totalStudents: 150,
+};
 
 export function Achievements() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedRarity, setSelectedRarity] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedRarity, setSelectedRarity] = useState('all');
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common':
-        return 'bg-gray-100 text-gray-800'
-      case 'rare':
-        return 'bg-blue-100 text-blue-800'
-      case 'epic':
-        return 'bg-purple-100 text-purple-800'
-      case 'legendary':
-        return 'bg-yellow-100 text-yellow-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+      case 'common': return 'bg-gray-100 text-gray-800';
+      case 'rare': return 'bg-blue-100 text-blue-800';
+      case 'epic': return 'bg-purple-100 text-purple-800';
+      case 'legendary': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   const getRarityLabel = (rarity: string) => {
     switch (rarity) {
-      case 'common':
-        return 'Thường'
-      case 'rare':
-        return 'Hiếm'
-      case 'epic':
-        return 'Huyền thoại'
-      case 'legendary':
-        return 'Huyền thoại'
-      default:
-        return 'Không xác định'
+      case 'common': return 'Thường';
+      case 'rare': return 'Hiếm';
+      case 'epic': return 'Huyền thoại';
+      case 'legendary': return 'Huyền thoại';
+      default: return 'Không xác định';
     }
-  }
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'academic':
-        return <BookOpen className='h-4 w-4' />
-      case 'streak':
-        return <Clock className='h-4 w-4' />
-      case 'speed':
-        return <Zap className='h-4 w-4' />
-      case 'memory':
-        return <Target className='h-4 w-4' />
-      default:
-        return <Award className='h-4 w-4' />
+      case 'academic': return <BookOpen className="h-4 w-4" />;
+      case 'streak': return <Clock className="h-4 w-4" />;
+      case 'speed': return <Zap className="h-4 w-4" />;
+      case 'memory': return <Target className="h-4 w-4" />;
+      default: return <Award className="h-4 w-4" />;
     }
-  }
+  };
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'academic':
-        return 'Học tập'
-      case 'streak':
-        return 'Chuỗi ngày'
-      case 'speed':
-        return 'Tốc độ'
-      case 'memory':
-        return 'Ghi nhớ'
-      default:
-        return 'Khác'
+      case 'academic': return 'Học tập';
+      case 'streak': return 'Chuỗi ngày';
+      case 'speed': return 'Tốc độ';
+      case 'memory': return 'Ghi nhớ';
+      default: return 'Khác';
     }
-  }
+  };
 
-  const filteredAchievements = mockAchievements.filter((achievement) => {
-    const matchesSearch =
-      achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      achievement.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === 'all' || achievement.category === selectedCategory
-    const matchesRarity = selectedRarity === 'all' || achievement.rarity === selectedRarity
-    return matchesSearch && matchesCategory && matchesRarity
-  })
+  const filteredAchievements = mockAchievements.filter(achievement => {
+    const matchesSearch = achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         achievement.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || achievement.category === selectedCategory;
+    const matchesRarity = selectedRarity === 'all' || achievement.rarity === selectedRarity;
+    return matchesSearch && matchesCategory && matchesRarity;
+  });
 
-  const earnedAchievements = mockAchievements.filter((a) => a.isEarned)
-  const inProgressAchievements = mockAchievements.filter((a) => !a.isEarned && a.progress > 0)
+  const earnedAchievements = mockAchievements.filter(a => a.isEarned);
+  const inProgressAchievements = mockAchievements.filter(a => !a.isEarned && a.progress > 0);
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className='text-2xl font-bold'>Thành tích</h1>
-        <p className='text-muted-foreground'>Theo dõi thành tích và huy hiệu của bạn</p>
+        <h1 className="text-2xl font-bold">Thành tích</h1>
+        <p className="text-muted-foreground">
+          Theo dõi thành tích và huy hiệu của bạn
+        </p>
       </div>
 
       {/* Stats Overview */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-2'>
-              <Trophy className='h-5 w-5 text-yellow-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-600" />
               <div>
-                <p className='text-sm text-muted-foreground'>Tổng điểm</p>
-                <p className='text-xl font-semibold'>{mockStats.totalPoints}</p>
+                <p className="text-sm text-muted-foreground">Tổng điểm</p>
+                <p className="text-xl font-semibold">{mockStats.totalPoints}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-2'>
-              <Award className='h-5 w-5 text-blue-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-blue-600" />
               <div>
-                <p className='text-sm text-muted-foreground'>Thành tích</p>
-                <p className='text-xl font-semibold'>
+                <p className="text-sm text-muted-foreground">Thành tích</p>
+                <p className="text-xl font-semibold">
                   {mockStats.totalAchievements}/{mockAchievements.length}
                 </p>
               </div>
@@ -306,23 +287,23 @@ export function Achievements() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-2'>
-              <Clock className='h-5 w-5 text-green-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-green-600" />
               <div>
-                <p className='text-sm text-muted-foreground'>Chuỗi ngày</p>
-                <p className='text-xl font-semibold'>{mockStats.currentStreak} ngày</p>
+                <p className="text-sm text-muted-foreground">Chuỗi ngày</p>
+                <p className="text-xl font-semibold">{mockStats.currentStreak} ngày</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-2'>
-              <TrendingUp className='h-5 w-5 text-purple-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
               <div>
-                <p className='text-sm text-muted-foreground'>Xếp hạng</p>
-                <p className='text-xl font-semibold'>#{mockStats.rank}</p>
+                <p className="text-sm text-muted-foreground">Xếp hạng</p>
+                <p className="text-xl font-semibold">#{mockStats.rank}</p>
               </div>
             </div>
           </CardContent>
@@ -330,52 +311,52 @@ export function Achievements() {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue='achievements' className='space-y-4'>
+      <Tabs defaultValue="achievements" className="space-y-4">
         <TabsList>
-          <TabsTrigger value='achievements'>Thành tích</TabsTrigger>
-          <TabsTrigger value='leaderboard'>Bảng xếp hạng</TabsTrigger>
-          <TabsTrigger value='progress'>Tiến độ</TabsTrigger>
+          <TabsTrigger value="achievements">Thành tích</TabsTrigger>
+          <TabsTrigger value="leaderboard">Bảng xếp hạng</TabsTrigger>
+          <TabsTrigger value="progress">Tiến độ</TabsTrigger>
         </TabsList>
 
         {/* Achievements Tab */}
-        <TabsContent value='achievements' className='space-y-4'>
+        <TabsContent value="achievements" className="space-y-4">
           {/* Filters */}
           <Card>
-            <CardContent className='p-4'>
-              <div className='flex flex-col md:flex-row gap-4'>
-                <div className='flex-1'>
-                  <div className='relative'>
-                    <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder='Tìm kiếm thành tích...'
+                      placeholder="Tìm kiếm thành tích..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className='pl-9'
+                      className="pl-9"
                     />
                   </div>
                 </div>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className='w-40'>
-                    <SelectValue placeholder='Danh mục' />
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Danh mục" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='all'>Tất cả</SelectItem>
-                    <SelectItem value='academic'>Học tập</SelectItem>
-                    <SelectItem value='streak'>Chuỗi ngày</SelectItem>
-                    <SelectItem value='speed'>Tốc độ</SelectItem>
-                    <SelectItem value='memory'>Ghi nhớ</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="academic">Học tập</SelectItem>
+                    <SelectItem value="streak">Chuỗi ngày</SelectItem>
+                    <SelectItem value="speed">Tốc độ</SelectItem>
+                    <SelectItem value="memory">Ghi nhớ</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={selectedRarity} onValueChange={setSelectedRarity}>
-                  <SelectTrigger className='w-40'>
-                    <SelectValue placeholder='Độ hiếm' />
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Độ hiếm" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='all'>Tất cả</SelectItem>
-                    <SelectItem value='common'>Thường</SelectItem>
-                    <SelectItem value='rare'>Hiếm</SelectItem>
-                    <SelectItem value='epic'>Huyền thoại</SelectItem>
-                    <SelectItem value='legendary'>Huyền thoại</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="common">Thường</SelectItem>
+                    <SelectItem value="rare">Hiếm</SelectItem>
+                    <SelectItem value="epic">Huyền thoại</SelectItem>
+                    <SelectItem value="legendary">Huyền thoại</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -383,47 +364,53 @@ export function Achievements() {
           </Card>
 
           {/* Achievements Grid */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredAchievements.map((achievement) => (
-              <Card
-                key={achievement.id}
+              <Card 
+                key={achievement.id} 
                 className={`${
-                  achievement.isEarned
-                    ? 'bg-green-50 border-green-200'
-                    : achievement.progress > 0
-                      ? 'bg-blue-50 border-blue-200'
+                  achievement.isEarned 
+                    ? 'bg-green-50 border-green-200' 
+                    : achievement.progress > 0 
+                      ? 'bg-blue-50 border-blue-200' 
                       : 'bg-gray-50 border-gray-200'
                 }`}
               >
-                <CardHeader className='pb-3'>
-                  <div className='flex items-start justify-between'>
-                    <div className='text-4xl'>{achievement.isEarned ? achievement.icon : '🔒'}</div>
-                    <div className='text-right'>
-                      <Badge className={getRarityColor(achievement.rarity)}>{getRarityLabel(achievement.rarity)}</Badge>
-                      <p className='text-sm font-semibold mt-1'>{achievement.points} điểm</p>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="text-4xl">
+                      {achievement.isEarned ? achievement.icon : '🔒'}
+                    </div>
+                    <div className="text-right">
+                      <Badge className={getRarityColor(achievement.rarity)}>
+                        {getRarityLabel(achievement.rarity)}
+                      </Badge>
+                      <p className="text-sm font-semibold mt-1">{achievement.points} điểm</p>
                     </div>
                   </div>
-                  <CardTitle className='text-lg'>{achievement.title}</CardTitle>
+                  <CardTitle className="text-lg">{achievement.title}</CardTitle>
                   <CardDescription>{achievement.description}</CardDescription>
                 </CardHeader>
-                <CardContent className='space-y-3'>
-                  <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     {getCategoryIcon(achievement.category)}
                     <span>{getCategoryLabel(achievement.category)}</span>
                   </div>
-
-                  <div className='space-y-2'>
-                    <div className='flex justify-between text-sm'>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
                       <span>Tiến độ</span>
                       <span>{achievement.progress}%</span>
                     </div>
-                    <Progress value={achievement.progress} className='h-2' />
-                    <p className='text-xs text-muted-foreground'>{achievement.requirement}</p>
+                    <Progress value={achievement.progress} className="h-2" />
+                    <p className="text-xs text-muted-foreground">
+                      {achievement.requirement}
+                    </p>
                   </div>
 
                   {achievement.isEarned && (
-                    <div className='flex items-center gap-2 text-sm text-green-600'>
-                      <CheckCircle className='h-4 w-4' />
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <CheckCircle className="h-4 w-4" />
                       <span>Đạt được: {new Date(achievement.earnedAt!).toLocaleDateString('vi-VN')}</span>
                     </div>
                   )}
@@ -434,14 +421,16 @@ export function Achievements() {
         </TabsContent>
 
         {/* Leaderboard Tab */}
-        <TabsContent value='leaderboard' className='space-y-4'>
+        <TabsContent value="leaderboard" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Bảng xếp hạng</CardTitle>
-              <CardDescription>Top học sinh có thành tích tốt nhất</CardDescription>
+              <CardDescription>
+                Top học sinh có thành tích tốt nhất
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='space-y-4'>
+              <div className="space-y-4">
                 {mockLeaderboard.map((student, index) => (
                   <div
                     key={student.id}
@@ -449,15 +438,17 @@ export function Achievements() {
                       student.name === 'Bạn' ? 'bg-primary/5 border-primary' : ''
                     }`}
                   >
-                    <div className='flex items-center justify-center w-8 h-8 rounded-full bg-muted font-bold'>
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted font-bold">
                       {student.rank}
                     </div>
-                    <div className='flex-1'>
-                      <div className='flex items-center gap-2'>
-                        <h3 className='font-semibold'>{student.name}</h3>
-                        {student.name === 'Bạn' && <Badge variant='default'>Bạn</Badge>}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">{student.name}</h3>
+                        {student.name === 'Bạn' && (
+                          <Badge variant="default">Bạn</Badge>
+                        )}
                       </div>
-                      <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{student.totalPoints} điểm</span>
                         <span>•</span>
                         <span>{student.achievements} thành tích</span>
@@ -465,10 +456,12 @@ export function Achievements() {
                         <span>{student.streak} ngày liên tiếp</span>
                       </div>
                     </div>
-                    <div className='text-right'>
-                      <div className='flex items-center gap-1'>
-                        {student.rank <= 3 && <Trophy className='h-4 w-4 text-yellow-500' />}
-                        <span className='font-semibold'>{student.totalPoints}</span>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1">
+                        {student.rank <= 3 && (
+                          <Trophy className="h-4 w-4 text-yellow-500" />
+                        )}
+                        <span className="font-semibold">{student.totalPoints}</span>
                       </div>
                     </div>
                   </div>
@@ -479,25 +472,27 @@ export function Achievements() {
         </TabsContent>
 
         {/* Progress Tab */}
-        <TabsContent value='progress' className='space-y-4'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <TabsContent value="progress" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>Thành tích đã đạt</CardTitle>
-                <CardDescription>{earnedAchievements.length} thành tích đã hoàn thành</CardDescription>
+                <CardDescription>
+                  {earnedAchievements.length} thành tích đã hoàn thành
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className='space-y-3'>
+                <div className="space-y-3">
                   {earnedAchievements.map((achievement) => (
-                    <div key={achievement.id} className='flex items-center gap-3 p-3 bg-green-50 rounded-lg'>
-                      <div className='text-2xl'>{achievement.icon}</div>
-                      <div className='flex-1'>
-                        <h4 className='font-medium'>{achievement.title}</h4>
-                        <p className='text-sm text-muted-foreground'>
+                    <div key={achievement.id} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                      <div className="text-2xl">{achievement.icon}</div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">{achievement.title}</h4>
+                        <p className="text-sm text-muted-foreground">
                           {new Date(achievement.earnedAt!).toLocaleDateString('vi-VN')}
                         </p>
                       </div>
-                      <Badge variant='default'>{achievement.points} điểm</Badge>
+                      <Badge variant="default">{achievement.points} điểm</Badge>
                     </div>
                   ))}
                 </div>
@@ -507,26 +502,30 @@ export function Achievements() {
             <Card>
               <CardHeader>
                 <CardTitle>Đang phấn đấu</CardTitle>
-                <CardDescription>{inProgressAchievements.length} thành tích đang trong quá trình</CardDescription>
+                <CardDescription>
+                  {inProgressAchievements.length} thành tích đang trong quá trình
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className='space-y-3'>
+                <div className="space-y-3">
                   {inProgressAchievements.map((achievement) => (
-                    <div key={achievement.id} className='p-3 border rounded-lg'>
-                      <div className='flex items-center gap-3 mb-2'>
-                        <div className='text-2xl'>🔒</div>
-                        <div className='flex-1'>
-                          <h4 className='font-medium'>{achievement.title}</h4>
-                          <p className='text-sm text-muted-foreground'>{achievement.requirement}</p>
+                    <div key={achievement.id} className="p-3 border rounded-lg">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="text-2xl">🔒</div>
+                        <div className="flex-1">
+                          <h4 className="font-medium">{achievement.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {achievement.requirement}
+                          </p>
                         </div>
-                        <Badge variant='outline'>{achievement.points} điểm</Badge>
+                        <Badge variant="outline">{achievement.points} điểm</Badge>
                       </div>
-                      <div className='space-y-1'>
-                        <div className='flex justify-between text-sm'>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
                           <span>Tiến độ</span>
                           <span>{achievement.progress}%</span>
                         </div>
-                        <Progress value={achievement.progress} className='h-2' />
+                        <Progress value={achievement.progress} className="h-2" />
                       </div>
                     </div>
                   ))}
@@ -537,5 +536,5 @@ export function Achievements() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
