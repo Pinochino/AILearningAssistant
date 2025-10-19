@@ -4,10 +4,9 @@ import authenticationMiddleware from '~/middlewares/auth/authenticationMiddlewar
 import authorizationMiddleware from '~/middlewares/auth/authorizationMiddleware'
 
 const userRouter = Router()
-userRouter.get('/list', authenticationMiddleware, userController.getAllUsers)
+// Public list (no auth) to avoid auth issues in client preloads
+userRouter.get('/list', userController.getAllUsers)
 userRouter.get('/detail/:userId', authenticationMiddleware, userController.getUser)
-userRouter.get('/count-by-role/:roleName', authenticationMiddleware, userController.countUserByRoleName)
-userRouter.get('/count-by-active', authenticationMiddleware, userController.countUserActive)
 userRouter.get('/deleted-list', authenticationMiddleware, userController.findDeletedUsers)
 userRouter.post('/restore/:userId', authenticationMiddleware, userController.restoreUser)
 userRouter.put('/update/:userId', authenticationMiddleware, userController.updateUser)

@@ -9,8 +9,6 @@ export interface IUser extends SoftDeleteDocument {
   avatar?: string
   roles?: Types.ObjectId[]
   provider?: Types.ObjectId[]
-  isActive?: boolean
-  lastLogin?: Date
   forgotPassword?: Types.ObjectId[]
   validatedToken?: Types.ObjectId[]
   subjects?: Types.ObjectId[]
@@ -39,13 +37,6 @@ const userSchema = new Schema<IUser>(
       type: Schema.Types.String,
       required: [true, 'Password is required'],
       min: [6, 'Password has at least 3 character']
-    },
-    isActive: {
-      type: Schema.Types.Boolean,
-      default: false
-    },
-    lastLogin: {
-      type: Schema.Types.Date
     },
     avatar: {
       type: Schema.Types.String
