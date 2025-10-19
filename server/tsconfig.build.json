@@ -1,0 +1,27 @@
+{
+    "extends": "./tsconfig.json",
+    "include": [
+        "src/app.ts",
+        "src/server.ts",
+        "src/config/**/*.ts",
+        "src/controllers/messages.controller.ts",
+        "src/controllers/notifications.controller.ts",
+        "src/middlewares/**/*.ts",
+        "src/routes/**/*.ts",
+        "src/services/ai-bridge.service.ts",
+        "src/services/messages.service.ts",
+        "src/services/notifications.service.ts",
+        "src/services/online.service.ts",
+        "src/services/socket-handler.ts",
+        "src/models/conversation.model.ts",
+        "src/models/message.model.ts",
+        "src/models/notification.model.ts",
+        "src/models/user.model.ts",
+        "src/type.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "src/test/**"
+    ]
+}
