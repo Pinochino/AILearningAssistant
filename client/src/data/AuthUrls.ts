@@ -1,7 +1,8 @@
-export const authUrls = {
+export const AuthUrls = {
   login: '/auth/login',
-  createUser: '/auth/register',
+  register: '/auth/register',
   logout: '/auth/logout',
   refreshToken: '/auth/refresh-token',
-  
-}
+  me: '/auth/me',
+};
+export const authUrls = AuthUrls;
