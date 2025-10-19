@@ -1,9 +1,9 @@
-// axiosClient.ts
 import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:9000/api',
-  withCredentials: true, 
+  baseURL: 'http://localhost:4000/api',
+  timeout: 5000,
+  withCredentials: true,
 })
 
 let accessToken: string | null = null
@@ -11,16 +11,13 @@ export const setAccessToken = (token: string | null) => {
   accessToken = token
 }
 
-// Request interceptor
 axiosClient.interceptors.request.use((config) => {
-  console.log(accessToken)
   if (accessToken && config.headers) {
     config.headers.Authorization = `Bearer ${accessToken}`
   }
   return config
 })
 
-// Response interceptor
 axiosClient.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
@@ -30,11 +27,11 @@ axiosClient.interceptors.response.use(
       originalRequest._retry = true
       try {
         const res = await axios.post(
-          'http://localhost:9000/api/auth/refresh-token',
+          'http://localhost:4000/api/auth/refresh-token',
           {},
           { withCredentials: true }
         )
-        const newToken = res.data?.data?.accessToken
+        const newToken = (res as any).data?.data?.accessToken
         if (newToken) {
           setAccessToken(newToken)
           if (originalRequest.headers) {
