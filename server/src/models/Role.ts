@@ -3,13 +3,15 @@ import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-de
 
 export enum RoleName {
   USER = 'USER',
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
   TEACHER = 'TEACHER',
-  SUPER_ADMIN = 'SUPER_ADMIN'
+  STUDENT = 'STUDENT'
 }
 
 export interface IRole extends SoftDeleteDocument {
   name: RoleName
-  users: Types.ObjectId[]
+  user: Types.ObjectId[]
 }
 
 const roleSchema = new Schema<IRole>(
@@ -17,10 +19,9 @@ const roleSchema = new Schema<IRole>(
     name: {
       type: Schema.Types.String,
       enum: RoleName,
-      default: RoleName.USER,
-      unique: true
+      default: RoleName.USER
     },
-    users: [
+    user: [
       {
         type: Schema.Types.ObjectId,
         ref: 'User'
