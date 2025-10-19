@@ -7,75 +7,77 @@ import { Role, RoleName } from '~/models/Role'
 import emailService from './emailService'
 import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils'
 import { ForgotPassword } from '~/models/ForgotPassword'
+import { Types } from 'mongoose'
 
 const authService = {
   authenticate: async ({ email, password }: LoginType) => {
     try {
+      console.log('🔐 Login attempt:', { email })
+      
       const user = await User.findOne({ email }).populate('roles', 'name')
 
       if (!user) {
+        console.log('❌ User not found:', email)
         throw new Error('Invalid credentials')
       }
+
+      console.log('✅ User found:', {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        roles: user.roles,
+        hasPassword: !!user.password
+      })
 
       const isValid = await compareHashed(password as string, user.password as string)
 
       if (!isValid) {
+        console.log('❌ Invalid password for:', email)
         throw new Error('Invalid credentials')
       }
 
-      await User.updateOne(
-        {
-          _id: user._id
-        },
-        {
-          isActive: true,
-          lastLogin: new Date()
-        }
-      )
-
+      console.log('✅ Password valid, creating login response')
       return createLoginResponse(user)
     } catch (error: any) {
+      console.error('❌ Login error:', error.message)
       throw new Error('Error in login: ' + error?.message)
     }
   },
 
   createUser: async ({ email, username, password, roles }: RegisterType) => {
     try {
-      // 1. Kiểm tra user tồn tại
-      const existingUser = await User.findOne({ email })
-      if (existingUser) {
-        throw new Error('User already exists')
+      let user = await User.findOne({ email })
+
+      if (user) {
+        throw new Error('User already have been existed')
       }
 
-      // 2. Lấy danh sách roles hợp lệ (ngoại trừ SUPER_ADMIN)
-      const roleDocs = await Role.find({
-        _id: { $in: roles },
-        name: { $ne: RoleName.SUPER_ADMIN }
+      const rolePromises = Array.from(roles).map(async (r) => {
+        const role = await Role.findOne({
+          _id: r,
+          name: { $ne: RoleName.SUPER_ADMIN }
+        })
+        return role?._id
       })
 
-      if (!roleDocs.length) {
-        throw new Error('No valid roles found')
-      }
+      const newRoles = (await Promise.all(rolePromises)).filter(Boolean)
 
-      const roleIds = roleDocs.map((role) => role._id)
+      console.log(`newRoles: `, newRoles)
 
-      // 3. Tạo user
-      const user = await User.create({
-        username,
-        email,
-        password,
-        roles: roleIds
-      })
+      user = await User.create({ username, email, password, roles: newRoles })
 
-      // 4. Cập nhật roles để gán user (nếu Role có field "users")
-      await Role.updateMany({ _id: { $in: roleIds } }, { $addToSet: { users: user._id } })
+      // await emailService.sendEmail({
+      //   from: 'Tranhunghp22112004@gmail.com',
+      //   to: user.email as string,
+      //   subject: 'Welcome to LearningAssistant',
+      //   template: 'welcome',
+      //   context: { username: user.username }
+      // })
 
-      // 5. Populate role name cho user
       await user.populate('roles', 'name')
-
       return user
     } catch (error: any) {
-      throw new Error(`Error in register: ${error.message}`)
+      throw new Error('Error in register: ' + error?.message)
     }
   },
 
@@ -131,15 +133,6 @@ const authService = {
     if (!user) {
       throw new Error('Invalid userId')
     }
-
-    await User.updateOne(
-      {
-        _id: user._id
-      },
-      {
-        isActive: false
-      }
-    )
 
     oldRefreshToken.status = ValidatedTokenStatus.REVOKED
     await oldRefreshToken.save()
