@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
   Card,
   CardContent,
@@ -34,26 +35,15 @@ import {
   Activity,
   Clock,
   Award,
-  BarChart3,
-} from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import {
-  AnnouncementSection,
-  Announcement,
-} from "../dashboard/AnnouncementSection";
-import { AnnouncementCreator } from "../dashboard/AnnouncementCreator";
+  BarChart3
+} from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSection'
+import { AnnouncementCreator } from '../dashboard/AnnouncementCreator'
 import { AnnouncementService } from "../../services/announcements";
+import { handleApi } from '../../api/handleApi'
+import GetRoleCountByName from '../../hooks/getRoleCount'
+import { Skeleton } from '../ui/skeleton'
 
 const userStats = [
   {
@@ -256,7 +246,33 @@ export function AdminDashboard() {
     } catch (e) {
       // TODO: show toast
     }
-  };
+  }
+
+  const [userStat, setUserStat] = useState(userStats)
+
+  const { data: userCount } = GetRoleCountByName("USER");
+  const { data: adminCount } = GetRoleCountByName("SUPER_ADMIN")
+  const { data: teacherCount } = GetRoleCountByName("TEACHER")
+
+  const [loadingPage, setLoadingPage] = useState<boolean>(false)
+
+
+  useEffect(() => {
+
+    if (userCount?.data || adminCount?.data || teacherCount?.data) {
+      setUserStat([
+        { role: 'Học sinh', count: userCount?.data || 0, color: '#3b82f6', change: '+12%' },
+        { role: 'Giáo viên', count: teacherCount?.data || 0, color: '#10b981', change: '+5%' },
+        { role: 'Admin', count: adminCount?.data || 0, color: '#f59e0b', change: '0%' }
+      ]);
+
+      setLoadingPage(false)
+    } else {
+      setLoadingPage(true)
+    }
+
+  }, [userCount, adminCount, teacherCount])
+
 
   return (
     <div className="space-y-6">
@@ -312,30 +328,23 @@ export function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {stat.count.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                <span
-                  className={
-                    stat.change.startsWith("+")
-                      ? "text-green-600"
-                      : "text-muted-foreground"
-                  }
-                >
+              {loadingPage ? (<Skeleton></Skeleton>) : (<div className='text-2xl font-bold'>{stat.count}</div>)}
+              <p className='text-xs text-muted-foreground'>
+                <span className={stat.change.startsWith('+') ? 'text-green-600' : 'text-muted-foreground'}>
                   {stat.change}
                 </span>{" "}
                 so với tháng trước
               </p>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        ))
+        }
+      </div >
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      < div className="grid grid-cols-1 lg:grid-cols-2 gap-6" >
         {/* Monthly Activity Chart */}
-        <Card>
+        < Card >
           <CardHeader>
             <CardTitle>Hoạt động theo tháng</CardTitle>
             <CardDescription>
@@ -367,10 +376,10 @@ export function AdminDashboard() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
+        </Card >
 
         {/* Subject Distribution */}
-        <Card>
+        < Card >
           <CardHeader>
             <CardTitle>Phân bố môn học</CardTitle>
             <CardDescription>
@@ -403,11 +412,11 @@ export function AdminDashboard() {
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
-      </div>
+        </Card >
+      </div >
 
       {/* Subject Details Table */}
-      <Card>
+      < Card >
         <CardHeader>
           <CardTitle>Chi tiết môn học</CardTitle>
           <CardDescription>
@@ -456,10 +465,10 @@ export function AdminDashboard() {
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card >
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
@@ -493,10 +502,10 @@ export function AdminDashboard() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </div >
 
       {/* Additional Analytics Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" >
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -580,10 +589,10 @@ export function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div >
 
       {/* Detailed Analytics */}
-      <Tabs defaultValue="quiz" className="space-y-4">
+      < Tabs defaultValue="quiz" className="space-y-4" >
         <TabsList>
           <TabsTrigger value="quiz">Thống kê Quiz</TabsTrigger>
           <TabsTrigger value="flashcard">
@@ -627,8 +636,8 @@ export function AdminDashboard() {
                         </span>
                         <div
                           className={`flex items-center gap-1 ${stat.trend === "up"
-                              ? "text-green-600"
-                              : "text-red-600"
+                            ? "text-green-600"
+                            : "text-red-600"
                             }`}
                         >
                           {stat.trend === "up" ? (
@@ -793,7 +802,7 @@ export function AdminDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
-    </div>
+      </Tabs >
+    </div >
   );
 }

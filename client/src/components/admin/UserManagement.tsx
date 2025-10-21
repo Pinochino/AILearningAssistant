@@ -1,14 +1,19 @@
-import { React, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { useNavigation } from '../../hooks/useNavigation';
+import { ChangeEvent, useEffect, useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Badge } from '../ui/badge'
+import { Avatar, AvatarFallback } from '../ui/avatar'
+import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { useNavigation } from '../../hooks/useNavigation'
+import { handleApi } from '../../api/handleApi'
+import React from 'react'
+import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useFetchCountUserByTeacherRole, useFetchCountUserByUserRole, useGetUsers } from '../../services/UserService'
+import { Skeleton } from '../ui/skeleton'
 
 const mockUsers = [
   {
@@ -49,22 +54,190 @@ const mockUsers = [
     status: 'inactive',
     subjects: ['Toán học', 'Sinh học'],
     joinDate: '2024-03-05',
-    lastLogin: '2024-09-10',
-  },
-];
+    lastLogin: '2024-09-10'
+  }
+]
+
+const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser }) => {
+  return (
+    <>
+      {Array.from(users || []).map((user: any, index: number) => (
+        <div key={user?._id || user?.id || index} className='flex items-center justify-between p-4 border rounded-lg'>
+          <div className='flex items-center gap-4'>
+            <Avatar>
+              <AvatarFallback>
+                {(user?.username || user?.name || user?.email || 'U')
+                  .split(' ')
+                  .map((n: string) => n && n[0] ? n[0] : '')
+                  .join('')
+                  .toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className='space-y-1'>
+              <div className='flex items-center gap-2'>
+                <h3 className='font-medium'>{user?.name || user?.username || user?.email || 'Người dùng'}</h3>
+                {user?.username && <h2>{user.username}</h2>}
+                <Badge variant={getRoleBadgeVariant(user?.roles?.[0]?.name || 'user')}>
+                  {getRoleLabel(user?.roles?.[0]?.name || 'user')}
+                </Badge>
+                <Badge variant={user?.status === 'active' || user?.isActive === true ? 'secondary' : 'outline'}>
+                  {user?.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
+                </Badge>
+              </div>
+              {user?.email && <p className='text-sm text-muted-foreground'>{user.email}</p>}
+              <div className='flex items-center gap-4 text-xs text-muted-foreground'>
+                <span>Tham gia: {new Date(user?.createdAt || Date.now()).toLocaleDateString('vi-VN')}</span>
+                <span>•</span>
+                <span>Đăng nhập cuối: {new Date(user?.lastLogin || Date.now()).toLocaleDateString('vi-VN')}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className='flex items-center gap-2'>
+            <Button variant='outline' size='sm'>
+              <Eye className='h-4 w-4' />
+            </Button>
+            <Button variant='outline' size='sm' onClick={() => navigateTo('edit-user', { userId: user?._id || user?.id })}>
+              <Edit className='h-4 w-4' />
+            </Button>
+            <Button variant='outline' size='sm'>
+              {user?.status === 'active' ? <UserX className='h-4 w-4' /> : <UserCheck className='h-4 w-4' />}
+            </Button>
+            <Button variant='outline' size='sm' value={user?._id || user?.id} onClick={() => handleDeleteUser(user?._id || user?.id)}>
+              <Trash2 className='h-4 w-4 text-destructive' />
+            </Button>
+          </div>
+        </div>
+      ))}
+    </>
+  )
+}
 
 export function UserManagement() {
-  const { navigateTo } = useNavigation();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('all');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { navigateTo } = useNavigation()
+  const queryClient = useQueryClient()
 
-  const filteredUsers = mockUsers.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    return matchesSearch && matchesRole;
+  const [userData, setUserData] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedRole, setSelectedRole] = useState<string | null>()
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [value, setValue] = useState({
+    username: '',
+    email: '',
+    password: '',
+    roles: []
   });
+  const [userByRoleId, setUserByRoleId] = useState([]);
+  const [loadingPage, setLoadingPage] = useState<boolean>(false);
+
+
+  const { mutate: handleDeleteUser } = useMutation({
+    mutationFn: async (userId: string) => {
+      return await handleApi({ url: `/users/delete/${userId}`, method: 'DELETE' })
+    },
+    onMutate: async (userId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['users'] })
+
+      const previousUsers = queryClient.getQueryData<any[]>(['users'])
+
+      queryClient.setQueryData<any[]>(['users'], (old) => (old ? old.filter((user) => user._id !== userId) : []))
+
+      return { previousUsers }
+    },
+    onError: (_err, _userId, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData(['users'], context.previousUsers)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    }
+  })
+
+  const fetchUsers = async () => {
+    const res = await handleApi({ url: '/users/list', method: 'GET', withCredentials: true })
+    return res.data?.data
+  }
+
+  const fetchRoles = async () => {
+    const res = await handleApi({ url: '/roles/list', method: 'GET' })
+    return res.data
+  }
+
+  const users = useGetUsers(searchTerm)
+  const userCount = useFetchCountUserByUserRole()
+  const teacherCount = useFetchCountUserByTeacherRole()
+
+  const {
+    data: roles,
+    isLoading: roleLoading,
+    error: errorRole
+  } = useQuery({
+    queryKey: ['roles'],
+    queryFn: fetchRoles
+  })
+
+  const fetchCreateUser = async () => {
+    const res = await handleApi({ url: '/auth/register', method: 'POST', data: value })
+    return res.data
+  }
+
+
+
+  const {
+    mutate,
+    error: createUserError,
+    isPending
+  } = useMutation({
+    mutationFn: fetchCreateUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    }
+  })
+
+  const handleChangeUserByRoleId = (roleId: string) => {
+    console.log(roleId)
+    setSelectedRole(roleId)
+  }
+
+  const fetchUsersByRoleId = async () => {
+    try {
+      if (!selectedRole) return { data: { users: [] } } as any;
+      const res = await handleApi({ url: `/roles/list-user/${selectedRole}`, method: 'POST' })
+      return res.data
+    } catch (e) {
+      return { data: { users: [] } } as any;
+    }
+  }
+
+  const { data: usersByRoleId } = useQuery({
+    queryKey: ['usersByRoleId', selectedRole],
+    queryFn: fetchUsersByRoleId,
+    enabled: !!selectedRole,
+  })
+
+  const filteredUsers = mockUsers.filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesRole = selectedRole === 'all' || user.role === selectedRole
+    return matchesSearch && matchesRole
+  })
+
+  const filterUserIsActive = async () => {
+    const res = await handleApi({ url: `/users/count-by-active`, method: 'GET' })
+    return res.data
+  }
+
+  const {
+    data: userActiveCount,
+    isLoading: userActiveCountLoading,
+    error: userActiveCountError
+  } = useQuery({
+    queryKey: ['userActiveCount'],
+    queryFn: filterUserIsActive
+  })
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -82,7 +255,50 @@ export function UserManagement() {
       case 'student': return 'secondary';
       default: return 'outline';
     }
-  };
+  }
+
+  const handleChangeInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setValue((prev) => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleChangeRole = (roleId: string) => {
+    setValue({ ...value, roles: [roleId] })
+  }
+
+  const handleCreateUser = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    console.log(value)
+    mutate()
+  }
+
+  useEffect(() => {
+    if (!usersByRoleId) {
+      setLoadingPage(true);
+    } else {
+      const timeout = setTimeout(() => {
+        setUserByRoleId(usersByRoleId?.data?.users);
+        setLoadingPage(false);
+      }, 300); // delay 300ms cho mượt hơn
+      return () => clearTimeout(timeout);
+    }
+  }, [usersByRoleId]);
+
+  useEffect(() => {
+    if (!users) {
+      setLoadingPage(true);
+    } else {
+      const timeout = setTimeout(() => {
+        setUserData(users);
+        setLoadingPage(false);
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [users]);
+
 
   return (
     <div className="space-y-6">
@@ -173,94 +389,51 @@ export function UserManagement() {
       </Card>
 
       {/* User List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách người dùng ({filteredUsers.length})</CardTitle>
-          <CardDescription>
-            Quản lý thông tin và quyền hạn của từng người dùng
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <Avatar>
-                    <AvatarFallback>
-                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+      {loadingPage ? (
+        <Skeleton>Loading</Skeleton>
 
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{user.name}</h3>
-                      <Badge variant={getRoleBadgeVariant(user.role)}>
-                        {getRoleLabel(user.role)}
-                      </Badge>
-                      <Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>
-                        {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>Tham gia: {new Date(user.joinDate).toLocaleDateString('vi-VN')}</span>
-                      <span>•</span>
-                      <span>Đăng nhập cuối: {new Date(user.lastLogin).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                  </div>
-                </div>
+      ) : (<>
+        <Card>
+          <CardHeader>
+            <CardTitle>Danh sách người dùng ({users?.length})</CardTitle>
+            <CardDescription>Quản lý thông tin và quyền hạn của từng người dùng</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='space-y-4'>
+              {usersByRoleId
+                ? DisplayUsers({ users: userByRoleId, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })
+                : DisplayUsers({ users: userData, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })}
+            </div>
+          </CardContent>
+        </Card>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigateTo('edit-user', { userId: user.id })}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    {user.status === 'active' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
+        {/* Stats */}
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+          <Card>
+            <CardContent className='p-4'>
+              <div className='text-center'>
+                <p className='text-2xl font-bold'>{teacherCount?.data || 0}</p>
+                <p className='text-sm text-muted-foreground'>Giáo viên</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{mockUsers.filter(u => u.role === 'teacher').length}</p>
-              <p className="text-sm text-muted-foreground">Giáo viên</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{mockUsers.filter(u => u.role === 'student').length}</p>
-              <p className="text-sm text-muted-foreground">Học sinh</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{mockUsers.filter(u => u.status === 'active').length}</p>
-              <p className="text-sm text-muted-foreground">Đang hoạt động</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className='p-4'>
+              <div className='text-center'>
+                <p className='text-2xl font-bold'>{userCount?.data || 0}</p>
+                <p className='text-sm text-muted-foreground'>Học sinh</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className='p-4'>
+              <div className='text-center'>
+                <p className='text-2xl font-bold'>{userActiveCount?.data}</p>
+                <p className='text-sm text-muted-foreground'>Đang hoạt động</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div></>)}
     </div>
   );
 }

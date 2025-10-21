@@ -45,8 +45,10 @@ const userController = {
   updateUser: async (req: Request, res: Response) => {
     try {
       const { userId } = req.params
+      console.log(`User ID: ${userId}`)
       const result = await userService.updateUser(userId, req.body)
-      responseUtils({ req, res, code: 400, message: `Update user successfully`, data: result })
+      console.log(`Request body: ${result}`)
+      responseUtils({ req, res, code: 200, message: `Update user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
@@ -76,6 +78,25 @@ const userController = {
     try {
       const result = await userService.findDeletedUser()
       responseUtils({ req, res, code: 400, message: `Get all deleted user successfully`, data: result })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  countUserByRole: async (req: Request, res: Response) => {
+    try {
+      const { roleName } = req.params as { roleName: string }
+      const count = await userService.countUserByRole(roleName)
+      responseUtils({ req, res, code: 200, message: `Get count by role successfully`, data: count })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  countUserIsActive: async (req: Request, res: Response) => {
+    try {
+      const count = await userService.countUserIsActive()
+      responseUtils({ req, res, code: 200, message: `Get count of active users successfully`, data: count })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

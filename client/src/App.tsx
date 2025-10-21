@@ -4,6 +4,7 @@ import { NavigationProvider } from './hooks/useNavigation';
 import { LoginForm } from './components/auth/LoginForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { PageRouter } from './components/PageRouter';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -32,10 +33,14 @@ function AppContent() {
   );
 }
 
+const queryClient = new QueryClient();
+
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

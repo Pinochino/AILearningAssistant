@@ -20,6 +20,7 @@ import notificationsRoutes from "./routes/notifications.routes.js";
 import announcementsRoutes from "./routes/announcements.routes.js";
 import authRouter from "./routers/authRouter";
 import userRouter from "./routers/userRouter";
+import roleRouter from "./routers/roleRouter";
 
 // Import server-1 routes
 // import authRouter from "./routers/authRouter";
@@ -116,7 +117,7 @@ app.use("/api/users", userRouter);
 // app.use("/api/files", fileRouter);
 // app.use("/api/email", emailRouter);
 // app.use("/api/excel", xlsxRouter);
-// app.use("/api/roles", roleRouter);
+app.use("/api/roles", roleRouter);
 
 // 404 handler
 app.use((req, res) => {

@@ -1,36 +1,36 @@
-import { User } from '../models/User'
-import { QueryInterface } from '../types/QueryInterface'
-import { UserInterface } from '../types/UserInterface'
+import { Role, RoleName } from '~/models/Role'
+import { User } from '~/models/User'
+import { QueryInterface } from '~/types/QueryInterface'
+import { EditUserInterface, UserInterface } from '~/types/UserInterface'
 
 const userService = {
   getUsers: async ({ limit, order, search, skip, sortBy }: QueryInterface): Promise<UserInterface[]> => {
-    const lim = typeof limit === 'string' ? parseInt(limit, 10) : (limit || 0)
-    const sk = typeof skip === 'string' ? parseInt(skip, 10) : (skip || 0)
-    const q = typeof search === 'string' ? search.trim() : ''
-    const sort: any = sortBy && Object.keys(sortBy as any).length ? sortBy : { createdAt: -1 }
-
-    const filter: any = q
-      ? {
-        $or: [
-          { email: { $regex: q, $options: 'i' } },
-          { username: { $regex: q, $options: 'i' } },
-        ],
-      }
-      : {}
-
-    const users = await User.find(filter)
-      .sort(sort)
-      .limit(Number.isFinite(lim) ? lim : 0)
-      .skip(Number.isFinite(sk) ? sk : 0)
+    const users = await User.find(
+      search
+        ? {
+          $or: [
+            {
+              username: search
+            },
+            {
+              email: search
+            }
+          ]
+        }
+        : {}
+    )
+      .sort(sortBy)
+      .limit(limit ? limit : 0)
+      .skip(skip ? skip : 0)
       .populate('roles', 'name')
-      .select('username email')
       .lean<UserInterface[]>()
+      .select('username email createdAt isActive lastLogin')
       .exec()
     return users
   },
 
   getUser: async (userId: string) => {
-    const user = await User.findById(userId)
+    const user = await User.findById(userId).populate('roles', 'name')
     return user
   },
 
@@ -44,7 +44,9 @@ const userService = {
     await User.deleteMany({})
   },
 
-  updateUser: async (userId: string, props: UserInterface) => {
+  updateUser: async (userId: string, props: EditUserInterface) => {
+    console.log('props: ', props)
+
     try {
       const oldUser = await User.findOne({
         _id: userId
@@ -54,22 +56,48 @@ const userService = {
         throw new Error('User not found')
       }
 
-      const newUser = await User.updateOne(
-        {
-          _id: oldUser._id
-        },
-        {
-          username: props.username,
-          email: props.email,
-          password: props.password,
-          roles: props.roles
-        }
-      )
+      console.log('old user: ' + oldUser?.email)
 
-      console.log(newUser)
+      let userUpdated
+      if (props.addRoleId || props.removeRoleId) {
+        if (props.removeRoleId) {
+          userUpdated = await User.findByIdAndUpdate(
+            oldUser._id,
+            {
+              $set: {
+                username: props.username,
+                email: props.email
+              },
+              $pull: { roles: props.removeRoleId }
+            },
+            {
+              new: true
+            }
+          )
+        }
+
+        if (props.addRoleId) {
+          userUpdated = await User.findByIdAndUpdate(
+            oldUser._id,
+            {
+              $set: {
+                username: props.username,
+                email: props.email
+              },
+              $addToSet: { roles: props.addRoleId }
+            },
+            { new: true }
+          )
+        }
+      }
+
+      const newUser = await User.findById(userUpdated?._id)
+
+      console.log('new user: ' + newUser)
 
       return newUser
     } catch (error: any) {
+      console.log(error?.message)
       throw new Error(error.message)
     }
   },
@@ -100,6 +128,41 @@ const userService = {
     try {
       const deletedUsers = await User.findDeleted({})
       return deletedUsers
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  },
+
+  countUserByRole: async (roleName: string) => {
+    try {
+      const oldRole = await Role.findOne({
+        name: roleName
+      })
+
+      if (!oldRole) {
+        throw new Error('Not found role')
+      }
+
+      const usersNumber = await User.countDocuments({
+        roles: {
+          $in: {
+            _id: [oldRole._id]
+          }
+        }
+      })
+
+      return usersNumber
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  },
+
+  countUserIsActive: async () => {
+    try {
+      const userNums = await User.countDocuments({
+        isActive: true
+      })
+      return userNums
     } catch (error: any) {
       throw new Error(error.message)
     }
