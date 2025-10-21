@@ -47,8 +47,10 @@ const userController = {
   updateUser: async (req: Request, res: Response) => {
     try {
       const { userId } = req.params
+      console.log(`User ID: ${userId}`)
       const result = await userService.updateUser(userId, req.body)
-      responseUtils({ req, res, code: 400, message: `Update user successfully`, data: result })
+      console.log(`Request body: ${result}`)
+      responseUtils({ req, res, code: 200, message: `Update user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

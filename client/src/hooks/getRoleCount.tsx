@@ -11,7 +11,6 @@ export default function GetRoleCountByName(name: string) {
 
   const getCountRole = async () => {
 
-
     console.log(`/users/count-by-role/${name}`)
 
 

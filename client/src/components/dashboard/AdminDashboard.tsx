@@ -24,6 +24,7 @@ import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSect
 import { AnnouncementCreator } from '../dashboard/AnnouncementCreator'
 import { handleApi } from '../../api/handleApi'
 import GetRoleCountByName from '../../hooks/getRoleCount'
+import { Skeleton } from '../ui/skeleton'
 
 const userStats = [
   {
@@ -207,19 +208,21 @@ export function AdminDashboard() {
   const { data: adminCount } = GetRoleCountByName("SUPER_ADMIN")
   const { data: teacherCount } = GetRoleCountByName("TEACHER")
 
+  const [loadingPage, setLoadingPage] = useState<boolean>(false)
+
+
   useEffect(() => {
 
-    if (userCount?.data || adminCount?.data || teacherCount?.data) {
-      const countRoles: number[] = [
-        userCount?.data || 0,
-        adminCount?.data || 0,
-        teacherCount?.data || 0,
-      ]
+   if (userCount?.data || adminCount?.data || teacherCount?.data) {
+    setUserStat([
+      { role: 'Học sinh', count: userCount?.data || 0, color: '#3b82f6', change: '+12%' },
+      { role: 'Giáo viên', count: teacherCount?.data || 0, color: '#10b981', change: '+5%' },
+      { role: 'Admin', count: adminCount?.data || 0, color: '#f59e0b', change: '0%' }
+    ]);
 
-      setUserStat((prev) => prev.map((item, index) => ({
-        ...item,
-        count: countRoles[index]
-      })))
+      setLoadingPage(false)
+    } else {
+      setLoadingPage(true)
     }
 
   }, [userCount, adminCount, teacherCount])
@@ -269,7 +272,7 @@ export function AdminDashboard() {
               <Users className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{stat.count}</div>
+             {loadingPage ? (<Skeleton></Skeleton>) : ( <div className='text-2xl font-bold'>{stat.count}</div>)}
               <p className='text-xs text-muted-foreground'>
                 <span className={stat.change.startsWith('+') ? 'text-green-600' : 'text-muted-foreground'}>
                   {stat.change}

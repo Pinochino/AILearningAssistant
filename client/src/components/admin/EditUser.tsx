@@ -21,7 +21,7 @@ import {
 import { toast } from 'sonner'
 import { useNavigation } from '../../hooks/useNavigation'
 import { GetUserInfor } from '../../hooks/getUserInfor'
-import { QueryClient, useMutation } from '@tanstack/react-query'
+import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleApi } from '../../api/handleApi'
 import { GetAllData } from '../../hooks/getAllData'
 
@@ -93,10 +93,9 @@ export function EditUser() {
   const userId = currentParams.userId
   console.log("userID: ", userId)
 
-  const quertClient = new QueryClient();
+  const quertClient = useQueryClient();
 
   const [user, setUser] = useState<any>(null)
-  // const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
@@ -113,7 +112,7 @@ export function EditUser() {
     studentId: ''
   })
 
-  const { isLoading, data, error } = GetUserInfor(userId);
+  const { isLoading, data: userDetail, error } = GetUserInfor(userId);
 
 
   console.log('form data: ', formData)
@@ -126,25 +125,17 @@ export function EditUser() {
 
   const { data: roleList, isLoading: rolesListLoading } = GetAllData({ url: '/roles/list', name: 'RoleList' })
 
-
-  console.log(roleList?.data);
-
-
-
   useEffect(() => {
-    if (data) {
-      setUser(data?.data);
+    if (userDetail) {
+      setUser(userDetail?.data);
     }
 
-  }, [data])
-
-  console.log(user)
-  console.log("ROLE: ", user?.roles[0]._id)
+  }, [userDetail])
 
 
-  console.log(formData.addRoleId)
 
-  
+
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -163,6 +154,9 @@ export function EditUser() {
 
   }, [roleList?.data, roles]);
 
+
+  formData.removeRoleId = user?.roles[0]?._id
+
   const { isLoading: editUserLoading, mutate: updateUser, error: editUserError } = useMutation({
     mutationFn: async () => {
       const res = await handleApi({
@@ -179,11 +173,35 @@ export function EditUser() {
       quertClient.invalidateQueries({
         queryKey: [`detail-infor-${userId}`, userId]
       })
+      quertClient.invalidateQueries({
+        queryKey: ['users']
+      })
+       quertClient.invalidateQueries({
+        queryKey: ['count-role-USER']
+      })
+       quertClient.invalidateQueries({
+        queryKey: ['count-role-SUPER_ADMIN']
+      })
+       quertClient.invalidateQueries({
+        queryKey: ['count-role-TEACHER']
+      })
+     
     }
   })
 
   const handleEditUser = () => {
     updateUser()
+    // setFormData({
+    //   username: '',
+    //   email: '',
+    //   removeRoleId: '',
+    //   addRoleId: '',
+    //   status: '',
+    //   phone: '',
+    //   address: '',
+    //   bio: '',
+    //   studentId: ''
+    // })
   }
 
   const handleToggleStatus = async () => {
@@ -191,7 +209,6 @@ export function EditUser() {
     handleInputChange('status', newStatus)
 
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500))
       toast.success(`Đã ${newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hóa'} tài khoản`)
     } catch (error) {
@@ -213,6 +230,12 @@ export function EditUser() {
         return role
     }
   }
+
+  useEffect(() => {
+    if (user) {
+      setUser(user)
+    }
+  }, [user])
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -390,24 +413,15 @@ export function EditUser() {
                     </SelectTrigger>
                     <SelectContent>
 
-                      {roles.map((r, index) => (
-                        <SelectItem value={`${r.id} || hi`} key={index}>{r.name || "hi"}</SelectItem>
-                      ))}
+                      {roles.map((r, index) => {
+                        console.log(r?._id);
+                        return (
+                          <SelectItem value={r?._id || `hi`} key={index}>{r.name || "hi"}</SelectItem>
+                        )
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* {formData.role === 'student' && (
-                  <div className='space-y-2'>
-                    <Label htmlFor='studentId'>Mã sinh viên *</Label>
-                    <Input
-                      id='studentId'
-                      value={formData.studentId}
-                      onChange={(e) => handleInputChange('studentId', e.target.value)}
-                      placeholder='Nhập mã sinh viên'
-                    />
-                  </div>
-                )} */}
               </div>
 
               <div className='space-y-2'>

@@ -45,6 +45,8 @@ const userService = {
   },
 
   updateUser: async (userId: string, props: EditUserInterface) => {
+    console.log('props: ', props)
+
     try {
       const oldUser = await User.findOne({
         _id: userId
@@ -54,24 +56,48 @@ const userService = {
         throw new Error('User not found')
       }
 
+      console.log('old user: ' + oldUser?.email)
+
+      let userUpdated
       if (props.addRoleId || props.removeRoleId) {
         if (props.removeRoleId) {
-          await User.findByIdAndUpdate(oldUser._id, {
-            $pull: { roles: props.removeRoleId }
-          })
+          userUpdated = await User.findByIdAndUpdate(
+            oldUser._id,
+            {
+              $set: {
+                username: props.username,
+                email: props.email
+              },
+              $pull: { roles: props.removeRoleId }
+            },
+            {
+              new: true
+            }
+          )
         }
 
         if (props.addRoleId) {
-          await User.findByIdAndUpdate(oldUser._id, {
-            $addToSet: { roles: props.addRoleId }
-          })
+          userUpdated = await User.findByIdAndUpdate(
+            oldUser._id,
+            {
+              $set: {
+                username: props.username,
+                email: props.email
+              },
+              $addToSet: { roles: props.addRoleId }
+            },
+            { new: true }
+          )
         }
       }
 
-      const newUser = await User.findById(oldUser._id)
+      const newUser = await User.findById(userUpdated?._id)
+
+      console.log('new user: ' + newUser)
 
       return newUser
     } catch (error: any) {
+      console.log(error?.message)
       throw new Error(error.message)
     }
   },

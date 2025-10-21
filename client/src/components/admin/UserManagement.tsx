@@ -13,6 +13,7 @@ import { handleApi } from '../../api/handleApi'
 import React from 'react'
 import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useFetchCountUserByTeacherRole, useFetchCountUserByUserRole, useGetUsers } from '../../services/UserService'
+import { Skeleton } from '../ui/skeleton'
 
 const mockUsers = [
   {
@@ -79,6 +80,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
             <div className='space-y-1'>
               <div className='flex items-center gap-2'>
                 <h3 className='font-medium'>{user.name}</h3>
+                <h2>{user.username}</h2>
                 <Badge variant={getRoleBadgeVariant(user.roles[0]?.name || user.name)}>{getRoleLabel(user.roles[0]?.name) || user.name}</Badge>
                 <Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>
                   {user.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
@@ -128,6 +130,7 @@ export function UserManagement() {
     roles: []
   });
   const [userByRoleId, setUserByRoleId] = useState([]);
+  const [loadingPage, setLoadingPage] = useState<boolean>(false);
 
 
   const { mutate: handleDeleteUser } = useMutation({
@@ -277,17 +280,30 @@ export function UserManagement() {
     mutate()
   }
 
-  useEffect(() => {
-    if (usersByRoleId) {
-      setUserByRoleId(usersByRoleId?.data?.users)
-    }
-  }, [usersByRoleId])
+ useEffect(() => {
+  if (!usersByRoleId) {
+    setLoadingPage(true);
+  } else {
+    const timeout = setTimeout(() => {
+      setUserByRoleId(usersByRoleId?.data?.users);
+      setLoadingPage(false);
+    }, 300); // delay 300ms cho mượt hơn
+    return () => clearTimeout(timeout);
+  }
+}, [usersByRoleId]);
 
-  useEffect(() => {
-    if (users) {
-      setUserData(users)
-    }
-  }, [users])
+useEffect(() => {
+  if (!users) {
+    setLoadingPage(true);
+  } else {
+    const timeout = setTimeout(() => {
+      setUserData(users);
+      setLoadingPage(false);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }
+}, [users]);
+
 
   return (
     <div className='space-y-6'>
@@ -408,7 +424,11 @@ export function UserManagement() {
       </Card>
 
       {/* User List */}
-      <Card>
+        {loadingPage ? (
+         <Skeleton>Loading</Skeleton>
+
+        ) : (<>
+              <Card>
         <CardHeader>
           <CardTitle>Danh sách người dùng ({users?.length})</CardTitle>
           <CardDescription>Quản lý thông tin và quyền hạn của từng người dùng</CardDescription>
@@ -448,7 +468,7 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div></>)}
     </div>
   )
 }
