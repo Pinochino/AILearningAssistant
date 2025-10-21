@@ -55,7 +55,7 @@ export class ClassesService {
     }
   }> {
     try {
-      const query: any = { isActive: true }
+      const query: any = {}
 
       if (filters.subject) query.subject = new RegExp(filters.subject, "i")
       if (filters.teacherId) {
@@ -133,7 +133,11 @@ export class ClassesService {
 
   static async deleteClass(id: string): Promise<boolean> {
     try {
-      const result = await Class.findByIdAndUpdate(id, { isActive: false, updatedAt: new Date() }, { new: true })
+      // First, delete all enrollments related to this class
+      await ClassEnrollment.deleteMany({ classId: id })
+
+      // Then delete the class
+      const result = await Class.findByIdAndDelete(id)
       return !!result
     } catch (error: any) {
       throw new Error(`Failed to delete class: ${error.message}`)
@@ -246,10 +250,10 @@ export class ClassesService {
   // Student requests to enroll in a class
   static async requestEnrollment(classId: string, studentId: string, message?: string): Promise<IClassEnrollment> {
     try {
-      // Check if class exists and is active
+      // Check if class exists
       const classDoc = await Class.findById(classId)
-      if (!classDoc || !classDoc.isActive) {
-        throw new Error("Class not found or inactive")
+      if (!classDoc) {
+        throw new Error("Class not found")
       }
 
       // Check if student is already enrolled
@@ -416,7 +420,7 @@ export class ClassesService {
     }
   }> {
     try {
-      const query: any = { isActive: true }
+      const query: any = {}
 
       if (filters.subject) query.subject = new RegExp(filters.subject, "i")
       if (filters.dayOfWeek !== undefined) query["schedule.dayOfWeek"] = filters.dayOfWeek
@@ -427,8 +431,13 @@ export class ClassesService {
         status: { $in: ['approved', 'pending'] }
       }).select('classId')
 
-      const enrolledClassIds = (studentEnrollments || []).map((e: any) => e.classId)
-      query._id = { $nin: enrolledClassIds }
+      const enrolledClassIds = (studentEnrollments || []).map((e: any) => {
+        // Handle both populated and non-populated classId
+        if (typeof e.classId === 'object' && e.classId !== null) {
+          return e.classId._id || e.classId;
+        }
+        return e.classId;
+      }).filter(id => id); // Remove any null/undefined values
 
       const page = filters.page || 1
       const limit = filters.limit || 10
@@ -501,7 +510,7 @@ export class ClassesService {
         }
       }
 
-      const query: any = { teacherId: actualTeacherId, isActive: true }
+      const query: any = { teacherId: actualTeacherId }
 
       if (filters.subject) query.subject = new RegExp(filters.subject, "i")
       if (filters.dayOfWeek !== undefined) query["schedule.dayOfWeek"] = filters.dayOfWeek

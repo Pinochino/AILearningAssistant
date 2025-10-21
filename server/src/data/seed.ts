@@ -80,103 +80,6 @@ export async function runSeed() {
     studentUsers.push(student)
   }
 
-  // 5. Seed Subjects
-  console.log('📚 Creating subjects...')
-  
-  const subjectsToSeed: Array<Partial<ISubject>> = [
-    {
-      name: 'Toán học',
-      code: 'MATH',
-      description: 'Môn Toán học từ cơ bản đến nâng cao',
-      credits: 4,
-      department: 'Khoa Toán',
-      teacherId: teacherUsers[0]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Vật lý',
-      code: 'PHY',
-      description: 'Môn Vật lý thí nghiệm và lý thuyết',
-      credits: 3,
-      department: 'Khoa Vật lý',
-      teacherId: teacherUsers[1]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Hóa học',
-      code: 'CHEM',
-      description: 'Môn Hóa học cơ bản và nâng cao',
-      credits: 3,
-      department: 'Khoa Hóa học',
-      teacherId: teacherUsers[2]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Tiếng Anh',
-      code: 'ENG',
-      description: 'Môn Tiếng Anh giao tiếp và chuyên ngành',
-      credits: 2,
-      department: 'Khoa Ngoại ngữ',
-      teacherId: teacherUsers[0]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Cấu trúc dữ liệu và Giải thuật',
-      code: 'CS201',
-      description: 'Các cấu trúc dữ liệu cơ bản và thuật toán quan trọng',
-      credits: 4,
-      department: 'Khoa Công nghệ thông tin',
-      teacherId: teacherUsers[1]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Lập trình Web',
-      code: 'CS301',
-      description: 'HTML, CSS, JavaScript, React và Node.js',
-      credits: 3,
-      department: 'Khoa Công nghệ thông tin',
-      teacherId: teacherUsers[2]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Cơ sở dữ liệu',
-      code: 'CS202',
-      description: 'SQL, NoSQL, thiết kế và tối ưu hóa cơ sở dữ liệu',
-      credits: 3,
-      department: 'Khoa Công nghệ thông tin',
-      teacherId: teacherUsers[0]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Trí tuệ nhân tạo',
-      code: 'CS401',
-      description: 'Machine Learning, Deep Learning và ứng dụng AI',
-      credits: 4,
-      department: 'Khoa Công nghệ thông tin',
-      teacherId: teacherUsers[1]._id as any,
-      isActive: true
-    },
-    {
-      name: 'Hệ điều hành',
-      code: 'CS203',
-      description: 'Processes, threads, memory management và file systems',
-      credits: 3,
-      department: 'Khoa Công nghệ thông tin',
-      teacherId: teacherUsers[2]._id as any,
-      isActive: true
-    }
-  ]
-
-  for (const subjectData of subjectsToSeed) {
-    const existingSubject = await Subject.findOne({ code: subjectData.code })
-    if (!existingSubject) {
-      await Subject.create(subjectData)
-      console.log(`✅ Created subject: ${subjectData.name}`)
-    } else {
-      console.log(`⏭️  Skipped (exists): ${subjectData.name}`)
-    }
-  }
-
   // 6. Seed Classes
   console.log('🏫 Creating classes...')
   
@@ -195,7 +98,6 @@ export async function runSeed() {
         { dayOfWeek: 5, startTime: "07:00", endTime: "08:30" }
       ],
       maxStudents: 40,
-      isActive: true
     },
     {
       name: "Vật lý - 12A1",
@@ -209,7 +111,6 @@ export async function runSeed() {
         { dayOfWeek: 4, startTime: "08:45", endTime: "10:15" }
       ],
       maxStudents: 35,
-      isActive: true
     },
     {
       name: "Hóa học - 11B",
@@ -223,7 +124,6 @@ export async function runSeed() {
         { dayOfWeek: 3, startTime: "13:30", endTime: "15:00" }
       ],
       maxStudents: 38,
-      isActive: true
     },
     {
       name: "Tiếng Anh - 10A",
@@ -237,7 +137,6 @@ export async function runSeed() {
         { dayOfWeek: 5, startTime: "15:15", endTime: "16:45" }
       ],
       maxStudents: 42,
-      isActive: true
     },
 
     // ===== LỚP ĐẠI HỌC (có thể có hoặc không có grade/ngành) =====
@@ -253,7 +152,6 @@ export async function runSeed() {
         { dayOfWeek: 3, startTime: "08:00", endTime: "09:30" }
       ],
       maxStudents: 60,
-      isActive: true
     },
     {
       name: "Cấu trúc dữ liệu và Giải thuật - MME",
@@ -267,7 +165,6 @@ export async function runSeed() {
         { dayOfWeek: 4, startTime: "10:00", endTime: "11:30" }
       ],
       maxStudents: 50,
-      isActive: true
     },
     {
       name: "Lập trình Web",
@@ -281,7 +178,6 @@ export async function runSeed() {
         { dayOfWeek: 4, startTime: "13:30", endTime: "15:00" }
       ],
       maxStudents: 80,
-      isActive: true
     },
     {
       name: "Cơ sở dữ liệu - IT",
@@ -295,7 +191,6 @@ export async function runSeed() {
         { dayOfWeek: 5, startTime: "10:00", endTime: "11:30" }
       ],
       maxStudents: 55,
-      isActive: true
     },
     {
       name: "Trí tuệ nhân tạo",
@@ -309,7 +204,6 @@ export async function runSeed() {
         { dayOfWeek: 6, startTime: "08:00", endTime: "09:30" }
       ],
       maxStudents: 70,
-      isActive: true
     },
     {
       name: "Hệ điều hành - IT",
@@ -323,7 +217,6 @@ export async function runSeed() {
         { dayOfWeek: 5, startTime: "13:30", endTime: "15:00" }
       ],
       maxStudents: 50,
-      isActive: true
     }
   ]
 

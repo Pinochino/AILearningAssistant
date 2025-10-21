@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { classApi, subjectApi, type Class, type Subject } from '../../services/api';
+import { toast } from 'sonner';
+import { ClassDetail } from './ClassDetail';
 
 const DAYS_OF_WEEK = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 
@@ -22,6 +24,8 @@ export function ClassManagement() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   // Load teachers from API (for debugging purposes)
   useEffect(() => {
@@ -186,11 +190,11 @@ export function ClassManagement() {
     try {
       // Validation
       if (!formData.subject.trim()) {
-        alert('Vui lòng nhập môn học');
+        toast.error('Vui lòng nhập môn học');
         return;
       }
       if (!formData.teacherId.trim()) {
-        alert('Vui lòng nhập username giáo viên');
+        toast.error('Vui lòng nhập username giáo viên');
         return;
       }
 
@@ -225,20 +229,25 @@ export function ClassManagement() {
         schedule: [{ dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }],
       });
       loadClasses(); // Reload list
-      alert('Tạo lớp học thành công!');
+      toast.success('Tạo lớp học thành công!');
     } catch (err: any) {
       console.error('Error creating class:', err); // Debug
-      alert('Lỗi: ' + (err.message || 'Không thể tạo lớp học'));
+      toast.error('Lỗi: ' + (err.message || 'Không thể tạo lớp học'));
     }
+  };
+
+  const handleViewClass = (cls: Class) => {
+    setSelectedClassId(cls._id);
+    setIsDetailDialogOpen(true);
   };
 
   const handleEditClass = (cls: Class) => {
     setEditingClass(cls);
     // Extract teacherId - handle both string and object formats
-    const teacherId = typeof cls.teacherId === 'string' 
-      ? cls.teacherId 
+    const teacherId = typeof cls.teacherId === 'string'
+      ? cls.teacherId
       : (cls.teacherId as any)?._id || '';
-    
+
     setEditFormData({
       subject: cls.subject,
       grade: cls.grade || '',
@@ -255,11 +264,11 @@ export function ClassManagement() {
     try {
       // Validation
       if (!editFormData.subject.trim()) {
-        alert('Vui lòng nhập môn học');
+        toast.error('Vui lòng nhập môn học');
         return;
       }
       if (!editFormData.teacherId.trim()) {
-        alert('Vui lòng nhập username giáo viên');
+        toast.error('Vui lòng nhập username giáo viên');
         return;
       }
 
@@ -291,10 +300,10 @@ export function ClassManagement() {
         schedule: [{ dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }],
       });
       loadClasses();
-      alert('Cập nhật lớp học thành công!');
+      toast.success('Cập nhật lớp học thành công!');
     } catch (err: any) {
       console.error('Error updating class:', err);
-      alert('Lỗi: ' + (err.message || 'Không thể cập nhật lớp học'));
+      toast.error('Lỗi: ' + (err.message || 'Không thể cập nhật lớp học'));
     }
   };
 
@@ -304,10 +313,10 @@ export function ClassManagement() {
     try {
       await classApi.delete(id);
       loadClasses(); // Reload list
-      alert('Xóa lớp học thành công!');
+      toast.success('Xóa lớp học thành công!');
     } catch (err: any) {
       console.error('Error deleting class:', err);
-      alert('Lỗi: ' + (err.message || 'Không thể xóa lớp học'));
+      toast.error('Lỗi: ' + (err.message || 'Không thể xóa lớp học'));
     }
   };
 
@@ -728,7 +737,7 @@ export function ClassManagement() {
                     Tạo: {cls.createdAt ? new Date(cls.createdAt).toLocaleDateString('vi-VN') : 'Không xác định'}
                   </p>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleViewClass(cls)}>
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button
@@ -823,6 +832,16 @@ export function ClassManagement() {
           </Card>
         </div>
       )}
+
+      {/* Class Detail Dialog */}
+      <ClassDetail
+        classId={selectedClassId}
+        isOpen={isDetailDialogOpen}
+        onClose={() => {
+          setIsDetailDialogOpen(false);
+          setSelectedClassId(null);
+        }}
+      />
     </div>
   );
 }

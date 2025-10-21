@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -8,6 +8,7 @@ import { useNavigation } from '../../hooks/useNavigation';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { classApi, subjectApi, type Class, type Subject } from '../../services/api';
+import { toast } from 'sonner';
 
 const DAYS_OF_WEEK = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 
@@ -85,11 +86,11 @@ export function EditClass() {
     try {
       // Validation
       if (!formData.subject.trim()) {
-        alert('Vui lòng nhập môn học');
+        toast.error('Vui lòng nhập môn học');
         return;
       }
       if (!formData.teacherId || !String(formData.teacherId).trim()) {
-        alert('Vui lòng chọn giáo viên');
+        toast.error('Vui lòng nhập username giáo viên');
         return;
       }
 
@@ -112,11 +113,11 @@ export function EditClass() {
       console.log('Updating class with data:', updateData); // Debug
       
       await classApi.update(classId!, updateData);
-      alert('Đã cập nhật lớp học thành công!');
+      toast.success('Đã cập nhật lớp học thành công!');
       navigateTo('classes');
     } catch (err: any) {
       console.error('Error updating class:', err); // Debug
-      alert('Lỗi: ' + (err.message || 'Không thể cập nhật lớp học'));
+      toast.error('Lỗi: ' + (err.message || 'Không thể cập nhật lớp học'));
     } finally {
       setSaving(false);
     }
@@ -229,10 +230,10 @@ export function EditClass() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="teacherId">ID Giáo viên</Label>
+              <Label htmlFor="teacherId">Username giáo viên</Label>
               <Input 
                 id="teacherId" 
-                placeholder="Nhập ID giáo viên" 
+                placeholder="Nhập username giáo viên" 
                 value={formData.teacherId}
                 onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
               />

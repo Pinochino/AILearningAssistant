@@ -18,6 +18,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { enrollmentApi, classApi, type Class, type ClassEnrollment } from '../../services/api';
+import { toast } from 'sonner';
 
 const DAYS_OF_WEEK = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 
@@ -84,18 +85,28 @@ export function SubjectSearch() {
         subject: selectedSubject !== 'all' ? selectedSubject : undefined,
       });
       console.log('Classes response:', classesResponse); // Debug
-      setAvailableClasses(classesResponse.data.items);
-      setTotalPages(classesResponse.data.pagination.totalPages);
+      setAvailableClasses(classesResponse?.data?.items || []);
+      setTotalPages(classesResponse?.data?.pagination?.totalPages || 1);
 
       // Load my enrollments (all statuses: pending, approved, rejected)
       console.log('Fetching enrollments for user:', userId); // Debug
       const enrollmentsResponse = await enrollmentApi.getStudentEnrollments(userId); // Get ALL enrollments
       console.log('Enrollments response:', enrollmentsResponse); // Debug
-      console.log('Enrolled class IDs:', enrollmentsResponse.data.map((e: any) => ({
-        classId: typeof e.classId === 'object' ? e.classId._id : e.classId,
+
+      // Handle null/undefined data safely
+      const enrollmentsData = enrollmentsResponse?.data || [];
+      console.log('Enrolled class IDs:', enrollmentsData.map((e: any) => ({
+        classId: typeof e.classId === 'object' ? e.classId?._id : e.classId,
         status: e.status
-      }))); // Debug
-      setMyEnrollments(enrollmentsResponse.data);
+      })).filter(item => item.classId)); // Debug
+
+      // Filter out enrollments without valid classId
+      const validEnrollments = enrollmentsData.filter((e: any) => {
+        const classId = typeof e.classId === 'object' ? (e.classId as any)?._id : e.classId;
+        return classId;
+      });
+
+      setMyEnrollments(validEnrollments);
     } catch (err: any) {
       console.error('Error loading data:', err); // Debug
       setError(err.message || 'Không thể tải danh sách lớp học');
@@ -109,23 +120,7 @@ export function SubjectSearch() {
       cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cls.subject.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filter out classes that user has already enrolled in (approved or pending)
-    // Keep rejected classes so user can re-enroll
-    const hasActiveEnrollment = myEnrollments.some(enrollment => {
-      const enrollmentClassId = typeof enrollment.classId === 'object' 
-        ? (enrollment.classId as any)?._id 
-        : enrollment.classId;
-      const classId = cls._id || (cls as any).id;
-      
-      const isSameClass = enrollmentClassId?.toString() === classId?.toString();
-      const isActiveStatus = enrollment.status === 'approved' || enrollment.status === 'pending';
-      
-      return isSameClass && isActiveStatus;
-    });
-    
-    console.log(`Class ${cls.name} (${cls._id}): hasActiveEnrollment=${hasActiveEnrollment}`); // Debug
-    
-    return matchesSearch && !hasActiveEnrollment;
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -159,9 +154,9 @@ export function SubjectSearch() {
       setIsEnrollmentDialogOpen(false);
       setEnrollmentMessage('');
       setSelectedClassForEnrollment(null);
-      alert('Đã gửi yêu cầu đăng ký thành công!');
+      toast.success('Đã gửi yêu cầu đăng ký thành công!');
     } catch (err: any) {
-      alert('Lỗi: ' + (err.message || 'Không thể gửi yêu cầu đăng ký'));
+      toast.error('Lỗi: ' + (err.message || 'Không thể gửi yêu cầu đăng ký'));
     } finally {
       setSubmitting(false);
     }
@@ -231,17 +226,17 @@ export function SubjectSearch() {
       )}
 
       {/* My Enrollments */}
-      {!loading && !error && myEnrollments.length > 0 && (
+      {!loading && !error && myEnrollments.filter(e => e.status === 'approved' || e.status === 'pending').length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Lớp học đã đăng ký</CardTitle>
             <CardDescription>
-              Các lớp học bạn đã đăng ký tham gia
+              Các lớp học bạn đã đăng ký tham gia (đã duyệt hoặc đang chờ duyệt)
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {myEnrollments.map((enrollment) => (
+              {myEnrollments.filter(e => e.status === 'approved' || e.status === 'pending').map((enrollment) => (
                 <div key={enrollment._id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="p-2 bg-blue-100 rounded-lg">
@@ -267,13 +262,66 @@ export function SubjectSearch() {
         </Card>
       )}
 
+      {/* Rejected Enrollments */}
+      {!loading && !error && myEnrollments.filter(e => e.status === 'rejected').length > 0 && (
+        <Card className="border-orange-200">
+          <CardHeader>
+            <CardTitle className="text-orange-800">Lớp học bị từ chối</CardTitle>
+            <CardDescription>
+              Các lớp học bạn đã đăng ký nhưng bị từ chối (có thể đăng ký lại)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {myEnrollments.filter(e => e.status === 'rejected').map((enrollment) => (
+                <div key={enrollment._id} className="flex items-center justify-between p-4 border border-orange-200 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <BookOpen className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-medium">{(enrollment.classId as any)?.name || 'Lớp học'}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {(enrollment.classId as any)?.subject || ''}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>Đăng ký: {new Date(enrollment.requestedAt).toLocaleDateString('vi-VN')}</span>
+                        {enrollment.message && (
+                          <span className="text-orange-600">Lý do: {enrollment.message}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(enrollment.status)}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        // Tìm lớp học bị từ chối trong danh sách có sẵn
+                        const rejectedClass = availableClasses.find(cls => cls._id === (enrollment.classId as any)?._id);
+                        if (rejectedClass) {
+                          handleEnroll(rejectedClass);
+                        }
+                      }}
+                    >
+                      Đăng ký lại
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Available Classes */}
       {!loading && !error && (
         <Card>
           <CardHeader>
             <CardTitle>Lớp học có sẵn</CardTitle>
             <CardDescription>
-              Các lớp học bạn có thể đăng ký tham gia
+              Các lớp học bạn có thể đăng ký tham gia (chưa đăng ký)
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -220,7 +220,7 @@ export const classApi = {
     if (params?.subject) queryParams.append('subject', params.subject);
     if (params?.teacherId) queryParams.append('teacherId', params.teacherId);
     if (params?.dayOfWeek !== undefined) queryParams.append('dayOfWeek', params.dayOfWeek.toString());
-    
+
     const query = queryParams.toString();
     return apiRequest<PaginatedResponse<Class>>(`/classes${query ? `?${query}` : ''}`);
   },

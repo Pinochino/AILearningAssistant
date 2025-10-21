@@ -4,6 +4,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { PageRouter } from './components/PageRouter';
 import { React } from 'react';
+import { Toaster } from './components/ui/sonner';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -36,6 +37,7 @@ export default function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <Toaster />
     </AuthProvider>
   );
 }
