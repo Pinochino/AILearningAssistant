@@ -79,6 +79,16 @@ const userController = {
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
+  },
+
+  countByRole: async (req: Request, res: Response) => {
+    try {
+      const { roleName } = req.params
+      const count = await userService.countUsersByRole(roleName)
+      responseUtils({ req, res, code: 200, message: `Count users by role successfully`, data: { count } })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
   }
 }
 

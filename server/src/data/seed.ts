@@ -1,6 +1,6 @@
 import { Role, RoleName } from '~/models/Role'
 import { User } from '~/models/User'
-import { Class, type IClass } from "~/models/class.model"
+import { Class, Subject, type IClass, type ISubject } from "~/models/class.model"
 
 export async function runSeed() {
   console.log('🌱 Starting database seeding...')
@@ -80,8 +80,105 @@ export async function runSeed() {
     studentUsers.push(student)
   }
 
-  // 5. Seed Classes (CHỈ CÓ CLASSES - KHÔNG CÓ SUBJECTS RIÊNG)
-  console.log('📚 Creating classes...')
+  // 5. Seed Subjects
+  console.log('📚 Creating subjects...')
+  
+  const subjectsToSeed: Array<Partial<ISubject>> = [
+    {
+      name: 'Toán học',
+      code: 'MATH',
+      description: 'Môn Toán học từ cơ bản đến nâng cao',
+      credits: 4,
+      department: 'Khoa Toán',
+      teacherId: teacherUsers[0]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Vật lý',
+      code: 'PHY',
+      description: 'Môn Vật lý thí nghiệm và lý thuyết',
+      credits: 3,
+      department: 'Khoa Vật lý',
+      teacherId: teacherUsers[1]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Hóa học',
+      code: 'CHEM',
+      description: 'Môn Hóa học cơ bản và nâng cao',
+      credits: 3,
+      department: 'Khoa Hóa học',
+      teacherId: teacherUsers[2]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Tiếng Anh',
+      code: 'ENG',
+      description: 'Môn Tiếng Anh giao tiếp và chuyên ngành',
+      credits: 2,
+      department: 'Khoa Ngoại ngữ',
+      teacherId: teacherUsers[0]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Cấu trúc dữ liệu và Giải thuật',
+      code: 'CS201',
+      description: 'Các cấu trúc dữ liệu cơ bản và thuật toán quan trọng',
+      credits: 4,
+      department: 'Khoa Công nghệ thông tin',
+      teacherId: teacherUsers[1]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Lập trình Web',
+      code: 'CS301',
+      description: 'HTML, CSS, JavaScript, React và Node.js',
+      credits: 3,
+      department: 'Khoa Công nghệ thông tin',
+      teacherId: teacherUsers[2]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Cơ sở dữ liệu',
+      code: 'CS202',
+      description: 'SQL, NoSQL, thiết kế và tối ưu hóa cơ sở dữ liệu',
+      credits: 3,
+      department: 'Khoa Công nghệ thông tin',
+      teacherId: teacherUsers[0]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Trí tuệ nhân tạo',
+      code: 'CS401',
+      description: 'Machine Learning, Deep Learning và ứng dụng AI',
+      credits: 4,
+      department: 'Khoa Công nghệ thông tin',
+      teacherId: teacherUsers[1]._id as any,
+      isActive: true
+    },
+    {
+      name: 'Hệ điều hành',
+      code: 'CS203',
+      description: 'Processes, threads, memory management và file systems',
+      credits: 3,
+      department: 'Khoa Công nghệ thông tin',
+      teacherId: teacherUsers[2]._id as any,
+      isActive: true
+    }
+  ]
+
+  for (const subjectData of subjectsToSeed) {
+    const existingSubject = await Subject.findOne({ code: subjectData.code })
+    if (!existingSubject) {
+      await Subject.create(subjectData)
+      console.log(`✅ Created subject: ${subjectData.name}`)
+    } else {
+      console.log(`⏭️  Skipped (exists): ${subjectData.name}`)
+    }
+  }
+
+  // 6. Seed Classes
+  console.log('🏫 Creating classes...')
   
   const classesToSeed: Array<Partial<IClass>> = [
     // ===== LỚP CẤP 3 (có grade cụ thể) =====
@@ -245,6 +342,7 @@ export async function runSeed() {
   console.log('\n📊 Summary:')
   console.log(`   - Roles: ${await Role.countDocuments()}`)
   console.log(`   - Users: ${await User.countDocuments()}`)
+  console.log(`   - Subjects: ${await Subject.countDocuments()}`)
   console.log(`   - Classes: ${await Class.countDocuments()}`)
   console.log('\n🔑 Login credentials:')
   console.log('   Admin: admin@gmail.com / 123456')

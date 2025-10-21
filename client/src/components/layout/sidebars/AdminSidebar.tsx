@@ -1,13 +1,10 @@
-import React from "react";
 import {
   Brain,
   Users,
   BookOpen,
   BarChart3,
   Settings,
-  PieChart,
   FileText,
-  Gamepad2,
 } from "lucide-react";
 import { cn } from "../../ui/utils";
 import { Button } from "../../ui/button";

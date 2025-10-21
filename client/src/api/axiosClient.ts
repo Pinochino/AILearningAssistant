@@ -13,9 +13,11 @@ export const setAccessToken = (token: string | null) => {
 
 // Request interceptor
 axiosClient.interceptors.request.use((config) => {
-  console.log(accessToken)
-  if (accessToken && config.headers) {
-    config.headers.Authorization = `Bearer ${accessToken}`
+  // Priority: Use in-memory token, then localStorage
+  const token = accessToken || localStorage.getItem('accessToken')
+  console.log('🔑 Using token:', token ? 'YES' : 'NO')
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
@@ -37,13 +39,27 @@ axiosClient.interceptors.response.use(
         const newToken = res.data?.data?.accessToken
         if (newToken) {
           setAccessToken(newToken)
+          // ✅ Save new token to localStorage
+          localStorage.setItem('accessToken', newToken)
+          console.log('🔄 Token refreshed and saved to localStorage')
+
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`
           }
           return axiosClient(originalRequest)
         }
       } catch (err) {
+        console.error('❌ Refresh token failed:', err)
         setAccessToken(null)
+        // ✅ Clear expired token from localStorage
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('currentUser')
+        
+        // ✅ Redirect to login page if refresh failed
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'
+        }
+        
         return Promise.reject(err)
       }
     }

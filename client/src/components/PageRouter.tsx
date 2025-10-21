@@ -1,5 +1,4 @@
-import { React } from 'react'
-// import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { useNavigation } from '../hooks/useNavigation'
 
 // Dashboard components
@@ -15,6 +14,7 @@ import { EditSubject } from './admin/EditSubject'
 import { Analytics } from './admin/Analytics'
 import { ContentManagement } from './admin/ContentManagement'
 import { SystemSettings } from './admin/SystemSettings'
+import { ClassManagement } from './admin/ClassManagement'
 
 // Teacher pages
 import { SubjectDetail } from './teacher/SubjectDetail'
@@ -32,19 +32,18 @@ import { AITutor } from './student/AITutor'
 import { DocumentsView } from './student/DocumentsView'
 import { Messages } from './student/Messages'
 import { Achievements } from './student/Achievements'
-import {useAppSelector} from '../redux/hooks'
 
 // Common pages
 import { Profile } from './Profile'
-import { RootState } from '../redux/store'
 
 export function PageRouter() {
   const { currentPage, currentParams } = useNavigation()
-  const {user} = useAppSelector((state: RootState) => state.auth.login)
-
-  const roles = user.data.user.role
+  const { user } = useAuth()
 
   if (!user) return null
+
+  // Get user role (admin, teacher, or student)
+  const userRole = user.role
 
   // Common routes (available for all roles)
   if (currentPage === 'profile') {
@@ -52,7 +51,7 @@ export function PageRouter() {
   }
 
   // Admin routes
-  if (Array.from(roles).includes("SUPER_ADMIN")) {
+  if (userRole === 'admin') {
     switch (currentPage) {
       case 'dashboard':
         return <AdminDashboard />
@@ -65,11 +64,15 @@ export function PageRouter() {
         return <SubjectManagement />
       case 'edit-subject':
         return <EditSubject />
+      case 'classes':
+      case 'class-management':
+        return <ClassManagement />
       case 'analytics':
+        return <Analytics />
       case 'quiz-stats':
       case 'flashcard-stats':
       case 'learning-progress':
-        return <AdminDashboard /> // Change here
+        return <Analytics />
       case 'content':
         return <ContentManagement />
       case 'gamification':
@@ -87,7 +90,7 @@ export function PageRouter() {
   }
 
   // Teacher routes
-  if (Array.from(roles).includes("TEACHER")) {
+  if (userRole === 'teacher') {
     switch (currentPage) {
       case 'dashboard':
         return <TeacherDashboard />
@@ -110,7 +113,7 @@ export function PageRouter() {
   }
 
   // Student routes
-  if (Array.from(roles).includes("USER")) {
+  if (userRole === 'student') {
     switch (currentPage) {
       case 'dashboard':
         return <StudentDashboard />

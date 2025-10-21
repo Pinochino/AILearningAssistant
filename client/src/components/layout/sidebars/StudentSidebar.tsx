@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SquareLibrary, Brain, BookOpen, Calendar, BarChart3, MessageSquare, Trophy, Target, Clock } from 'lucide-react';
 import { cn } from '../../ui/utils';
 import { Button } from '../../ui/button';

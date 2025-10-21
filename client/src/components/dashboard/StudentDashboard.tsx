@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { GetAllData } from '../../hooks/getAllData';
+import { useAuth } from '../../hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -123,6 +125,7 @@ const aiRecommendations = [
 
 export function StudentDashboard() {
   const { navigateTo } = useNavigation();
+  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([
     {
       id: 'init-public',
@@ -132,6 +135,38 @@ export function StudentDashboard() {
       date: new Date().toLocaleDateString(),
     },
   ]);
+  const [mySubjectsState, setMySubjectsState] = useState<any[]>(mySubjects);
+
+  // Fetch student's enrollments from API
+  const studentId = user?.id || (user as any)?._id;
+  const { data: enrollmentsData, isLoading: enrollmentsLoading } = GetAllData({ 
+    url: studentId ? `/students/${studentId}/enrollments?status=approved` : '',
+    name: `student-enrollments-${studentId}` 
+  });
+
+  // Update mySubjects when enrollments data is loaded
+  useEffect(() => {
+    if (enrollmentsData?.data && Array.isArray(enrollmentsData.data)) {
+      const enrollments = enrollmentsData.data;
+      if (enrollments.length > 0) {
+        // Map enrollments to subjects format
+        const subjects = enrollments.map((enrollment: any, index: number) => {
+          const classData = enrollment.classId;
+          return {
+            id: classData?._id || `${index}`,
+            name: classData?.subject || 'Unknown',
+            teacher: `GV. ${classData?.teacherId?.username || 'Unknown'}`,
+            progress: 75, // Mock - chưa có trong DB
+            nextClass: classData?.schedule?.[0] ? new Date().toISOString() : '2024-09-19 07:30',
+            pendingQuizzes: 2, // Mock - chưa có trong DB
+            newDocuments: 1, // Mock - chưa có trong DB
+            color: ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500'][index % 4],
+          };
+        });
+        setMySubjectsState(subjects);
+      }
+    }
+  }, [enrollmentsData]);
 
 
   return (
@@ -234,7 +269,7 @@ export function StudentDashboard() {
             <CardDescription>Tiến độ học tập theo từng môn</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mySubjects.map((subject) => (
+            {mySubjectsState.map((subject) => (
               <div key={subject.id} className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${subject.color}`} />

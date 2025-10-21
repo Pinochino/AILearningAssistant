@@ -1,11 +1,25 @@
 import { Class, Subject, type IClass, type ISubject } from "../models/class.model"
 import { ClassEnrollment, type IClassEnrollment } from "../models/ClassEnrollment"
+import { User } from "../models/User"
 import mongoose from "mongoose"
 
 export class ClassesService {
   // Class CRUD operations
   static async createClass(classData: Partial<IClass>): Promise<IClass> {
     try {
+      // Handle teacherId - can be ObjectId or username
+      if (classData.teacherId) {
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(classData.teacherId as string);
+        if (!isValidObjectId) {
+          // Find user by username
+          const user = await User.findOne({ username: classData.teacherId });
+          if (!user) {
+            throw new Error(`Teacher with username '${classData.teacherId}' not found`);
+          }
+          classData.teacherId = user._id as any;
+        }
+      }
+
       const newClass = new Class(classData)
       const savedClass = await newClass.save()
       await savedClass.populate("teacherId", "name email")
@@ -44,7 +58,21 @@ export class ClassesService {
       const query: any = { isActive: true }
 
       if (filters.subject) query.subject = new RegExp(filters.subject, "i")
-      if (filters.teacherId) query.teacherId = filters.teacherId
+      if (filters.teacherId) {
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(filters.teacherId);
+        if (isValidObjectId) {
+          query.teacherId = filters.teacherId;
+        } else {
+          // Find user by username and get their _id
+          const user = await User.findOne({ username: filters.teacherId });
+          if (user) {
+            query.teacherId = user._id;
+          } else {
+            // If teacher not found, return empty result
+            query.teacherId = null;
+          }
+        }
+      }
       if (filters.dayOfWeek !== undefined) query["schedule.dayOfWeek"] = filters.dayOfWeek
 
       const skip = (page - 1) * limit
@@ -76,6 +104,19 @@ export class ClassesService {
 
   static async updateClass(id: string, updateData: Partial<IClass>): Promise<IClass | null> {
     try {
+      // Handle teacherId - can be ObjectId or username
+      if (updateData.teacherId) {
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(updateData.teacherId as string);
+        if (!isValidObjectId) {
+          // Find user by username
+          const user = await User.findOne({ username: updateData.teacherId });
+          if (!user) {
+            throw new Error(`Teacher with username '${updateData.teacherId}' not found`);
+          }
+          updateData.teacherId = user._id as any;
+        }
+      }
+
       const updatedClass = await Class.findByIdAndUpdate(
         id,
         { ...updateData, updatedAt: new Date() },
@@ -445,7 +486,22 @@ export class ClassesService {
     }
   }> {
     try {
-      const query: any = { teacherId, isActive: true }
+      // Handle teacherId - can be ObjectId or username
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(teacherId);
+      let actualTeacherId = teacherId;
+
+      if (!isValidObjectId) {
+        // Find user by username and get their _id
+        const user = await User.findOne({ username: teacherId });
+        if (user) {
+          actualTeacherId = user._id;
+        } else {
+          // If teacher not found, return empty result
+          actualTeacherId = null;
+        }
+      }
+
+      const query: any = { teacherId: actualTeacherId, isActive: true }
 
       if (filters.subject) query.subject = new RegExp(filters.subject, "i")
       if (filters.dayOfWeek !== undefined) query["schedule.dayOfWeek"] = filters.dayOfWeek

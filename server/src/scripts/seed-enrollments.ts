@@ -34,7 +34,13 @@ async function seedEnrollments() {
     console.log('🗑️ Cleared existing enrollments');
 
     // Create enrollments for each student
-    const enrollments = [];
+    const enrollments: Array<{
+      classId: mongoose.Types.ObjectId;
+      studentId: mongoose.Types.ObjectId;
+      status: 'approved';
+      requestedAt: Date;
+      reviewedAt: Date;
+    }> = [];
     for (const student of students) {
       // Enroll each student in 2-3 random classes
       const numClasses = Math.floor(Math.random() * 2) + 2; // 2-3 classes
@@ -44,15 +50,15 @@ async function seedEnrollments() {
       for (const cls of selectedClasses) {
         enrollments.push({
           classId: cls._id,
-          studentId: student._id,
+          studentId: student._id as mongoose.Types.ObjectId,
           status: 'approved', // Auto-approve for testing
           requestedAt: new Date(),
           reviewedAt: new Date(),
         });
 
-        // Add student to class studentIds
-        if (!cls.studentIds.includes(student._id)) {
-          cls.studentIds.push(student._id);
+        // Add student to class students
+        if (!cls.students.includes(student._id as mongoose.Types.ObjectId)) {
+          cls.students.push(student._id as mongoose.Types.ObjectId);
           await cls.save();
         }
       }

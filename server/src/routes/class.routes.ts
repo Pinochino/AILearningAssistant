@@ -25,7 +25,19 @@ const handleValidationErrors = (req: Request, res: Response, next: any) => {
 const classValidationRules = [
   body("subject").trim().isLength({ min: 1 }).withMessage("Subject is required"),
   body("grade").optional().trim().isLength({ max: 50 }).withMessage("Grade/Major cannot exceed 50 characters"),
-  body("teacherId").isMongoId().withMessage("Valid teacher ID is required"),
+  body("teacherId").custom((value) => {
+    // Accept both ObjectId and username (alphanumeric string)
+    if (typeof value === 'string') {
+      // Check if it's a valid ObjectId or username (alphanumeric, 3-30 chars)
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(value);
+      const isValidUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(value);
+      if (!isValidObjectId && !isValidUsername) {
+        throw new Error("teacherId must be a valid ObjectId or username (3-30 alphanumeric characters)");
+      }
+      return true;
+    }
+    throw new Error("teacherId must be a string");
+  }),
   body("maxStudents").isInt({ min: 1, max: 100 }).withMessage("Max students must be 1-100"),
   body("schedule").isArray().withMessage("Schedule must be an array"),
   body("schedule.*.dayOfWeek").isInt({ min: 0, max: 6 }).withMessage("Day of week must be 0-6"),
@@ -53,7 +65,19 @@ router.get(
     query("page").optional().isInt({ min: 1 }).withMessage("Page must be a positive integer"),
     query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be 1-100"),
     query("subject").optional().trim(),
-    query("teacherId").optional().isMongoId().withMessage("Invalid teacher ID"),
+    query("teacherId").optional().custom((value) => {
+      // Accept both ObjectId and username (alphanumeric string)
+      if (typeof value === 'string') {
+        // Check if it's a valid ObjectId or username (alphanumeric, 3-30 chars)
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(value);
+        const isValidUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(value);
+        if (!isValidObjectId && !isValidUsername) {
+          throw new Error("teacherId must be a valid ObjectId or username (3-30 alphanumeric characters)");
+        }
+        return true;
+      }
+      throw new Error("teacherId must be a string");
+    }),
     query("dayOfWeek").optional().isInt({ min: 0, max: 6 }).withMessage("Day of week must be 0-6"),
   ],
   handleValidationErrors,
@@ -158,7 +182,19 @@ router.patch(
     body("name").optional().trim().isLength({ min: 1, max: 100 }),
     body("subject").optional().trim().isLength({ min: 1 }),
     body("grade").optional().trim().isLength({ max: 50 }),
-    body("teacherId").optional().isMongoId(),
+    body("teacherId").optional().custom((value) => {
+      // Accept both ObjectId and username (alphanumeric string)
+      if (typeof value === 'string') {
+        // Check if it's a valid ObjectId or username (alphanumeric, 3-30 chars)
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(value);
+        const isValidUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(value);
+        if (!isValidObjectId && !isValidUsername) {
+          throw new Error("teacherId must be a valid ObjectId or username (3-30 alphanumeric characters)");
+        }
+        return true;
+      }
+      throw new Error("teacherId must be a string");
+    }),
     body("maxStudents").optional().isInt({ min: 1, max: 100 }),
     body("schedule").optional().isArray(),
     body("isActive").optional().isBoolean(),

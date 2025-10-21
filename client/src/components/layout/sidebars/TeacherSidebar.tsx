@@ -1,4 +1,3 @@
-import React from 'react';
 import { Brain, BookOpen, Users, FileText, BarChart3, MessageSquare, Calendar, Plus } from 'lucide-react';
 import { cn } from '../../ui/utils';
 import { Button } from '../../ui/button';

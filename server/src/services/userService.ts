@@ -1,4 +1,5 @@
 import { User } from '~/models/User'
+import { Role } from '~/models/Role'
 import { QueryInterface } from '~/types/QueryInterface'
 import { UserInterface } from '~/types/UserInterface'
 
@@ -85,6 +86,22 @@ const userService = {
     try {
       const deletedUsers = await User.findDeleted({})
       return deletedUsers
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  },
+
+  countUsersByRole: async (roleName: string) => {
+    try {
+      // Find role by name
+      const role = await Role.findOne({ name: roleName.toUpperCase() })
+      if (!role) {
+        return 0
+      }
+      
+      // Count users with this role
+      const count = await User.countDocuments({ roles: role._id })
+      return count
     } catch (error: any) {
       throw new Error(error.message)
     }

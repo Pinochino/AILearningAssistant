@@ -1,4 +1,5 @@
-import React, { useState, useContext, createContext, useEffect } from 'react';
+import { useState, useContext, createContext, useEffect } from 'react';
+import axios from 'axios';
 import { User, UserRole } from '../types';
 
 interface AuthContextType {
@@ -47,6 +48,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Refresh token in background when it's about to expire
+  const refreshTokenInBackground = async () => {
+    try {
+      console.log('🔄 Attempting background token refresh...');
+      const res = await axios.post(
+        'http://localhost:9000/api/auth/refresh-token',
+        {},
+        { withCredentials: true }
+      );
+
+      const newToken = res.data?.data?.accessToken;
+      if (newToken) {
+        console.log('✅ Token refreshed in background');
+        localStorage.setItem('accessToken', newToken);
+        return true;
+      }
+    } catch (error) {
+      console.warn('⚠️ Background token refresh failed:', error);
+      // Don't logout user for background refresh failure
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Priority: Check accessToken first, then fallback to stored user
     const accessToken = localStorage.getItem('accessToken');
@@ -69,13 +93,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const payload = JSON.parse(atob(parts[1]));
         console.log('📦 Token payload:', payload);
         
-        // Check if token is expired
-        if (payload.exp && payload.exp * 1000 < Date.now()) {
-          console.warn('⚠️ Token expired');
+        // Check if token is expired or will expire soon (within 5 minutes)
+        const now = Date.now() / 1000;
+        const isExpired = payload.exp && payload.exp < now;
+        const willExpireSoon = payload.exp && (payload.exp - now) < 300; // 5 minutes
+        
+        if (isExpired) {
+          console.warn('⚠️ Token expired, clearing...');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('currentUser');
           setIsLoading(false);
           return;
+        }
+        
+        if (willExpireSoon) {
+          console.log('🔄 Token will expire soon, refreshing...');
+          // Try to refresh token in background
+          refreshTokenInBackground();
         }
         
         // Map role from token

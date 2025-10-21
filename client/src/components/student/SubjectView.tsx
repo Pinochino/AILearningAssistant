@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -201,7 +201,7 @@ const mockDocuments = [
 ];
 
 export function SubjectView() {
-  const navigate = useNavigation();
+  const { navigateTo } = useNavigation();
   const [currentSubjectId, setCurrentSubjectId] = useState('1');
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [subjects, setSubjects] = useState<typeof mockSubjects>([]);
@@ -227,15 +227,20 @@ export function SubjectView() {
     const loadClasses = async () => {
       try {
         const userId = getCurrentUserId();
+        console.log('👤 Current User ID:', userId);
+        
         if (!userId) {
+          console.warn('⚠️ No user ID found in localStorage');
           setLoading(false);
           return;
         }
 
+        console.log('🔄 Fetching enrollments for student:', userId);
         const response = await enrollmentApi.getStudentEnrollments(userId, 'approved');
         const enrollments = response.data;
         
         console.log('📚 Student enrollments:', enrollments);
+        console.log('📊 Enrollment count:', enrollments?.length || 0);
 
         // Load full class details
         const classPromises = enrollments.map(async (enrollment: any) => {
@@ -367,7 +372,7 @@ export function SubjectView() {
               <p className="text-muted-foreground mb-6">
                 Bạn chưa đăng ký hoặc chưa được duyệt tham gia lớp học nào.
               </p>
-              <Button onClick={() => navigate('/student/search')}>
+              <Button onClick={() => navigateTo('subject-search')}>
                 <BookOpen className="h-4 w-4 mr-2" />
                 Tìm kiếm lớp học
               </Button>

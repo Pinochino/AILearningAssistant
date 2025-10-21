@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { GetAllData } from "../../hooks/getAllData";
 import {
   Card,
   CardContent,
@@ -54,20 +55,21 @@ import {
 } from "../dashboard/AnnouncementSection";
 import { AnnouncementCreator } from "../dashboard/AnnouncementCreator";
 
-const userStats = [
+// Mock data for user stats (will be replaced with real data)
+const defaultUserStats = [
   {
     role: "Học sinh",
-    count: 1245,
+    count: 0,
     color: "#3b82f6",
     change: "+12%",
   },
   {
     role: "Giáo viên",
-    count: 89,
+    count: 0,
     color: "#10b981",
     change: "+5%",
   },
-  { role: "Admin", count: 5, color: "#f59e0b", change: "0%" },
+  { role: "Admin", count: 0, color: "#f59e0b", change: "0%" },
 ];
 
 const subjectStats = [
@@ -123,17 +125,6 @@ const COLORS = [
   "#ef4444",
   "#8b5cf6",
 ];
-
-// Analytics data from the original Analytics component
-const mockOverallStats = {
-  totalUsers: 1247,
-  totalCourses: 45,
-  totalQuizzes: 892,
-  totalFlashcards: 3247,
-  activeUsers: 1089,
-  completionRate: 78.5,
-  avgStudyTime: 2.4,
-};
 
 const mockQuizStats = [
   {
@@ -226,6 +217,76 @@ export function AdminDashboard() {
       date: new Date().toLocaleDateString(),
     },
   ]);
+  const [userStats, setUserStats] = useState(defaultUserStats);
+
+  // Fetch real data from API
+  const { data: usersData, isLoading: usersLoading } = GetAllData({ 
+    url: '/users/list', 
+    name: 'admin-users' 
+  });
+  
+  const { data: classesData, isLoading: classesLoading } = GetAllData({ 
+    url: '/classes', 
+    name: 'admin-classes' 
+  });
+  
+  const { data: subjectsData, isLoading: subjectsLoading } = GetAllData({ 
+    url: '/subjects', 
+    name: 'admin-subjects' 
+  });
+
+  // Calculate user stats from real data
+  useEffect(() => {
+    if (usersData?.data) {
+      const users = Array.isArray(usersData.data) ? usersData.data : [];
+      
+      // Count users by role
+      const studentCount = users.filter((u: any) => {
+        const roles = u.roles || [];
+        return roles.some((r: any) => {
+          const roleName = typeof r === 'string' ? r : r?.name;
+          return roleName?.toLowerCase() === 'student';
+        });
+      }).length;
+      
+      const teacherCount = users.filter((u: any) => {
+        const roles = u.roles || [];
+        return roles.some((r: any) => {
+          const roleName = typeof r === 'string' ? r : r?.name;
+          return roleName?.toLowerCase() === 'teacher';
+        });
+      }).length;
+      
+      const adminCount = users.filter((u: any) => {
+        const roles = u.roles || [];
+        return roles.some((r: any) => {
+          const roleName = typeof r === 'string' ? r : r?.name;
+          return roleName?.toLowerCase().includes('admin');
+        });
+      }).length;
+
+      setUserStats([
+        { role: "Học sinh", count: studentCount, color: "#3b82f6", change: "+12%" },
+        { role: "Giáo viên", count: teacherCount, color: "#10b981", change: "+5%" },
+        { role: "Admin", count: adminCount, color: "#f59e0b", change: "0%" },
+      ]);
+    }
+  }, [usersData]);
+
+  // Calculate overall stats from real data
+  const totalUsers = usersData?.data ? (Array.isArray(usersData.data) ? usersData.data.length : 0) : 0;
+  const totalCourses = subjectsData?.data ? (Array.isArray(subjectsData.data) ? subjectsData.data.length : 0) : 0;
+  const totalClasses = classesData?.data?.classes ? classesData.data.classes.length : 0;
+  
+  const mockOverallStats = {
+    totalUsers: totalUsers,
+    totalCourses: totalCourses,
+    totalQuizzes: 892, // Mock - chưa có trong DB
+    totalFlashcards: 3247, // Mock - chưa có trong DB
+    activeUsers: Math.floor(totalUsers * 0.87), // Mock calculation
+    completionRate: 78.5, // Mock - chưa có trong DB
+    avgStudyTime: 2.4, // Mock - chưa có trong DB
+  };
 
   const handleCreateAnnouncement = (
     title: string,

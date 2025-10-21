@@ -1,9 +1,9 @@
-import { React, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
-import { Search, Plus, Edit, Trash2, Eye, Users, Calendar, Clock, Loader2 } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, Users, Calendar, Clock, Loader2, BookOpen } from 'lucide-react';
 import { useNavigation } from '../../hooks/useNavigation';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Label } from '../ui/label';
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { classApi, subjectApi, type Class, type Subject } from '../../services/api';
 
 const DAYS_OF_WEEK = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+
 
 export function ClassManagement() {
   const { navigateTo } = useNavigation();
@@ -21,6 +22,87 @@ export function ClassManagement() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
+
+  // Load teachers from API (for debugging purposes)
+  useEffect(() => {
+    loadTeachers();
+  }, []);
+
+  const loadTeachers = async () => {
+    try {
+      console.log('🔍 Loading teachers for debugging...');
+      // Fetch users and filter for teachers
+      const API_URL = (import.meta as any)?.env?.VITE_API_URL || 'http://localhost:9000/api';
+
+      // Try without authentication first for debugging
+      const response = await fetch(`${API_URL}/users/list`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      console.log('📋 Teachers API response (no auth):', data);
+      console.log('📋 Teachers data (no auth):', data?.data);
+
+      if (Array.isArray(data?.data)) {
+        // Debug: show all users first
+        console.log('🔍 All users in response:', data.data);
+
+        // Try different role formats
+        const allUsers = data.data;
+        console.log('🔍 All users with roles:', allUsers.map((u: any) => ({
+          username: u.username || u.email,
+          roles: u.roles,
+          roleType: Array.isArray(u.roles) ? 'array' : typeof u.roles
+        })));
+
+        // Try different role filtering approaches
+        const teacherUsers1 = allUsers.filter((user: any) =>
+          user?.roles?.[0]?.name?.toLowerCase() === 'teacher'
+        );
+        const teacherUsers2 = allUsers.filter((user: any) =>
+          user?.roles?.[0]?.toLowerCase() === 'teacher'
+        );
+        const teacherUsers3 = allUsers.filter((user: any) =>
+          user?.role?.toLowerCase() === 'teacher'
+        );
+        const teacherUsers4 = allUsers.filter((user: any) =>
+          user?.roles === 'teacher'
+        );
+
+        console.log('👩‍🏫 Teachers (roles[0].name):', teacherUsers1);
+        console.log('👩‍🏫 Teachers (roles[0]):', teacherUsers2);
+        console.log('👩‍🏫 Teachers (role):', teacherUsers3);
+        console.log('👩‍🏫 Teachers (roles string):', teacherUsers4);
+
+        // Use the first approach that finds teachers
+        const finalTeachers = teacherUsers1.length > 0 ? teacherUsers1 :
+                             teacherUsers2.length > 0 ? teacherUsers2 :
+                             teacherUsers3.length > 0 ? teacherUsers3 :
+                             teacherUsers4.length > 0 ? teacherUsers4 : [];
+
+        console.log('👩‍🏫 Final teachers list:', finalTeachers);
+
+        // Fallback: if no teachers found, use some default teachers
+        if (finalTeachers.length === 0) {
+          console.warn('⚠️ No teachers found from API, using fallback teachers');
+          const fallbackTeachers = [
+            { username: 'teacher1', email: 'teacher1@example.com', _id: 'teacher1' },
+            { username: 'teacher2', email: 'teacher2@example.com', _id: 'teacher2' },
+            { username: 'admin', email: 'admin@example.com', _id: 'admin' }
+          ];
+          setTeachers(fallbackTeachers);
+        } else {
+          setTeachers(finalTeachers);
+        }
+      } else {
+        console.warn('❌ Teachers API response format invalid:', data);
+        console.warn('❌ Expected data.data to be array, got:', typeof data?.data, data?.data);
+      }
+    } catch (err: any) {
+      console.error('❌ Error loading teachers:', err);
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,21 +126,21 @@ export function ClassManagement() {
     schedule: [{ dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }],
   });
 
-  // Load classes, subjects and teachers from API
+  // Load classes and subjects from API
   useEffect(() => {
     loadClasses();
     loadSubjects();
-    loadTeachers();
   }, [currentPage]);
 
   const loadClasses = async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('🔍 Loading classes...');
       const response = await classApi.getAll({ page: currentPage, limit: 10 });
-      console.log('Full response:', response); // Debug
-      console.log('Response data:', response.data); // Debug
-      console.log('Response data type:', typeof response.data); // Debug
+      console.log('📦 Full response:', response);
+      console.log('📦 Response data:', response.data);
+      console.log('📦 Response data type:', typeof response.data);
       
       // Handle different response formats
       if (response?.data?.items && Array.isArray(response.data.items)) {
@@ -89,34 +171,14 @@ export function ClassManagement() {
 
   const loadSubjects = async () => {
     try {
+      console.log('🔍 Loading subjects for class management...');
       const response = await subjectApi.getAll();
-      setSubjects(response.data);
+      console.log('📚 Subjects response:', response);
+      console.log('📚 Subjects data:', response.data);
+      setSubjects(response.data || []);
     } catch (err: any) {
-      console.error('Error loading subjects:', err);
-    }
-  };
-
-  const loadTeachers = async () => {
-    try {
-      // Fetch users and filter for teachers
-      const API_URL = (import.meta as any)?.env?.VITE_API_URL || 'http://localhost:9000/api';
-      const response = await fetch(`${API_URL}/users/list`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      if (Array.isArray(data?.data)) {
-        // Filter users with teacher role
-        const teachers = data.data.filter((user: any) => {
-          const role = user?.roles?.[0]?.name || user?.roles?.[0];
-          return role && role.toLowerCase() === 'teacher';
-        });
-        setTeachers(teachers);
-      }
-    } catch (err: any) {
-      console.error('Error loading teachers:', err);
+      console.error('❌ Error loading subjects:', err);
+      setSubjects([]);
     }
   };
 
@@ -128,14 +190,17 @@ export function ClassManagement() {
         return;
       }
       if (!formData.teacherId.trim()) {
-        alert('Vui lòng chọn giáo viên');
+        alert('Vui lòng nhập username giáo viên');
         return;
       }
+
+      // Use the entered teacher username directly
+      const teacherId = formData.teacherId.trim();
 
       // Prepare data - remove empty grade and name (backend auto-generates name)
       const classData: any = {
         subject: formData.subject.trim(),
-        teacherId: formData.teacherId.trim(),
+        teacherId: teacherId, // Use the entered username directly
         maxStudents: formData.maxStudents,
         schedule: formData.schedule,
         studentIds: [],
@@ -194,14 +259,17 @@ export function ClassManagement() {
         return;
       }
       if (!editFormData.teacherId.trim()) {
-        alert('Vui lòng chọn giáo viên');
+        alert('Vui lòng nhập username giáo viên');
         return;
       }
+
+      // Use the entered teacher username directly
+      const teacherId = editFormData.teacherId.trim();
 
       // Prepare update data
       const updateData: any = {
         subject: editFormData.subject.trim(),
-        teacherId: editFormData.teacherId.trim(),
+        teacherId: teacherId, // Use the validated teacher ID
         maxStudents: editFormData.maxStudents,
         schedule: editFormData.schedule,
       };
@@ -284,8 +352,10 @@ export function ClassManagement() {
   };
 
   const filteredClasses = classes.filter(cls => {
-    return cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cls.subject.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = (searchTerm || '').toLowerCase();
+    const name = (cls.name || '').toLowerCase();
+    const subject = (cls.subject || '').toLowerCase();
+    return name.includes(searchLower) || subject.includes(searchLower);
   });
 
   return (
@@ -337,32 +407,14 @@ export function ClassManagement() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="teacherId">Giáo viên</Label>
-                {teachers.length > 0 ? (
-                  <Select 
-                    value={formData.teacherId} 
-                    onValueChange={(val) => setFormData({...formData, teacherId: val})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn giáo viên" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teachers.map((teacher) => (
-                        <SelectItem key={teacher._id} value={teacher._id}>
-                          {teacher.username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input 
-                    id="teacherId" 
-                    placeholder="Nhập ID giáo viên (MongoDB ObjectId)" 
-                    value={formData.teacherId}
-                    onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
-                  />
-                )}
+                <Input
+                  id="teacherId"
+                  placeholder="Nhập username giáo viên (VD: teacher1, admin, teacher2...)"
+                  value={formData.teacherId}
+                  onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
+                />
                 <p className="text-xs text-muted-foreground">
-                  {teachers.length === 0 && 'Không tìm thấy giáo viên. Nhập MongoDB ObjectId hợp lệ (24 ký tự hex)'}
+                  Nhập username chính xác của giáo viên từ hệ thống
                 </p>
               </div>
               <div className="space-y-2">
@@ -482,30 +534,15 @@ export function ClassManagement() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-teacherId">Giáo viên</Label>
-                {teachers.length > 0 ? (
-                  <Select 
-                    value={editFormData.teacherId} 
-                    onValueChange={(val) => setEditFormData({...editFormData, teacherId: val})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn giáo viên" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teachers.map((teacher) => (
-                        <SelectItem key={teacher._id} value={teacher._id}>
-                          {teacher.username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input 
-                    id="edit-teacherId" 
-                    placeholder="Nhập ID giáo viên (MongoDB ObjectId)" 
-                    value={editFormData.teacherId}
-                    onChange={(e) => setEditFormData({...editFormData, teacherId: e.target.value})}
-                  />
-                )}
+                <Input
+                  id="edit-teacherId"
+                  placeholder="Nhập username giáo viên (VD: teacher1, admin, teacher2...)"
+                  value={editFormData.teacherId}
+                  onChange={(e) => setEditFormData({...editFormData, teacherId: e.target.value})}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Nhập username giáo viên mới (để trống nếu không muốn thay đổi)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-maxStudents">Số học sinh tối đa</Label>
@@ -641,8 +678,8 @@ export function ClassManagement() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-lg">{cls.name}</CardTitle>
-                    <CardDescription>{cls.subject}</CardDescription>
+                    <CardTitle className="text-lg">{cls.name || 'Tên lớp học'}</CardTitle>
+                    <CardDescription>{cls.subject || 'Môn học'}</CardDescription>
                   </div>
                   <Badge variant={cls.isActive ? 'default' : 'secondary'}>
                     {cls.isActive ? 'Hoạt động' : 'Tạm dừng'}
@@ -654,18 +691,28 @@ export function ClassManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{cls.studentIds.length}/{cls.maxStudents} học sinh</span>
+                    <span className="text-sm">{(cls.studentIds || []).length}/{cls.maxStudents || 0} học sinh</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{cls.schedule.length} buổi/tuần</span>
+                    <span className="text-sm">{(cls.schedule || []).length} buổi/tuần</span>
                   </div>
                 </div>
+
+                {/* Teacher Info */}
+                {cls.teacherId && (
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      GV: {typeof cls.teacherId === 'string' ? cls.teacherId : (cls.teacherId as any)?.username || (cls.teacherId as any)?.email || 'Không xác định'}
+                    </span>
+                  </div>
+                )}
 
                 {/* Schedule */}
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Lịch học:</p>
-                  {cls.schedule.map((slot, index) => (
+                  {(cls.schedule || []).map((slot, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       <span>
@@ -678,7 +725,7 @@ export function ClassManagement() {
                 {/* Actions */}
                 <div className="flex justify-between items-center pt-2">
                   <p className="text-xs text-muted-foreground">
-                    Tạo: {new Date(cls.createdAt).toLocaleDateString('vi-VN')}
+                    Tạo: {cls.createdAt ? new Date(cls.createdAt).toLocaleDateString('vi-VN') : 'Không xác định'}
                   </p>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm">
@@ -753,7 +800,7 @@ export function ClassManagement() {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">
-                {classes.filter(c => c.isActive).length}
+                {classes.filter(c => c.isActive !== false).length}
               </p>
               <p className="text-sm text-muted-foreground">Đang hoạt động</p>
             </CardContent>
@@ -761,7 +808,7 @@ export function ClassManagement() {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">
-                {classes.reduce((sum, c) => sum + c.studentIds.length, 0)}
+                {classes.reduce((sum, c) => sum + (c.studentIds || []).length, 0)}
               </p>
               <p className="text-sm text-muted-foreground">Tổng học sinh</p>
             </CardContent>
@@ -769,7 +816,7 @@ export function ClassManagement() {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">
-                {classes.reduce((sum, c) => sum + c.maxStudents, 0)}
+                {classes.reduce((sum, c) => sum + (c.maxStudents || 0), 0)}
               </p>
               <p className="text-sm text-muted-foreground">Sức chứa tối đa</p>
             </CardContent>

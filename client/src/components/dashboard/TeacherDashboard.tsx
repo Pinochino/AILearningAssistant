@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { GetAllData } from '../../hooks/getAllData';
+import { useAuth } from '../../hooks/useAuth';
 import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSection';
 import { AnnouncementCreator } from '../dashboard/AnnouncementCreator';
-import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
@@ -108,55 +109,7 @@ const upcomingClasses = [
   },
 ];
 
-const mockOverallStats = {
-  totalStudents: 85,
-  totalSubjects: 3,
-  totalQuizzes: 24,
-  totalFlashcards: 89,
-  avgQuizScore: 82.5,
-  completionRate: 78.3,
-  activeStudents: 72,
-  avgStudyTime: 2.4,
-};
-
-const mockSubjectStats = [
-  {
-    id: '1',
-    name: 'Toán học 12A1',
-    students: 35,
-    avgScore: 85.2,
-    completionRate: 82.1,
-    quizCount: 8,
-    flashcardCount: 45,
-    lastActivity: '2024-09-18',
-    trend: 'up',
-    trendValue: 5.2,
-  },
-  {
-    id: '2',
-    name: 'Toán học 12A2',
-    students: 32,
-    avgScore: 78.9,
-    completionRate: 75.4,
-    quizCount: 6,
-    flashcardCount: 32,
-    lastActivity: '2024-09-17',
-    trend: 'up',
-    trendValue: 2.1,
-  },
-  {
-    id: '3',
-    name: 'Toán nâng cao',
-    students: 18,
-    avgScore: 91.3,
-    completionRate: 88.8,
-    quizCount: 10,
-    flashcardCount: 28,
-    lastActivity: '2024-09-16',
-    trend: 'down',
-    trendValue: -1.5,
-  },
-];
+// Mock data moved to component
 
 const mockStudentPerformance = [
   {
@@ -196,9 +149,18 @@ const mockStudentPerformance = [
 
 export function TeacherDashboard() {
   const { navigateTo } = useNavigation();
+  const { user } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [openCreate, setOpenCreate] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [myClasses, setMyClasses] = useState<any[]>([]);
+  
+  // Fetch teacher's classes from API
+  const teacherId = user?.id || (user as any)?._id;
+  const { data: classesData, isLoading: classesLoading } = GetAllData({ 
+    url: teacherId ? `/teachers/${teacherId}/classes` : '/classes',
+    name: `teacher-classes-${teacherId}` 
+  });
   // Announcements (local mock storage)
   const [announcements, setAnnouncements] = useState<Announcement[]>([
     {
@@ -235,9 +197,42 @@ export function TeacherDashboard() {
     }
   };
 
+  // Update myClasses when data is loaded
+  useEffect(() => {
+    if (classesData?.data?.classes) {
+      const classes = classesData.data.classes;
+      setMyClasses(classes.map((c: any) => ({
+        id: c._id,
+        name: c.name,
+        students: c.enrolledCount || c.students?.length || 0,
+        avgScore: 85, // Mock - chưa có trong DB
+        completionRate: 80, // Mock - chưa có trong DB
+        quizCount: 8, // Mock - chưa có trong DB
+        flashcardCount: 45, // Mock - chưa có trong DB
+        lastActivity: c.updatedAt || new Date().toISOString(),
+        trend: 'up',
+        trendValue: 5.2,
+      })));
+    }
+  }, [classesData]);
+
   const filteredSubjectStats = selectedSubject === 'all'
-    ? mockSubjectStats
-    : mockSubjectStats.filter(s => s.id === selectedSubject);
+    ? myClasses
+    : myClasses.filter(s => s.id === selectedSubject);
+
+  // Calculate stats from real data
+  const totalStudentsCount = myClasses.reduce((sum, c) => sum + (c.students || 0), 0);
+  
+  const mockOverallStats = {
+    totalStudents: totalStudentsCount,
+    totalSubjects: myClasses.length,
+    totalQuizzes: 24, // Mock - chưa có trong DB
+    totalFlashcards: 89, // Mock - chưa có trong DB
+    avgQuizScore: 82.5, // Mock - chưa có trong DB
+    completionRate: 78.3, // Mock - chưa có trong DB
+    activeStudents: Math.floor(totalStudentsCount * 0.85), // Mock calculation
+    avgStudyTime: 2.4, // Mock - chưa có trong DB
+  };
 
   return (
     <div className="space-y-6">
