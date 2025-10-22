@@ -5,6 +5,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { PageRouter } from './components/PageRouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from './components/ui/sonner';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -40,6 +41,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppContent />
+        <Toaster position="top-right" richColors />
       </AuthProvider>
     </QueryClientProvider>
   );

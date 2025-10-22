@@ -25,13 +25,13 @@ export function LoginForm() {
 
   const quickLogin = (role: string) => {
     if (role === 'admin') {
-      setEmail('admin@example.com');
+      setEmail('admin@atiui.com');
     } else if (role === 'teacher') {
-      setEmail('teacher@example.com');
+      setEmail('teacher1@atiui.com');
     } else {
-      setEmail('student@example.com');
+      setEmail('student1@atiui.com');
     }
-    setPassword('password');
+    setPassword('password123');
   };
 
   return (

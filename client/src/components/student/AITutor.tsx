@@ -6,6 +6,8 @@ import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Send, Brain, Sparkles, RefreshCw, Calculator, Lightbulb, FileText, Zap, Pencil, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { toast } from 'sonner';
 import { MessagesService } from '../../services/messages';
 
 interface ChatMessage {
@@ -65,6 +67,11 @@ export function AITutor() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [aiConversations, setAiConversations] = useState<any[]>([]);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [targetConvId, setTargetConvId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -138,6 +145,7 @@ export function AITutor() {
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   };
+
   // Initial load: ensure AI conversation and load messages
   useEffect(() => {
     let mounted = true;
@@ -187,6 +195,23 @@ export function AITutor() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const handleRename = async () => {
+    if (!targetConvId) return;
+    await MessagesService.updateConversation(targetConvId, { name: renameValue.trim() });
+    setAiConversations((prev) => prev.map((x: any) => (x._id || x.id) === targetConvId ? { ...x, name: renameValue.trim() } : x));
+    setRenameOpen(false);
+    toast.success('Đổi tên cuộc trò chuyện thành công!');
+  };
+
+  const handleDelete = async () => {
+    if (!targetConvId) return;
+    await MessagesService.deleteConversation(targetConvId);
+    setAiConversations((prev) => prev.filter((x: any) => (x._id || x.id) !== targetConvId));
+    if (conversationId === targetConvId) setConversationId(null);
+    setDeleteOpen(false);
+    toast.success('Xóa cuộc trò chuyện thành công!');
+  };
 
   return (
     <div className="space-y-6">
@@ -390,13 +415,13 @@ export function AITutor() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-1">
-                {aiConversations.map((c:any) => {
+                {aiConversations.map((c: any) => {
                   const cid = c._id || c.id;
                   const title = c.name || c.aiTutorId || 'AI Tutor';
                   return (
-                    <div key={cid} className={`p-3 border-b ${conversationId===cid?'bg-muted':''}`}>
+                    <div key={cid} className={`p-3 border-b ${conversationId === cid ? 'bg-muted' : ''}`}>
                       <div className="flex items-center justify-between">
-                        <button className="text-left flex-1 truncate" onClick={async ()=>{
+                        <button className="text-left flex-1 truncate" onClick={async () => {
                           setConversationId(cid);
                           setLoading(true);
                           try {
@@ -416,19 +441,15 @@ export function AITutor() {
                           <div className="font-medium text-sm truncate">{title}</div>
                         </button>
                         <div className="flex items-center gap-1">
-                          <Button size="icon" variant="ghost" onClick={async ()=>{
-                            const newName = window.prompt('Đổi tên cuộc trò chuyện', title);
-                            if (!newName || !newName.trim()) return;
-                            await MessagesService.updateConversation(cid, { name: newName.trim() });
-                            setAiConversations((prev)=> prev.map((x:any)=> ( (x._id||x.id)===cid ? { ...x, name: newName.trim() } : x)));
-                          }}><Pencil className="h-4 w-4"/></Button>
-                          <Button size="icon" variant="ghost" onClick={async ()=>{
-                            const ok = window.confirm('Xóa cuộc trò chuyện này?');
-                            if (!ok) return;
-                            await MessagesService.deleteConversation(cid);
-                            setAiConversations((prev)=> prev.filter((x:any)=> (x._id||x.id)!==cid));
-                            if (conversationId===cid) setConversationId(null);
-                          }}><Trash2 className="h-4 w-4"/></Button>
+                          <Button size="icon" variant="ghost" onClick={() => {
+                            setTargetConvId(cid);
+                            setRenameValue(title);
+                            setRenameOpen(true);
+                          }}><Pencil className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => {
+                            setTargetConvId(cid);
+                            setDeleteOpen(true);
+                          }}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </div>
                     </div>
@@ -471,6 +492,36 @@ export function AITutor() {
           </Card>
         </div>
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đổi tên cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input value={renameValue} onChange={(e)=>setRenameValue(e.target.value)} placeholder="Nhập tên mới" />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={()=> setRenameOpen(false)}>Hủy</Button>
+              <Button onClick={handleRename}>Lưu</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <p>Bạn có chắc chắn muốn xóa cuộc trò chuyện này?</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={()=> setDeleteOpen(false)}>Hủy</Button>
+            <Button variant="destructive" onClick={handleDelete}>Xóa</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

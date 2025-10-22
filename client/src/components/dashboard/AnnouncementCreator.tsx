@@ -34,7 +34,7 @@ export function AnnouncementCreator({ onCreate }: { onCreate: (title: string, co
                     rows={4}
                 />
                 <div className="flex justify-end">
-                    <Button onClick={handleCreate}>Đăng thông báo</Button>
+                    <Button onClick={handleCreate} disabled={!title.trim() || !content.trim()}>Đăng thông báo</Button>
                 </div>
             </CardContent>
         </Card>

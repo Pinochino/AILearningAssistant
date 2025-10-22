@@ -23,6 +23,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { toast } from "sonner";
 import {
   Users,
   BookOpen,
@@ -207,6 +210,11 @@ const mockLearningProgress = [
 export function AdminDashboard() {
   const [openCreate, setOpenCreate] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formTitle, setFormTitle] = useState("");
+  const [formContent, setFormContent] = useState("");
 
   const mapToAnnouncement = (n: any): Announcement => ({
     id: n._id || n.id,
@@ -243,8 +251,10 @@ export function AdminDashboard() {
       const res = (await AnnouncementService.list()) as any; // { items }
       const list = Array.isArray(res?.items) ? res.items : [];
       setAnnouncements(list.map(mapToAnnouncement));
+      setOpenCreate(false);
+      toast.success('Đã tạo thông báo');
     } catch (e) {
-      // TODO: show toast
+      toast.error('Tạo thông báo thất bại');
     }
   }
 
@@ -316,29 +326,70 @@ export function AdminDashboard() {
           <AnnouncementSection
             announcements={announcements}
             canManage
-            onEdit={async (id)=>{
+            onEdit={(id)=>{
               const target = (announcements || []).find(a=>a.id===id);
-              const newTitle = window.prompt('Sửa tiêu đề', target?.title || '');
-              if (newTitle==null) return;
-              const newContent = window.prompt('Sửa nội dung', target?.content || '');
-              if (newContent==null) return;
-              try {
-                await AnnouncementService.update(id, { title: newTitle, content: newContent });
-                const res = await AnnouncementService.list() as any;
-                const list = Array.isArray(res?.items) ? res.items : [];
-                setAnnouncements(list.map(mapToAnnouncement));
-              } catch {}
+              setEditingId(id);
+              setFormTitle(target?.title || "");
+              setFormContent(target?.content || "");
+              setEditOpen(true);
             }}
-            onDelete={async (id)=>{
-              const ok = window.confirm('Xóa thông báo này?');
-              if (!ok) return;
-              try {
-                await AnnouncementService.remove(id);
-                setAnnouncements(prev=> prev.filter(a=>a.id!==id));
-              } catch {}
+            onDelete={(id)=>{
+              setEditingId(id);
+              setDeleteOpen(true);
             }}
           />
         </div>
+        {/* Edit Announcement Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Sửa thông báo</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Input placeholder="Tiêu đề" value={formTitle} onChange={(e)=>setFormTitle(e.target.value)} />
+              <Textarea placeholder="Nội dung" rows={4} value={formContent} onChange={(e)=>setFormContent(e.target.value)} />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={()=> setEditOpen(false)}>Hủy</Button>
+                <Button onClick={async ()=>{
+                  if (!editingId) return;
+                  try {
+                    await AnnouncementService.update(editingId, { title: formTitle.trim(), content: formContent.trim() });
+                    const res = await AnnouncementService.list() as any;
+                    const list = Array.isArray(res?.items) ? res.items : [];
+                    setAnnouncements(list.map(mapToAnnouncement));
+                    toast.success('Đã cập nhật thông báo');
+                    setEditOpen(false);
+                  } catch (e) {
+                    toast.error('Cập nhật thất bại');
+                  }
+                }}>Lưu</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Xóa thông báo</DialogTitle>
+            </DialogHeader>
+            <p>Bạn có chắc muốn xóa thông báo này?</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={()=> setDeleteOpen(false)}>Hủy</Button>
+              <Button variant="destructive" onClick={async ()=>{
+                if (!editingId) return;
+                try {
+                  await AnnouncementService.remove(editingId);
+                  setAnnouncements(prev=> prev.filter(a=>a.id!==editingId));
+                  toast.success('Đã xóa thông báo');
+                  setDeleteOpen(false);
+                } catch(e) {
+                  toast.error('Xóa thất bại');
+                }
+              }}>Xóa</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Overview */}
