@@ -8,6 +8,7 @@ import { Textarea } from '../ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   Search,
@@ -82,6 +83,10 @@ export function Messages() {
   const [groupBase, setGroupBase] = useState<any[]>([]);
   const [groupResults, setGroupResults] = useState<any[]>([]);
   const [groupSelected, setGroupSelected] = useState<any[]>([]);
+  // conversation actions
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [newName, setNewName] = useState('');
 
   // Load conversations
   useEffect(() => {
@@ -99,6 +104,11 @@ export function Messages() {
     })();
     return () => { mounted = false; };
   }, []);
+
+  const currentConversation = useMemo(() =>
+    conversations.find((c) => (c._id || c.id) === selectedConversation),
+    [conversations, selectedConversation]
+  );
 
   // preload users when direct dialog opens
   useEffect(() => {
@@ -469,6 +479,33 @@ export function Messages() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Tin nhắn</CardTitle>
+                  {(() => { const isGroup = !!(currentConversation?.isGroup || currentConversation?.conversationType==='group');
+                    if (!isGroup) {
+                      return (
+                        <Button variant="ghost" size="sm" onClick={()=> setDeleteOpen(true)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      );
+                    }
+                    return (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={()=>{ setNewName(String(currentConversation?.name||'')); setRenameOpen(true); }}>
+                            <Reply className="mr-2 h-4 w-4" />
+                            Đổi tên
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={()=> setDeleteOpen(true)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Xóa cuộc trò chuyện
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ); })()}
                 </div>
               </CardHeader>
               <CardContent>
@@ -519,6 +556,49 @@ export function Messages() {
           {/* Announcements removed from Messages view */}
         </div>
       </div>
+      {/* Rename Dialog */}
+      <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đổi tên cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label>Tên mới</Label>
+            <Input value={newName} onChange={(e)=> setNewName(e.target.value)} placeholder="Nhập tên mới" />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={()=> setRenameOpen(false)}>Hủy</Button>
+              <Button onClick={async ()=>{
+                if (!selectedConversation) return;
+                const name = newName.trim();
+                if (!name) return;
+                await MessagesService.updateConversation(selectedConversation, { name });
+                setConversations((prev)=> prev.map((c)=> ((c._id||c.id)===selectedConversation ? { ...c, name } : c)));
+                setRenameOpen(false);
+              }}>Lưu</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <p>Bạn có chắc chắn muốn xóa cuộc trò chuyện này?</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={()=> setDeleteOpen(false)}>Hủy</Button>
+            <Button variant="destructive" onClick={async ()=>{
+              if (!selectedConversation) return;
+              await MessagesService.deleteConversation(selectedConversation);
+              setConversations((prev)=> prev.filter((c)=> (c._id||c.id)!==selectedConversation));
+              setSelectedConversation(null);
+              setMessages([]);
+              setDeleteOpen(false);
+            }}>Xóa</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

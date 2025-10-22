@@ -220,7 +220,21 @@ export function AdminDashboard() {
     id: n._id || n.id,
     title: String(n.title || n.type || "Thông báo"),
     content: String(n.content || n.message || ""),
-    author: String(n.authorName || `${n?.author?.firstName || ''} ${n?.author?.lastName || ''}`.trim() || n.author || "Hệ thống"),
+    author: ((): string => {
+      const direct = n?.authorName;
+      if (typeof direct === 'string' && direct.trim()) return direct.trim();
+      const a = n?.author;
+      if (a) {
+        const first = (a.firstName || '').toString().trim();
+        const last = (a.lastName || '').toString().trim();
+        const full = `${first} ${last}`.trim();
+        if (full) return full;
+        if (typeof a.name === 'string' && a.name.trim()) return a.name.trim();
+        if (typeof a.email === 'string' && a.email.trim()) return a.email.trim();
+      }
+      if (typeof n.author === 'string' && n.author.trim()) return n.author.trim();
+      return 'Hệ thống';
+    })(),
     date: new Date(n.createdAt || n.timestamp || Date.now()).toLocaleString("vi-VN"),
   });
 

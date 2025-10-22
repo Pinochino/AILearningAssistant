@@ -65,6 +65,10 @@ export function Messages() {
   const [groupBase, setGroupBase] = useState<any[]>([]);
   const [groupResults, setGroupResults] = useState<any[]>([]);
   const [groupSelected, setGroupSelected] = useState<any[]>([]);
+  // conversation actions (rename/delete)
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [newName, setNewName] = useState('');
 
   const getConversationName = (conv: any) => {
     const existing = conv?.name || conv?.title;
@@ -477,114 +481,170 @@ export function Messages() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Messages Area (wide) */}
-        <Card className="lg:col-span-2">
-          {currentConversation ? (
-            <>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {(currentConversation.name || 'C').split(' ').map((n: string) => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{getConversationName(currentConversation)}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {currentConversation.subject || ''}
-                      </p>
-                    </div>
+ 
+      {/* Messages Area (wide) */}
+      <Card className="lg:col-span-2">
+        {currentConversation ? (
+          <>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {(currentConversation.name || 'C').split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium">{getConversationName(currentConversation)}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {currentConversation.subject || ''}
+                    </p>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>
-                        <Archive className="mr-2 h-4 w-4" />
-                        Lưu trữ
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Xóa cuộc trò chuyện
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="h-96 overflow-y-auto p-4 space-y-4">
-                  {currentMessages.map((message: any) => (
+                {(() => { const isGroup = !!(currentConversation?.isGroup || currentConversation?.conversationType==='group');
+                  if (!isGroup) {
+                    return (
+                      <>
+                        <Button variant="ghost" size="sm" onClick={()=> setDeleteOpen(true)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    );
+                  }
+                  return (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={()=>{ setNewName(String(currentConversation?.name||'')); setRenameOpen(true); }}>
+                          <Reply className="mr-2 h-4 w-4" />
+                          Đổi tên
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=> setDeleteOpen(true)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Xóa cuộc trò chuyện
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ); })()}
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              <div className="h-96 overflow-y-auto p-4 space-y-4">
+                {currentMessages.map((message: any) => (
+                  <div
+                    key={message._id || message.id}
+                    className={`flex ${message.isOwn ? 'justify-end' : (message.isOwn === false ? 'justify-start' : 'justify-start')}`}
+                  >
                     <div
-                      key={message._id || message.id}
-                      className={`flex ${message.isOwn ? 'justify-end' : (message.isOwn === false ? 'justify-start' : 'justify-start')}`}
+                      className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${message.isOwn
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                        }`}
                     >
-                      <div
-                        className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${message.isOwn
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                          }`}
-                      >
-                        {(() => { const isGroup = !!(currentConversation?.isGroup || currentConversation?.conversationType==='group'); return isGroup ? (
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs opacity-80">{toText(message.sender?.name || message.senderName || message.sender?.email || 'Người dùng')}</span>
-                            <span className="text-[10px] opacity-60">
-                              {new Date(message.createdAt || message.timestamp || Date.now()).toLocaleTimeString('vi-VN', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
-                          </div>
-                        ) : null; })()}
-                        <p className="text-sm">{toText(message.content ?? message.text)}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span />
-                          {message.isOwn && (
-                            <div className="flex items-center gap-1">
-                              {message.isRead ? (
-                                <CheckCheck className="h-3 w-3" />
-                              ) : (
-                                <Check className="h-3 w-3" />
-                              )}
-                            </div>
-                          )}
+                      {(() => { const isGroup = !!(currentConversation?.isGroup || currentConversation?.conversationType==='group'); return isGroup ? (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs opacity-80">{toText(message.sender?.name || message.senderName || message.sender?.email || 'Người dùng')}</span>
+                          <span className="text-[10px] opacity-60">
+                            {new Date(message.createdAt || message.timestamp || Date.now()).toLocaleTimeString('vi-VN', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
                         </div>
+                      ) : null; })()}
+                      <p className="text-sm">{toText(message.content ?? message.text)}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span />
+                        {message.isOwn && (
+                          <div className="flex items-center gap-1">
+                            {message.isRead ? (
+                              <CheckCheck className="h-3 w-3" />
+                            ) : (
+                              <Check className="h-3 w-3" />
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div className="p-4 border-t">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Nhập tin nhắn..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    />
-                    <Button onClick={handleSendMessage} size="sm">
-                      <Send className="h-4 w-4" />
-                    </Button>
                   </div>
+                ))}
+              </div>
+              <div className="p-4 border-t">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nhập tin nhắn..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  />
+                  <Button onClick={handleSendMessage} size="sm">
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
-              </CardContent>
-            </>
-          ) : (
-            <CardContent className="flex items-center justify-center h-96">
-              <div className="text-center">
-                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Chọn cuộc trò chuyện</h3>
-                <p className="text-muted-foreground">
-                  Chọn một cuộc trò chuyện để bắt đầu
-                </p>
               </div>
             </CardContent>
-          )}
-        </Card>
-      </div>
+          </>
+        ) : (
+          <CardContent className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Chọn cuộc trò chuyện</h3>
+              <p className="text-muted-foreground">
+                Chọn một cuộc trò chuyện để bắt đầu
+              </p>
+            </div>
+          </CardContent>
+        )}
+      </Card>
     </div>
-  );
+    {/* Rename dialog */}
+    <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Đổi tên cuộc trò chuyện</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <Label>Tên mới</Label>
+          <Input value={newName} onChange={(e)=> setNewName(e.target.value)} placeholder="Nhập tên mới" />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={()=> setRenameOpen(false)}>Hủy</Button>
+            <Button onClick={async ()=>{
+              if (!selectedConversation) return;
+              const name = newName.trim();
+              if (!name) return;
+              await MessagesService.updateConversation(selectedConversation, { name });
+              setConversations((prev)=> prev.map((c)=> ((c._id||c.id)===selectedConversation ? { ...c, name } : c)));
+              setRenameOpen(false);
+            }}>Lưu</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    {/* Delete dialog */}
+    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Xóa cuộc trò chuyện</DialogTitle>
+        </DialogHeader>
+        <p>Bạn có chắc chắn muốn xóa cuộc trò chuyện này?</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={()=> setDeleteOpen(false)}>Hủy</Button>
+          <Button variant="destructive" onClick={async ()=>{
+            if (!selectedConversation) return;
+            await MessagesService.deleteConversation(selectedConversation);
+            setConversations((prev)=> prev.filter((c)=> (c._id||c.id)!==selectedConversation));
+            setSelectedConversation('');
+            setMessages([]);
+            setDeleteOpen(false);
+          }}>Xóa</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </div>
+);
 }
