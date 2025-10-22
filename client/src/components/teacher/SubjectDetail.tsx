@@ -321,7 +321,8 @@ export function SubjectDetail() {
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
-        return user.id || user._id;
+        // Use username instead of ObjectId for better compatibility
+        return user.name || user.username || user.id || user._id;
       } catch (e) {
         return null;
       }

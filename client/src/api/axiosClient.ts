@@ -3,12 +3,24 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 
 const axiosClient = axios.create({
   baseURL: 'http://localhost:9000/api',
-  withCredentials: true, 
+  withCredentials: true,
 })
 
 let accessToken: string | null = null
 export const setAccessToken = (token: string | null) => {
   accessToken = token
+  // Also update localStorage for consistency
+  if (token) {
+    localStorage.setItem('accessToken', token)
+  } else {
+    localStorage.removeItem('accessToken')
+  }
+}
+
+export const clearAccessToken = () => {
+  accessToken = null
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('currentUser')
 }
 
 // Request interceptor
@@ -50,16 +62,12 @@ axiosClient.interceptors.response.use(
         }
       } catch (err) {
         console.error('❌ Refresh token failed:', err)
-        setAccessToken(null)
-        // ✅ Clear expired token from localStorage
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('currentUser')
-        
+        clearAccessToken()
         // ✅ Redirect to login page if refresh failed
         if (typeof window !== 'undefined') {
           window.location.href = '/'
         }
-        
+
         return Promise.reject(err)
       }
     }

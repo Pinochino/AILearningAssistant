@@ -9,29 +9,27 @@ import { StudentDashboard } from './dashboard/StudentDashboard'
 // Admin pages
 import { UserManagement } from './admin/UserManagement'
 import { EditUser } from './admin/EditUser'
-import { SubjectManagement } from './admin/SubjectManagement'
-import { EditSubject } from './admin/EditSubject'
 import { Analytics } from './admin/Analytics'
 import { ContentManagement } from './admin/ContentManagement'
 import { SystemSettings } from './admin/SystemSettings'
 import { ClassManagement } from './admin/ClassManagement'
 
 // Teacher pages
-import { SubjectDetail } from './teacher/SubjectDetail'
 import { StudentsManagement } from './teacher/StudentsManagement'
 import { ContentManagement as TeacherContentManagement } from './teacher/ContentManagement'
 import { Schedule as TeacherSchedule } from './teacher/Schedule'
 import { Messages as TeacherMessages } from './teacher/Messages'
 import { Analytics as TeacherAnalytics } from './teacher/Analytics'
+import { SubjectDetail } from './teacher/SubjectDetail'
 
 // Student pages
-import { SubjectView } from './student/SubjectView'
-import { SubjectSearch } from './student/SubjectSearch'
 import { Schedule } from './student/Schedule'
 import { AITutor } from './student/AITutor'
 import { DocumentsView } from './student/DocumentsView'
 import { Messages } from './student/Messages'
 import { Achievements } from './student/Achievements'
+import { SubjectSearch } from './student/SubjectSearch'
+import { SubjectView } from './student/SubjectView'
 
 // Common pages
 import { Profile } from './Profile'
@@ -61,9 +59,19 @@ export function PageRouter() {
       case 'edit-user':
         return <EditUser />
       case 'subjects':
-        return <SubjectManagement />
+        return (
+          <div className='space-y-6'>
+            <h1>Quản lý Môn học</h1>
+            <p className='text-muted-foreground'>Tính năng quản lý môn học đang được phát triển...</p>
+          </div>
+        )
       case 'edit-subject':
-        return <EditSubject />
+        return (
+          <div className='space-y-6'>
+            <h1>Chỉnh sửa Môn học</h1>
+            <p className='text-muted-foreground'>Tính năng chỉnh sửa môn học đang được phát triển...</p>
+          </div>
+        )
       case 'classes':
       case 'class-management':
         return <ClassManagement />

@@ -1,6 +1,7 @@
 import { useState, useContext, createContext, useEffect } from 'react';
 import axios from 'axios';
 import { User, UserRole } from '../types';
+import { setAccessToken, clearAccessToken } from '../api/axiosClient';
 
 interface AuthContextType {
   user: User | null;
@@ -52,8 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshTokenInBackground = async () => {
     try {
       console.log('🔄 Attempting background token refresh...');
+      const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:9000/api';
       const res = await axios.post(
-        'http://localhost:9000/api/auth/refresh-token',
+        `${API_BASE_URL}/auth/refresh-token`,
         {},
         { withCredentials: true }
       );
@@ -61,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const newToken = res.data?.data?.accessToken;
       if (newToken) {
         console.log('✅ Token refreshed in background');
-        localStorage.setItem('accessToken', newToken);
+        setAccessToken(newToken); // ✅ Set both in-memory and localStorage tokens
         return true;
       }
     } catch (error) {
@@ -100,8 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (isExpired) {
           console.warn('⚠️ Token expired, clearing...');
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('currentUser');
+          clearAccessToken();
           setIsLoading(false);
           return;
         }
@@ -115,13 +116,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Map role from token
         let role: 'admin' | 'teacher' | 'student' = 'student';
         
-        // Check roles array first
+        // Check roles array first (backend format: array of objects with name)
         if (payload.roles && Array.isArray(payload.roles) && payload.roles.length > 0) {
-          const roleStr = payload.roles[0]?.toLowerCase() || '';
+          const roleStr = payload.roles[0]?.name?.toLowerCase() || payload.roles[0]?.toLowerCase();
           console.log('🎭 Role from token:', roleStr);
-          if (roleStr.includes('admin')) {
+          if (roleStr?.includes('admin') || roleStr?.includes('super_admin')) {
             role = 'admin';
-          } else if (roleStr.includes('teacher')) {
+          } else if (roleStr?.includes('teacher')) {
             role = 'teacher';
           }
         }
@@ -153,8 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('currentUser', JSON.stringify(user));
       } catch (error) {
         console.error('❌ Failed to decode token:', error);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('currentUser');
+        clearAccessToken();
       }
     } else if (storedUser) {
       // Fallback to stored user if no token
@@ -169,53 +169,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    
+
     try {
-      // Call real backend API
+      // Call real backend API using axios with credentials
       const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:9000/api';
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/login`,
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true
+        }
+      );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (!response.ok) {
-        console.error('Login failed:', data);
-        setIsLoading(false);
-        return false;
-      }
-
-      // Backend returns: { success: true, data: { user, accessToken, refreshToken } }
       if (data.success && data.data) {
         const { user: userData, accessToken } = data.data;
-        
-        // Map role from backend (array of role names) to frontend (single string)
+
+        // Map role from backend (array of role objects) to frontend (single string)
         let role: 'admin' | 'teacher' | 'student' = 'student';
-        if (userData.role && Array.isArray(userData.role)) {
-          const roleStr = userData.role[0]?.toLowerCase();
-          if (roleStr?.includes('admin')) {
+        if (userData.roles && Array.isArray(userData.roles) && userData.roles.length > 0) {
+          const roleStr = userData.roles[0]?.name?.toLowerCase() || userData.roles[0]?.toLowerCase();
+          console.log('🎭 Role from backend:', roleStr);
+          if (roleStr?.includes('admin') || roleStr?.includes('super_admin')) {
             role = 'admin';
           } else if (roleStr?.includes('teacher')) {
             role = 'teacher';
           }
         }
-        
+
         // Fallback: Check username/email if role is still student
         if (role === 'student') {
           const username = (userData.username || '').toLowerCase();
           const email = (userData.email || '').toLowerCase();
-          
+
           if (username.includes('teacher') || email.includes('teacher')) {
             role = 'teacher';
           } else if (username.includes('admin') || email.includes('admin')) {
             role = 'admin';
           }
         }
-        
+
         // Map backend user to frontend User type
         const user: User = {
           id: userData._id || '1',
@@ -228,11 +225,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setUser(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
-        localStorage.setItem('accessToken', accessToken);
+        setAccessToken(accessToken); // ✅ Set both in-memory and localStorage tokens
         setIsLoading(false);
         return true;
       }
-      
+
       setIsLoading(false);
       return false;
     } catch (error) {
@@ -244,8 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('accessToken');
+    clearAccessToken(); // ✅ Clear both in-memory and localStorage tokens
   };
 
   return (

@@ -572,7 +572,19 @@ router.get(
 router.get(
   "/students/:id/enrollments",
   [
-    param("id").isMongoId().withMessage("Invalid student ID"),
+    param("id").custom((value) => {
+      // Accept both ObjectId and username (alphanumeric string)
+      if (typeof value === 'string') {
+        // Check if it's a valid ObjectId or username (alphanumeric, 3-30 chars)
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(value);
+        const isValidUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(value);
+        if (!isValidObjectId && !isValidUsername) {
+          throw new Error("studentId must be a valid ObjectId or username (3-30 alphanumeric characters)");
+        }
+        return true;
+      }
+      throw new Error("studentId must be a string");
+    }),
     query("status").optional().isIn(["pending", "approved", "rejected"]).withMessage("Invalid status"),
   ],
   authenticationMiddleware,
@@ -699,7 +711,19 @@ router.post(
 router.get(
   "/students/:id/available-classes",
   [
-    param("id").isMongoId().withMessage("Invalid student ID"),
+    param("id").custom((value) => {
+      // Accept both ObjectId and username (alphanumeric string)
+      if (typeof value === 'string') {
+        // Check if it's a valid ObjectId or username (alphanumeric, 3-30 chars)
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(value);
+        const isValidUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(value);
+        if (!isValidObjectId && !isValidUsername) {
+          throw new Error("studentId must be a valid ObjectId or username (3-30 alphanumeric characters)");
+        }
+        return true;
+      }
+      throw new Error("studentId must be a string");
+    }),
     query("page").optional().isInt({ min: 1 }).withMessage("Page must be a positive integer"),
     query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be 1-100"),
     query("subject").optional().trim(),
@@ -797,7 +821,19 @@ router.post(
 router.get(
   "/teachers/:id/classes",
   [
-    param("id").isMongoId().withMessage("Invalid teacher ID"),
+    param("id").custom((value) => {
+      // Accept both ObjectId and username (alphanumeric string)
+      if (typeof value === 'string') {
+        // Check if it's a valid ObjectId or username (alphanumeric, 3-30 chars)
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(value);
+        const isValidUsername = /^[a-zA-Z0-9_-]{3,30}$/.test(value);
+        if (!isValidObjectId && !isValidUsername) {
+          throw new Error("teacherId must be a valid ObjectId or username (3-30 alphanumeric characters)");
+        }
+        return true;
+      }
+      throw new Error("teacherId must be a string");
+    }),
     query("page").optional().isInt({ min: 1 }).withMessage("Page must be a positive integer"),
     query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be 1-100"),
     query("subject").optional().trim(),

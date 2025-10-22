@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
-import { Search, Plus, Edit, Trash2, Eye, Users, Calendar, Clock, Loader2, BookOpen } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, Users, Calendar, Clock, Loader2, BookOpen, AlertTriangle } from 'lucide-react';
 import { useNavigation } from '../../hooks/useNavigation';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Label } from '../ui/label';
@@ -26,6 +26,8 @@ export function ClassManagement() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<Class | null>(null);
 
   // Load teachers from API (for debugging purposes)
   useEffect(() => {
@@ -208,7 +210,6 @@ export function ClassManagement() {
         maxStudents: formData.maxStudents,
         schedule: formData.schedule,
         studentIds: [],
-        isActive: true,
       };
 
       // Only include grade if it's not empty
@@ -218,7 +219,8 @@ export function ClassManagement() {
 
       console.log('Creating class with data:', classData); // Debug
 
-      await classApi.create(classData);
+      const response = await classApi.create(classData);
+      console.log('Create response:', response); // Debug
 
       setIsCreateDialogOpen(false);
       setFormData({
@@ -228,7 +230,10 @@ export function ClassManagement() {
         maxStudents: 30,
         schedule: [{ dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }],
       });
-      loadClasses(); // Reload list
+
+      // Reload classes to get updated list including the new class
+      await loadClasses();
+
       toast.success('Tạo lớp học thành công!');
     } catch (err: any) {
       console.error('Error creating class:', err); // Debug
@@ -307,17 +312,29 @@ export function ClassManagement() {
     }
   };
 
-  const handleDeleteClass = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn xóa lớp học này?')) return;
-    
+  const handleDeleteClass = (cls: Class) => {
+    setClassToDelete(cls);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteClass = async () => {
+    if (!classToDelete) return;
+
     try {
-      await classApi.delete(id);
+      await classApi.delete(classToDelete._id);
       loadClasses(); // Reload list
+      setIsDeleteDialogOpen(false);
+      setClassToDelete(null);
       toast.success('Xóa lớp học thành công!');
     } catch (err: any) {
       console.error('Error deleting class:', err);
       toast.error('Lỗi: ' + (err.message || 'Không thể xóa lớp học'));
     }
+  };
+
+  const cancelDeleteClass = () => {
+    setIsDeleteDialogOpen(false);
+    setClassToDelete(null);
   };
 
   const addScheduleSlot = (isEdit = false) => {
@@ -690,9 +707,6 @@ export function ClassManagement() {
                     <CardTitle className="text-lg">{cls.name || 'Tên lớp học'}</CardTitle>
                     <CardDescription>{cls.subject || 'Môn học'}</CardDescription>
                   </div>
-                  <Badge variant={cls.isActive ? 'default' : 'secondary'}>
-                    {cls.isActive ? 'Hoạt động' : 'Tạm dừng'}
-                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -713,7 +727,7 @@ export function ClassManagement() {
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
-                      GV: {typeof cls.teacherId === 'string' ? cls.teacherId : (cls.teacherId as any)?.username || (cls.teacherId as any)?.email || 'Không xác định'}
+                      GV: {typeof cls.teacherId === 'string' ? cls.teacherId : (cls.teacherId as any)?.email || 'Không xác định'}
                     </span>
                   </div>
                 )}
@@ -750,7 +764,7 @@ export function ClassManagement() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => handleDeleteClass(cls._id)}
+                      onClick={() => handleDeleteClass(cls)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -809,7 +823,7 @@ export function ClassManagement() {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">
-                {classes.filter(c => c.isActive !== false).length}
+                {classes.length}
               </p>
               <p className="text-sm text-muted-foreground">Đang hoạt động</p>
             </CardContent>
@@ -842,6 +856,46 @@ export function ClassManagement() {
           setSelectedClassId(null);
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Xác nhận xóa lớp học
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>Bạn có chắc chắn muốn xóa lớp học này?</p>
+              {classToDelete && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="font-medium">{classToDelete.name || 'Tên lớp học'}</p>
+                  <p className="text-sm text-muted-foreground">{classToDelete.subject}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(classToDelete.studentIds || []).length} học sinh đã đăng ký
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-destructive font-medium">
+                Hành động này không thể hoàn tác!
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={cancelDeleteClass}>
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteClass}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Xóa lớp học
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

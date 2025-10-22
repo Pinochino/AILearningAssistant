@@ -22,8 +22,13 @@ export class ClassesService {
 
       const newClass = new Class(classData)
       const savedClass = await newClass.save()
-      await savedClass.populate("teacherId", "name email")
-      return savedClass
+
+      // Populate after save using findById
+      const populatedClass = await Class.findById(savedClass._id)
+        .populate("teacherId", "username email")
+        .exec()
+
+      return populatedClass || savedClass
     } catch (error: any) {
       throw new Error(`Failed to create class: ${error.message}`)
     }
@@ -32,8 +37,8 @@ export class ClassesService {
   static async getClassById(id: string): Promise<IClass | null> {
     try {
       const classDoc = await Class.findById(id)
-        .populate("teacherId", "name email")
-        .populate("students", "name email")
+        .populate("teacherId", "username email")
+        .populate("students", "username email")
         .exec()
       return classDoc
     } catch (error: any) {
@@ -79,8 +84,8 @@ export class ClassesService {
 
       const [classes, total] = await Promise.all([
         Class.find(query)
-          .populate("teacherId", "name email")
-          .populate("students", "name email")
+          .populate("teacherId", "username email")
+          .populate("students", "username email")
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
@@ -122,8 +127,8 @@ export class ClassesService {
         { ...updateData, updatedAt: new Date() },
         { new: true, runValidators: true },
       )
-        .populate("teacherId", "name email")
-        .populate("students", "name email")
+        .populate("teacherId", "username email")
+        .populate("students", "username email")
         .exec()
       return updatedClass
     } catch (error: any) {
@@ -166,8 +171,8 @@ export class ClassesService {
       classDoc.students.push(new mongoose.Types.ObjectId(studentId))
       await classDoc.save()
 
-      const updatedClass = await classDoc.populate("teacherId", "name email")
-      await updatedClass.populate("students", "name email")
+      const updatedClass = await classDoc.populate("teacherId", "username email")
+      await updatedClass.populate("students", "username email")
 
       return updatedClass
     } catch (error: any) {
@@ -178,8 +183,8 @@ export class ClassesService {
   static async unenrollStudent(classId: string, studentId: string): Promise<IClass | null> {
     try {
       const updatedClass = await Class.findByIdAndUpdate(classId, { $pull: { students: studentId } }, { new: true })
-        .populate("teacherId", "name email")
-        .populate("students", "name email")
+        .populate("teacherId", "username email")
+        .populate("students", "username email")
         .exec()
       return updatedClass
     } catch (error: any) {
@@ -445,7 +450,7 @@ export class ClassesService {
 
       const [classes, total] = await Promise.all([
         Class.find(query)
-          .populate("teacherId", "name email")
+          .populate("teacherId", "username email")
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
@@ -475,7 +480,7 @@ export class ClassesService {
         { teacherId, updatedAt: new Date() },
         { new: true, runValidators: true }
       )
-        .populate("teacherId", "name email")
+        .populate("teacherId", "username email")
         .exec()
 
       return subject
@@ -521,8 +526,8 @@ export class ClassesService {
 
       const [classes, total] = await Promise.all([
         Class.find(query)
-          .populate("teacherId", "name email")
-          .populate("students", "name email")
+          .populate("teacherId", "username email")
+          .populate("students", "username email")
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
