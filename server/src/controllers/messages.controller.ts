@@ -30,6 +30,53 @@ export const createMessage = async (req: Request, res: Response) => {
     }
 };
 
+export const updateConversation = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = (req as any).user?.id;
+        const { name } = req.body || {};
+
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // Only allow update if user is a participant
+        const convo = await (await import("../models/conversation.model.js")).Conversation.findOneAndUpdate(
+            { _id: id, participants: userId },
+            { ...(name ? { name } : {}) },
+            { new: true }
+        );
+
+        if (!convo) return res.status(404).json({ error: "Conversation not found" });
+
+        res.json({ success: true, data: convo });
+    } catch (error) {
+        console.error("Error updating conversation:", error);
+        res.status(500).json({ error: "Failed to update conversation" });
+    }
+};
+
+export const deleteConversation = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = (req as any).user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const { Conversation } = await import("../models/conversation.model.js");
+        const { Message } = await import("../models/message.model.js");
+
+        // Only allow delete if user is a participant
+        const convo = await Conversation.findOne({ _id: id, participants: userId });
+        if (!convo) return res.status(404).json({ error: "Conversation not found" });
+
+        await Message.deleteMany({ conversation: id });
+        await Conversation.deleteOne({ _id: id });
+
+        res.json({ success: true, ok: true });
+    } catch (error) {
+        console.error("Error deleting conversation:", error);
+        res.status(500).json({ error: "Failed to delete conversation" });
+    }
+};
+
 export const getConversationMessages = async (req: Request, res: Response) => {
     try {
         const { id: conversationId } = req.params;

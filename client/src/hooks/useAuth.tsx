@@ -12,6 +12,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const TOKEN_KEY = 'atiui_token';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000';
 
 function decodeJwt(token: string): any | null {
   try {
@@ -24,7 +25,14 @@ function decodeJwt(token: string): any | null {
   }
 }
 
-function toRole(r: string | undefined): UserRole {
+function toRole(r: string | string[] | undefined): UserRole {
+  if (Array.isArray(r)) {
+    const list = r.map(x => String(x).toLowerCase());
+    if (list.some(x => x.includes('admin'))) return 'admin';
+    if (list.some(x => x.includes('teacher'))) return 'teacher';
+    if (list.some(x => x.includes('student'))) return 'student';
+    return 'student';
+  }
   const v = String(r || '').toLowerCase();
   if (v.includes('admin')) return 'admin';
   if (v.includes('teacher')) return 'teacher';
@@ -51,9 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (payload?.id) {
         const inferred: User = {
           id: payload.id,
-          name: [payload.firstName, payload.lastName].filter(Boolean).join(' ') || payload.email || 'User',
+          name: payload.username || payload.email || 'User',
           email: payload.email || 'unknown@local',
-          role: toRole(payload.role),
+          role: toRole((payload as any).roles ?? (payload as any).role),
           createdAt: new Date(),
         };
         setUser(inferred);
@@ -70,10 +78,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // TODO: Replace with real backend auth when available
-    // Currently, authentication is derived from the JWT already in localStorage.
-    // Return false to keep LoginForm behavior unless a token is present.
-    return false;
+    try {
+      const resp = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!resp.ok) return false;
+      const json = await resp.json();
+      const data = json?.data || json; // responseUtils wraps in { data }
+      const token: string | undefined = data?.accessToken;
+      const profile = data?.user;
+
+      if (!token || !profile) return false;
+
+      localStorage.setItem(TOKEN_KEY, token);
+
+      const nextUser: User = {
+        id: profile.id || profile._id || 'me',
+        name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.username || profile.email || 'User',
+        email: profile.email || email,
+        role: toRole(profile.role ?? profile.roles),
+        createdAt: new Date(),
+      };
+
+      setUser(nextUser);
+      localStorage.setItem('currentUser', JSON.stringify(nextUser));
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const logout = () => {

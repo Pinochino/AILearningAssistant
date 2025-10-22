@@ -9,7 +9,9 @@ import {
     markMessageAsRead,
     markConversationAsRead,
     createAnnouncement,
-    sendToAi
+    sendToAi,
+    updateConversation,
+    deleteConversation
 } from "../controllers/messages.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { requireTeacherOrAdmin } from "../middlewares/auth.middleware.js";
@@ -25,6 +27,8 @@ router.get("/conversations", authMiddleware, getConversations);
 router.post("/conversations", authMiddleware, createConversation);
 router.get("/conversations/:id/messages", authMiddleware, getConversationMessages);
 router.post("/conversations/:id/read", authMiddleware, markConversationAsRead);
+router.patch("/conversations/:id", authMiddleware, updateConversation);
+router.delete("/conversations/:id", authMiddleware, deleteConversation);
 
 // Direct conversation routes
 router.get("/direct/:userId", authMiddleware, getOrCreateDirectConversation);

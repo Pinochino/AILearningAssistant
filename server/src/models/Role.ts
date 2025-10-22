@@ -4,7 +4,9 @@ import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-de
 export enum RoleName {
   USER = 'USER',
   ADMIN = 'ADMIN',
-  SUPER_ADMIN = 'SUPER_ADMIN'
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  TEACHER = 'TEACHER',
+  STUDENT = 'STUDENT'
 }
 
 export interface IRole extends SoftDeleteDocument {

@@ -15,7 +15,14 @@ const verifyJwt = (token: string) => {
 }
 
 const generateAccessToken = (user: any) => {
-  const roles: string[] = user?.roles.map((e: any) => e.name)
+  // Derive roles robustly from multiple shapes
+  const rolesFromPopulated = Array.isArray(user?.roles)
+    ? user.roles.map((e: any) => (typeof e === 'string' ? e : e?.name)).filter(Boolean)
+    : []
+  const roleFromString = (typeof user?.role === 'string' && user.role) ? [user.role] : []
+  const roles: string[] = (rolesFromPopulated.length > 0 ? rolesFromPopulated : roleFromString)
+    .map((r: string) => String(r).toUpperCase())
+  if (roles.length === 0) roles.push('STUDENT')
 
   const authPayload: JwtPayloadInterface = {
     id: user._id,
@@ -39,16 +46,17 @@ const createLoginResponse = async (user: any) => {
     expiredAt: Date.now() + 7 * 24 * 60 * 60 * 1000
   })
 
-  console.log('Role: ', user.roles)
-  const role = user.roles.map((r: any) => r.name)
-
-  console.log(role)
+  // Build lightweight user payload
+  const roleList = Array.isArray(user?.roles)
+    ? user.roles.map((r: any) => (typeof r === 'string' ? r : r?.name)).filter(Boolean)
+    : (typeof user?.role === 'string' ? [user.role] : [])
+  if (roleList.length === 0) roleList.push('student')
 
   const payload = {
     username: user.username,
     email: user.email,
     avatar: user.avatar,
-    role
+    role: roleList
   }
 
   return {

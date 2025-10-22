@@ -212,7 +212,7 @@ export function AdminDashboard() {
     id: n._id || n.id,
     title: String(n.title || n.type || "Thông báo"),
     content: String(n.content || n.message || ""),
-    author: String(n.author || "Hệ thống"),
+    author: String(n.authorName || `${n?.author?.firstName || ''} ${n?.author?.lastName || ''}`.trim() || n.author || "Hệ thống"),
     date: new Date(n.createdAt || n.timestamp || Date.now()).toLocaleString("vi-VN"),
   });
 
@@ -313,7 +313,31 @@ export function AdminDashboard() {
           </Dialog>
         </div>
         <div className="lg:col-span-3">
-          <AnnouncementSection announcements={announcements} />
+          <AnnouncementSection
+            announcements={announcements}
+            canManage
+            onEdit={async (id)=>{
+              const target = (announcements || []).find(a=>a.id===id);
+              const newTitle = window.prompt('Sửa tiêu đề', target?.title || '');
+              if (newTitle==null) return;
+              const newContent = window.prompt('Sửa nội dung', target?.content || '');
+              if (newContent==null) return;
+              try {
+                await AnnouncementService.update(id, { title: newTitle, content: newContent });
+                const res = await AnnouncementService.list() as any;
+                const list = Array.isArray(res?.items) ? res.items : [];
+                setAnnouncements(list.map(mapToAnnouncement));
+              } catch {}
+            }}
+            onDelete={async (id)=>{
+              const ok = window.confirm('Xóa thông báo này?');
+              if (!ok) return;
+              try {
+                await AnnouncementService.remove(id);
+                setAnnouncements(prev=> prev.filter(a=>a.id!==id));
+              } catch {}
+            }}
+          />
         </div>
       </div>
 

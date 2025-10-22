@@ -209,7 +209,7 @@ export function TeacherDashboard() {
     id: n._id || n.id,
     title: String(n.title || 'Thông báo'),
     content: String(n.content || ''),
-    author: String(n.authorName || n.author || 'Hệ thống'),
+    author: String(n.authorName || `${n?.author?.firstName || ''} ${n?.author?.lastName || ''}`.trim() || n.author || 'Hệ thống'),
     date: new Date(n.createdAt || Date.now()).toLocaleString('vi-VN'),
   });
 
@@ -240,6 +240,27 @@ export function TeacherDashboard() {
     }
   };
 
+  const handleUpdateAnnouncement = async (id: string, title: string, content: string) => {
+    try {
+      await AnnouncementService.update(id, { title, content });
+      const res = await AnnouncementService.list() as any; // { items }
+      const list = Array.isArray(res?.items) ? res.items : [];
+      setAnnouncements(list.map(mapToAnnouncement));
+    } catch (e) {
+      // TODO: show a toast
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    try {
+      await AnnouncementService.remove(id);
+      const res = await AnnouncementService.list() as any; // { items }
+      const list = Array.isArray(res?.items) ? res.items : [];
+      setAnnouncements(list.map(mapToAnnouncement));
+    } catch (e) {
+      // TODO: show a toast
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -311,7 +332,23 @@ export function TeacherDashboard() {
           </div>
         )}
         <div className="lg:col-span-3">
-          <AnnouncementSection announcements={announcements} />
+          <AnnouncementSection
+            announcements={announcements}
+            canManage
+            onEdit={async (id)=>{
+              const target = (announcements || []).find(a=>a.id===id);
+              const newTitle = window.prompt('Sửa tiêu đề', target?.title || '');
+              if (newTitle==null) return;
+              const newContent = window.prompt('Sửa nội dung', target?.content || '');
+              if (newContent==null) return;
+              await handleUpdateAnnouncement(id, newTitle, newContent);
+            }}
+            onDelete={async (id)=>{
+              const ok = window.confirm('Xóa thông báo này?');
+              if (!ok) return;
+              await handleDeleteAnnouncement(id);
+            }}
+          />
         </div>
       </div>
 

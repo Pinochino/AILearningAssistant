@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Pencil, Trash2 } from 'lucide-react';
 
 export type Announcement = {
     id: string;
@@ -13,7 +14,7 @@ export type Announcement = {
     date: string;
 };
 
-export function AnnouncementSection({ announcements }: { announcements: Announcement[] }) {
+export function AnnouncementSection({ announcements, canManage = false, onEdit, onDelete }: { announcements: Announcement[]; canManage?: boolean; onEdit?: (id: string)=>void; onDelete?: (id: string)=>void; }) {
     const [open, setOpen] = useState(false);
     const limited = announcements.slice(0, 3);
 
@@ -37,7 +38,19 @@ export function AnnouncementSection({ announcements }: { announcements: Announce
                                         <p className="text-sm text-muted-foreground">{a.content}</p>
                                         <div className="flex justify-between items-center mt-1 text-xs text-muted-foreground">
                                             <span>{a.date}</span>
-                                            <Badge variant="outline">{a.author}</Badge>
+                                            <div className="flex items-center gap-2">
+                                              <Badge variant="outline">{a.author}</Badge>
+                                              {canManage && (
+                                                <>
+                                                  <Button size="icon" variant="ghost" onClick={()=> onEdit ? onEdit(a.id) : null}>
+                                                    <Pencil className="h-4 w-4" />
+                                                  </Button>
+                                                  <Button size="icon" variant="ghost" onClick={()=> onDelete ? onDelete(a.id) : null}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                  </Button>
+                                                </>
+                                              )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -58,8 +71,18 @@ export function AnnouncementSection({ announcements }: { announcements: Announce
                                     <p className="text-sm text-muted-foreground mt-1">{a.content}</p>
                                     <div className="text-xs text-muted-foreground mt-2">{a.date}</div>
                                 </div>
-                                <div className="shrink-0">
+                                <div className="shrink-0 flex items-center gap-1">
                                     <Badge variant="outline" className="text-xs">{a.author}</Badge>
+                                    {canManage && (
+                                      <>
+                                        <Button size="icon" variant="ghost" onClick={()=> onEdit ? onEdit(a.id) : null}>
+                                          <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="icon" variant="ghost" onClick={()=> onDelete ? onDelete(a.id) : null}>
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </>
+                                    )}
                                 </div>
                             </div>
                         </div>
