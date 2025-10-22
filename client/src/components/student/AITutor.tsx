@@ -73,9 +73,15 @@ export function AITutor() {
   const [renameValue, setRenameValue] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef(new Map<string, HTMLDivElement | null>());
+  // Only allow auto-scroll after a user action to avoid jumping on initial load
+  const allowAutoScroll = useRef(false);
+  const didInitialPosition = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
+    if (!allowAutoScroll.current) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -92,6 +98,8 @@ export function AITutor() {
       subject: selectedSubject !== 'all' ? selectedSubject : undefined,
     };
 
+    // user-initiated action: enable auto-scroll from now on
+    allowAutoScroll.current = true;
     setMessages(prev => [...prev, optimistic]);
     setInputValue('');
     setIsTyping(true);
@@ -191,8 +199,28 @@ export function AITutor() {
     return () => { mounted = false; };
   }, []);
 
-  // Auto-scroll when messages change
+  // Positioning after messages update
   useEffect(() => {
+    // First time: scroll to the last AI message only
+    if (!didInitialPosition.current) {
+      if (messages.length === 0) return;
+      const lastAi = [...messages].reverse().find((m) => m.type === 'ai');
+      if (lastAi) {
+        const container = messagesContainerRef.current;
+        const target = messageRefs.current.get(lastAi.id || '');
+        if (container && target) {
+          const top = target.offsetTop - container.offsetTop;
+          container.scrollTo({ top, behavior: 'auto' });
+        } else {
+          // fallback
+          target?.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+        }
+      }
+      didInitialPosition.current = true;
+      return;
+    }
+    // Subsequent updates: only auto-scroll after explicit user action
+    if (!allowAutoScroll.current) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -289,10 +317,11 @@ export function AITutor() {
             </CardHeader>
 
             {/* Messages */}
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+            <CardContent ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
+                  ref={(el) => { messageRefs.current.set(message.id, el); }}
                   className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {message.type === 'ai' && (

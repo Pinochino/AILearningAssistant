@@ -37,6 +37,7 @@ import { useAuth } from '../../hooks/useAuth';
 export function Messages() {
   const { user } = useAuth();
   const meId = (user as any)?.id || (user as any)?._id;
+  const meEmail = String((user as any)?.email || '').toLowerCase();
   const toText = (v: any) => {
     if (v == null) return '';
     if (typeof v === 'string') return v;
@@ -71,16 +72,16 @@ export function Messages() {
   // new: direct compose state
   const [isDirectOpen, setIsDirectOpen] = useState(false);
   const [userQuery, setUserQuery] = useState('');
-  const [userBase, setUserBase] = useState([]);
-  const [userResults, setUserResults] = useState([]);
+  const [userBase, setUserBase] = useState<any[]>([]);
+  const [userResults, setUserResults] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState(null as any);
   // new: group compose state
   const [isGroupOpen, setIsGroupOpen] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupQuery, setGroupQuery] = useState('');
-  const [groupBase, setGroupBase] = useState([]);
-  const [groupResults, setGroupResults] = useState([]);
-  const [groupSelected, setGroupSelected] = useState([]);
+  const [groupBase, setGroupBase] = useState<any[]>([]);
+  const [groupResults, setGroupResults] = useState<any[]>([]);
+  const [groupSelected, setGroupSelected] = useState<any[]>([]);
 
   // Load conversations
   useEffect(() => {
@@ -107,10 +108,12 @@ export function Messages() {
       try {
         const res = await UsersService.search({ limit: 50 }) as any;
         const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
-        if (active) {
-          setUserBase(list);
-          setUserResults(list);
-        }
+        const filteredOutMe = (list || []).filter((u:any)=> {
+          const uid = String(u._id||u.id||'');
+          const email = String(u.email||'').toLowerCase();
+          return uid !== String(meId) && (!!meEmail ? email !== meEmail : true);
+        });
+        if (active) { setUserBase(filteredOutMe); setUserResults(filteredOutMe); }
       } catch { if (active) { setUserBase([]); setUserResults([]);} }
     })();
     return () => { active = false; };
@@ -123,6 +126,7 @@ export function Messages() {
       const id = String(u._id||u.id||'').toLowerCase();
       const email = String(u.email||'').toLowerCase();
       const name = `${u.firstName||u.name||''} ${u.lastName||''}`.toLowerCase();
+      if (String(u._id||u.id) === String(meId) || (!!meEmail && email === meEmail)) return false;
       return !q || id.includes(q) || email.includes(q) || name.includes(q);
     });
     setUserResults(filtered);
@@ -137,7 +141,12 @@ export function Messages() {
       try {
         const res = await UsersService.search({ limit: 50 }) as any;
         const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
-        if (active) { setGroupBase(list); setGroupResults(list);} 
+        const filteredOutMe = (list || []).filter((u:any)=> {
+          const uid = String(u._id||u.id||'');
+          const email = String(u.email||'').toLowerCase();
+          return uid !== String(meId) && (!!meEmail ? email !== meEmail : true);
+        });
+        if (active) { setGroupBase(filteredOutMe); setGroupResults(filteredOutMe);} 
       } catch { if (active) { setGroupBase([]); setGroupResults([]);} }
     })();
     return () => { active = false; };
@@ -150,6 +159,7 @@ export function Messages() {
       const id = String(u._id||u.id||'').toLowerCase();
       const email = String(u.email||'').toLowerCase();
       const name = `${u.firstName||u.name||''} ${u.lastName||''}`.toLowerCase();
+      if (String(u._id||u.id) === String(meId) || (!!meEmail && email === meEmail)) return false;
       return !q || id.includes(q) || email.includes(q) || name.includes(q);
     });
     setGroupResults(filtered);
