@@ -9,12 +9,8 @@ const userService = {
       search
         ? {
           $or: [
-            {
-              username: search
-            },
-            {
-              email: search
-            }
+            { username: search },
+            { name: search }
           ]
         }
         : {}
@@ -24,7 +20,7 @@ const userService = {
       .skip(skip ? skip : 0)
       .populate('roles', 'name')
       .lean<UserInterface[]>()
-      .select('username email createdAt isActive lastLogin')
+      .select('name username createdAt isActive lastLogin')
       .exec()
     return users
   },

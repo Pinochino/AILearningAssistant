@@ -6,13 +6,13 @@ const Announcement: any = mongoose.model('Announcement');
 export const listAnnouncements = async (req: Request, res: Response) => {
   try {
     const items = await Announcement.find({})
-      .populate('author', 'firstName lastName email')
+      .populate('author', 'name username')
       .sort({ pinned: -1, createdAt: -1 })
       .limit(200);
     const data = items.map((doc: any) => {
       const obj = doc.toObject();
       const a = obj.author as any;
-      const authorName = a?.firstName ? `${a.firstName} ${a.lastName || ''}`.trim() : undefined;
+      const authorName = a?.name ? String(a.name).trim() : undefined;
       return { ...obj, authorName };
     });
     res.json({ items: data });
@@ -23,11 +23,11 @@ export const listAnnouncements = async (req: Request, res: Response) => {
 
 export const getAnnouncement = async (req: Request, res: Response) => {
   try {
-    const item = await Announcement.findById(req.params.id).populate('author', 'firstName lastName email');
+    const item = await Announcement.findById(req.params.id).populate('author', 'name username');
     if (!item) return res.status(404).json({ error: 'Not found' });
     const obj: any = item.toObject();
     const a: any = obj.author;
-    const authorName = a?.firstName ? `${a.firstName} ${a.lastName || ''}`.trim() : undefined;
+    const authorName = a?.name ? String(a.name).trim() : undefined;
     res.json({ ...obj, authorName });
   } catch (e: any) {
     res.status(500).json({ error: 'Failed to get announcement', details: e?.message });
@@ -40,10 +40,10 @@ export const createAnnouncement = async (req: Request, res: Response) => {
     if (!title || !content) return res.status(400).json({ error: 'Missing title/content' });
     const author = (req as any).user?.id; // set by auth middleware
     const item = await Announcement.create({ title, content, scope, classId, author, pinned, startsAt, endsAt });
-    const populated = await Announcement.findById(item._id).populate('author', 'firstName lastName email');
+    const populated = await Announcement.findById(item._id).populate('author', 'name username');
     const obj: any = populated?.toObject() || item.toObject();
     const a: any = obj.author;
-    const authorName = a?.firstName ? `${a.firstName} ${a.lastName || ''}`.trim() : undefined;
+    const authorName = a?.name ? String(a.name).trim() : undefined;
     res.status(201).json({ ...obj, authorName });
   } catch (e: any) {
     res.status(500).json({ error: 'Failed to create announcement', details: e?.message });

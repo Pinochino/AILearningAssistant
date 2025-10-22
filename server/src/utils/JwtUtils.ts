@@ -26,6 +26,7 @@ const generateAccessToken = (user: any) => {
 
   const authPayload: JwtPayloadInterface = {
     id: user._id,
+    name: user.name ? user.name : '',
     username: user.username ? user.username : '',
     email: user.email ? user.email : '',
     roles
@@ -53,6 +54,7 @@ const createLoginResponse = async (user: any) => {
   if (roleList.length === 0) roleList.push('student')
 
   const payload = {
+    name: user.name,
     username: user.username,
     email: user.email,
     avatar: user.avatar,

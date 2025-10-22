@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { BookOpen, Brain, ShieldUser } from 'lucide-react';
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
@@ -17,19 +17,19 @@ export function LoginForm() {
     e.preventDefault();
     setError('');
 
-    const success = await login(email, password);
+    const success = await login(username, password);
     if (!success) {
-      setError('Email hoặc mật khẩu không đúng');
+      setError('Tên đăng nhập hoặc mật khẩu không đúng');
     }
   };
 
   const quickLogin = (role: string) => {
     if (role === 'admin') {
-      setEmail('admin@atiui.com');
+      setUsername('admin');
     } else if (role === 'teacher') {
-      setEmail('teacher1@atiui.com');
+      setUsername('teacher1');
     } else {
-      setEmail('student1@atiui.com');
+      setUsername('student1');
     }
     setPassword('password123');
   };
@@ -58,13 +58,12 @@ export function LoginForm() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Tên đăng nhập</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  placeholder="admin, teacher1, student1..."
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>

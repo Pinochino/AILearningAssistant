@@ -34,11 +34,23 @@ export async function runSeed() {
     Role.findOne({ name: RoleName.SUPER_ADMIN })
   ])
 
-  // Helper to upsert user with roles[] and username
-  async function upsertUser(email: string, username: string, password: string, roleIds: any[]) {
-    const doc = await User.findOne({ email })
+  // Ensure email index allows multiple nulls by making it sparse unique
+  try {
+    const indexes = await (User as any).collection.indexes();
+    const hasEmailIndex = Array.isArray(indexes) && indexes.find((ix: any) => ix.name === 'email_1');
+    if (hasEmailIndex) {
+      try { await (User as any).collection.dropIndex('email_1'); } catch {}
+    }
+    await (User as any).collection.createIndex({ email: 1 }, { unique: true, sparse: true, name: 'email_1' });
+  } catch {}
+
+  // Helper to upsert user with roles[] by username
+  async function upsertUser(name: string, username: string, password: string, roleIds: any[], email?: string) {
+    const doc = await User.findOne({ username })
     if (!doc) {
-      await User.create({ username, email, password, roles: roleIds })
+      const payload: any = { name, username, password, roles: roleIds }
+      if (email) payload.email = email
+      await User.create(payload)
       return
     }
     // Ensure roles assigned (merge)
@@ -50,19 +62,19 @@ export async function runSeed() {
   }
 
   const password = 'password123'
-  await upsertUser('admin@atiui.com', 'admin', password, [SUPER_ADMIN?._id || ADMIN?._id].filter(Boolean) as any)
-  await upsertUser('teacher1@atiui.com', 'teacher1', password, [TEACHER?._id].filter(Boolean) as any)
-  await upsertUser('teacher2@atiui.com', 'teacher2', password, [TEACHER?._id].filter(Boolean) as any)
-  await upsertUser('student1@atiui.com', 'student1', password, [STUDENT?._id].filter(Boolean) as any)
-  await upsertUser('student2@atiui.com', 'student2', password, [STUDENT?._id].filter(Boolean) as any)
+  await upsertUser('Quản trị hệ thống', 'admin', password, [SUPER_ADMIN?._id || ADMIN?._id].filter(Boolean) as any)
+  await upsertUser('Nguyễn Văn A', 'teacher1', password, [TEACHER?._id].filter(Boolean) as any)
+  await upsertUser('Trần Thị B', 'teacher2', password, [TEACHER?._id].filter(Boolean) as any)
+  await upsertUser('Lê Văn C', 'student1', password, [STUDENT?._id].filter(Boolean) as any)
+  await upsertUser('Phạm Thị D', 'student2', password, [STUDENT?._id].filter(Boolean) as any)
 
   // Fetch created users
   const [admin, teacher1, teacher2, student1, student2] = await Promise.all([
-    User.findOne({ email: 'admin@atiui.com' }),
-    User.findOne({ email: 'teacher1@atiui.com' }),
-    User.findOne({ email: 'teacher2@atiui.com' }),
-    User.findOne({ email: 'student1@atiui.com' }),
-    User.findOne({ email: 'student2@atiui.com' }),
+    User.findOne({ username: 'admin' }),
+    User.findOne({ username: 'teacher1' }),
+    User.findOne({ username: 'teacher2' }),
+    User.findOne({ username: 'student1' }),
+    User.findOne({ username: 'student2' }),
   ])
 
   // Clean sample collections (keep users/roles)

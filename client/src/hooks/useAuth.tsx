@@ -59,8 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (payload?.id) {
         const inferred: User = {
           id: payload.id,
-          name: payload.username || payload.email || 'User',
-          email: payload.email || 'unknown@local',
+          name: (payload as any).name || payload.username || 'User',
+          email: (payload as any).email || '',
           role: toRole((payload as any).roles ?? (payload as any).role),
           createdAt: new Date(),
         };
@@ -77,13 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     try {
       const resp = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!resp.ok) return false;
@@ -98,8 +98,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const nextUser: User = {
         id: profile.id || profile._id || 'me',
-        name: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.username || profile.email || 'User',
-        email: profile.email || email,
+        name: profile.name || profile.username || 'User',
+        email: profile.email || '',
         role: toRole(profile.role ?? profile.roles),
         createdAt: new Date(),
       };

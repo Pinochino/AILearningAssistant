@@ -76,8 +76,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
 
             <div className='space-y-1'>
               <div className='flex items-center gap-2'>
-                <h3 className='font-medium'>{user?.name || user?.username || user?.email || 'Người dùng'}</h3>
-                {user?.username && <h2>{user.username}</h2>}
+                <h3 className='font-medium'>{user?.name || user?.username || 'Người dùng'}</h3>
                 <Badge variant={getRoleBadgeVariant(user?.roles?.[0]?.name || 'user')}>
                   {getRoleLabel(user?.roles?.[0]?.name || 'user')}
                 </Badge>
@@ -85,7 +84,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
                   {user?.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
                 </Badge>
               </div>
-              {user?.email && <p className='text-sm text-muted-foreground'>{user.email}</p>}
+              <p className='text-sm text-muted-foreground'>@{user?.username || ''}</p>
               <div className='flex items-center gap-4 text-xs text-muted-foreground'>
                 <span>Tham gia: {new Date(user?.createdAt || Date.now()).toLocaleDateString('vi-VN')}</span>
                 <span>•</span>
@@ -367,7 +366,7 @@ export function UserManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Tìm kiếm theo tên hoặc email..."
+                  placeholder="Tìm kiếm theo tên hoặc username..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"

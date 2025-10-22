@@ -10,9 +10,9 @@ import { ForgotPassword } from '~/models/ForgotPassword'
 import { Types } from 'mongoose'
 
 const authService = {
-  authenticate: async ({ email, password }: LoginType) => {
+  authenticate: async ({ username, password }: LoginType) => {
     try {
-      const user = await User.findOne({ email }).populate('roles', 'name')
+      const user = await User.findOne({ username }).populate('roles', 'name')
 
       if (!user) {
         throw new Error('Invalid credentials')
@@ -30,9 +30,9 @@ const authService = {
     }
   },
 
-  createUser: async ({ email, username, password, roles }: RegisterType) => {
+  createUser: async ({ name, username, password, roles, email }: RegisterType) => {
     try {
-      let user = await User.findOne({ email })
+      let user = email ? await User.findOne({ email }) : await User.findOne({ username })
 
       if (user) {
         throw new Error('User already have been existed')
@@ -50,7 +50,7 @@ const authService = {
 
       console.log(`newRoles: `, newRoles)
 
-      user = await User.create({ username, email, password, roles: newRoles })
+      user = await User.create({ name, username, email, password, roles: newRoles })
 
       // await emailService.sendEmail({
       //   from: 'Tranhunghp22112004@gmail.com',

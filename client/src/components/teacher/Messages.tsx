@@ -118,11 +118,7 @@ export function Messages() {
       try {
         const res = await UsersService.search({ limit: 50 }) as any;
         const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
-        const filteredOutMe = (list || []).filter((u:any)=> {
-          const uid = String(u._id||u.id||'');
-          const email = String(u.email||'').toLowerCase();
-          return uid !== String(meId) && (!!meEmail ? email !== meEmail : true);
-        });
+        const filteredOutMe = (list || []).filter((u:any)=> String(u._id||u.id||'') !== String(meId));
         if (active) { setUserBase(filteredOutMe); setUserResults(filteredOutMe); }
       } catch { if (active) { setUserBase([]); setUserResults([]);} }
     })();
@@ -134,10 +130,10 @@ export function Messages() {
     const q = userQuery.toLowerCase();
     const filtered = userBase.filter((u:any)=>{
       const id = String(u._id||u.id||'').toLowerCase();
-      const email = String(u.email||'').toLowerCase();
-      const name = `${u.firstName||u.name||''} ${u.lastName||''}`.toLowerCase();
-      if (String(u._id||u.id) === String(meId) || (!!meEmail && email === meEmail)) return false;
-      return !q || id.includes(q) || email.includes(q) || name.includes(q);
+      const uname = String(u.username||'').toLowerCase();
+      const name = String(u.name || `${u.firstName||''} ${u.lastName||''}`).toLowerCase();
+      if (String(u._id||u.id) === String(meId)) return false;
+      return !q || id.includes(q) || uname.includes(q) || name.includes(q);
     });
     setUserResults(filtered);
     if (!selectedUser && filtered.length>0) setSelectedUser(filtered[0]);
@@ -151,11 +147,7 @@ export function Messages() {
       try {
         const res = await UsersService.search({ limit: 50 }) as any;
         const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
-        const filteredOutMe = (list || []).filter((u:any)=> {
-          const uid = String(u._id||u.id||'');
-          const email = String(u.email||'').toLowerCase();
-          return uid !== String(meId) && (!!meEmail ? email !== meEmail : true);
-        });
+        const filteredOutMe = (list || []).filter((u:any)=> String(u._id||u.id||'') !== String(meId));
         if (active) { setGroupBase(filteredOutMe); setGroupResults(filteredOutMe);} 
       } catch { if (active) { setGroupBase([]); setGroupResults([]);} }
     })();
@@ -167,10 +159,10 @@ export function Messages() {
     const q = groupQuery.toLowerCase();
     const filtered = groupBase.filter((u:any)=>{
       const id = String(u._id||u.id||'').toLowerCase();
-      const email = String(u.email||'').toLowerCase();
-      const name = `${u.firstName||u.name||''} ${u.lastName||''}`.toLowerCase();
-      if (String(u._id||u.id) === String(meId) || (!!meEmail && email === meEmail)) return false;
-      return !q || id.includes(q) || email.includes(q) || name.includes(q);
+      const uname = String(u.username||'').toLowerCase();
+      const name = String(u.name || `${u.firstName||''} ${u.lastName||''}`).toLowerCase();
+      if (String(u._id||u.id) === String(meId)) return false;
+      return !q || id.includes(q) || uname.includes(q) || name.includes(q);
     });
     setGroupResults(filtered);
   }, [groupQuery, groupBase]);
@@ -294,16 +286,16 @@ export function Messages() {
               <DialogDescription>Chọn 1 người để bắt đầu/tiếp tục trò chuyện</DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
-              <Label>Tìm người nhận (mã số, email hoặc tên)</Label>
-              <Input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="VD: 201234, email@school.edu, Nguyễn A" />
+              <Label>Tìm người nhận</Label>
+              <Input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Tên đăng nhập / Tên" />
               <div className="max-h-64 overflow-y-auto border rounded">
                 {userResults.length===0 && (
                   <div className="p-3 text-sm text-muted-foreground">Không có kết quả</div>
                 )}
                 {userResults.map((u) => (
                   <div key={u._id || u.id} className={`p-2 cursor-pointer hover:bg-muted ${selectedUser && (selectedUser._id||selectedUser.id)===(u._id||u.id)?'bg-muted':''}`} onClick={() => setSelectedUser(u)}>
-                    <div className="text-sm font-medium">{u.firstName || u.name} {u.lastName || ''}</div>
-                    <div className="text-xs text-muted-foreground">{u.email || ''}</div>
+                    <div className="text-sm font-medium">{u.name || `${u.firstName||''} ${u.lastName||''}`}</div>
+                    <div className="text-xs text-muted-foreground">@{u.username || ''}</div>
                   </div>
                 ))}
               </div>
@@ -349,7 +341,7 @@ export function Messages() {
               <Label>Tên nhóm</Label>
               <Input value={groupName} onChange={(e)=>setGroupName(e.target.value)} placeholder="VD: Nhóm lớp 12A1" />
               <Label>Thêm thành viên</Label>
-              <Input value={groupQuery} onChange={(e)=>setGroupQuery(e.target.value)} placeholder="Tìm theo mã số, email hoặc tên" />
+              <Input value={groupQuery} onChange={(e)=>setGroupQuery(e.target.value)} placeholder="Tên đăng nhập / Tên" />
               <div className="grid grid-cols-2 gap-3">
                 <div className="border rounded max-h-64 overflow-y-auto">
                   {groupResults.length===0 && (
@@ -360,8 +352,8 @@ export function Messages() {
                       const id = u._id||u.id;
                       setGroupSelected((prev)=> prev.find((x:any)=> (x._id||x.id)===id)? prev : [...prev, u]);
                     }}>
-                      <div className="text-sm font-medium">{u.firstName || u.name} {u.lastName || ''}</div>
-                      <div className="text-xs text-muted-foreground">{u.email || ''}</div>
+                      <div className="text-sm font-medium">{u.name || `${u.firstName||''} ${u.lastName||''}`}</div>
+                      <div className="text-xs text-muted-foreground">@{u.username || ''}</div>
                     </div>
                   ))}
                 </div>
@@ -369,8 +361,8 @@ export function Messages() {
                   {groupSelected.map((u)=>(
                     <div key={u._id||u.id} className="p-2 flex items-center justify-between">
                       <div>
-                        <div className="text-sm font-medium">{u.firstName || u.name} {u.lastName || ''}</div>
-                        <div className="text-xs text-muted-foreground">{u.email || ''}</div>
+                        <div className="text-sm font-medium">{u.name || `${u.firstName||''} ${u.lastName||''}`}</div>
+                        <div className="text-xs text-muted-foreground">@{u.username || ''}</div>
                       </div>
                       <Button size="sm" variant="ghost" onClick={()=>setGroupSelected((prev)=> prev.filter((x:any)=> (x._id||x.id)!==(u._id||u.id)))}>Gỡ</Button>
                     </div>
@@ -478,7 +470,7 @@ export function Messages() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Tin nhắn</CardTitle>
+                  <CardTitle className="text-lg">{getConversationName(currentConversation)}</CardTitle>
                   {(() => { const isGroup = !!(currentConversation?.isGroup || currentConversation?.conversationType==='group');
                     if (!isGroup) {
                       return (
