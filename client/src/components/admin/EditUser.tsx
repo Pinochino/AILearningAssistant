@@ -191,17 +191,17 @@ export function EditUser() {
 
   const handleEditUser = () => {
     updateUser()
-    // setFormData({
-    //   username: '',
-    //   email: '',
-    //   removeRoleId: '',
-    //   addRoleId: '',
-    //   status: '',
-    //   phone: '',
-    //   address: '',
-    //   bio: '',
-    //   studentId: ''
-    // })
+    setFormData({
+      username: '',
+      email: '',
+      removeRoleId: '',
+      addRoleId: '',
+      status: '',
+      phone: '',
+      address: '',
+      bio: '',
+      studentId: ''
+    })  
   }
 
   const handleToggleStatus = async () => {
