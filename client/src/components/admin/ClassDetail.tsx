@@ -77,21 +77,23 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col p-6 gap-0" style={{
-        '--scrollbar-width': '16px',
-        '--scrollbar-track-color': '#f1f5f9',
-        '--scrollbar-thumb-color': '#9ca3af',
-        '--scrollbar-thumb-hover-color': '#6b7280'
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden" style={{
+        '--scrollbar-width': '8px',
+        '--scrollbar-track-color': '#f8fafc',
+        '--scrollbar-thumb-color': '#cbd5e1',
+        '--scrollbar-thumb-hover-color': '#94a3b8'
       } as React.CSSProperties}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Chi tiết lớp học
-          </DialogTitle>
-          <DialogDescription>
-            Thông tin chi tiết về lớp học bao gồm giáo viên, học sinh và lịch học
-          </DialogDescription>
-        </DialogHeader>
+        <div className="p-6 pb-0">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              {classData?.name || 'Chi tiết lớp học'}
+            </DialogTitle>
+            <DialogDescription>
+              {classData?.subject || 'Thông tin chi tiết về lớp học'}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
@@ -105,7 +107,7 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
             </CardContent>
           </Card>
         ) : classData ? (
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6">
             <ScrollArea className="h-full pr-4">
               <div className="space-y-6 pb-6">
                 {/* Basic Info */}
@@ -268,10 +270,12 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
           </div>
         ) : null}
 
-        <div className="flex justify-end pt-4">
-          <Button variant="outline" onClick={onClose}>
-            Đóng
-          </Button>
+        <div className="border-t p-4 bg-gray-50">
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={onClose}>
+              Đóng
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

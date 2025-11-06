@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { toast } from 'sonner';
 import {
   CheckCircle,
   XCircle,
@@ -90,34 +91,64 @@ export function EnrollmentApproval() {
   };
 
   const handleApprove = async (enrollmentId: string) => {
-    if (!confirm('Bạn có chắc muốn duyệt yêu cầu này?')) return;
-
-    try {
-      setProcessing(true);
-      await enrollmentApi.approve(enrollmentId);
-      
-      // Reload data
-      if (selectedClass) {
-        await loadPendingEnrollments(selectedClass._id);
-        await loadMyClasses();
-      }
-      
-      alert('Đã duyệt yêu cầu thành công!');
-    } catch (err: any) {
-      alert('Lỗi: ' + (err.message || 'Không thể duyệt yêu cầu'));
-    } finally {
-      setProcessing(false);
-    }
+    toast('Bạn có chắc muốn duyệt yêu cầu này?', {
+      action: {
+        label: 'Xác nhận',
+        onClick: async () => {
+          const toastId = toast.loading('Đang xử lý...');
+          try {
+            setProcessing(true);
+            await enrollmentApi.approve(enrollmentId);
+            
+            // Reload data
+            if (selectedClass) {
+              await loadPendingEnrollments(selectedClass._id);
+              await loadMyClasses();
+            }
+            
+            toast.success('Đã duyệt yêu cầu thành công!', { id: toastId });
+          } catch (err: any) {
+            toast.error(`Lỗi: ${err.message || 'Không thể duyệt yêu cầu'}`, { id: toastId });
+          } finally {
+            setProcessing(false);
+          }
+        },
+      },
+      cancel: {
+        label: 'Hủy',
+        onClick: () => {}
+      },
+      duration: 10000
+    });
   };
 
   const handleReject = (enrollment: ClassEnrollment) => {
-    setSelectedEnrollment(enrollment);
-    setIsRejectDialogOpen(true);
+    toast('Bạn có chắc muốn từ chối yêu cầu này?', {
+      description: 'Vui lòng nhập lý do từ chối bên dưới',
+      action: {
+        label: 'Tiếp tục',
+        onClick: () => {
+          setSelectedEnrollment(enrollment);
+          setIsRejectDialogOpen(true);
+        }
+      },
+      cancel: {
+        label: 'Hủy',
+        onClick: () => {}
+      },
+      duration: 10000
+    });
   };
 
   const handleSubmitReject = async () => {
     if (!selectedEnrollment) return;
 
+    if (!rejectReason.trim()) {
+      toast.error('Vui lòng nhập lý do từ chối');
+      return;
+    }
+
+    const toastId = toast.loading('Đang xử lý...');
     try {
       setProcessing(true);
       await enrollmentApi.reject(selectedEnrollment._id, rejectReason);
@@ -130,9 +161,9 @@ export function EnrollmentApproval() {
       setIsRejectDialogOpen(false);
       setRejectReason('');
       setSelectedEnrollment(null);
-      alert('Đã từ chối yêu cầu!');
+      toast.success('Đã từ chối yêu cầu!', { id: toastId });
     } catch (err: any) {
-      alert('Lỗi: ' + (err.message || 'Không thể từ chối yêu cầu'));
+      toast.error(`Lỗi: ${err.message || 'Không thể từ chối yêu cầu'}`, { id: toastId });
     } finally {
       setProcessing(false);
     }

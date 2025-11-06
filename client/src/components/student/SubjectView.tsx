@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { StudentQuizFlashcard } from './StudentQuizFlashcard';
@@ -235,47 +236,61 @@ export function SubjectView() {
           return;
         }
 
-        console.log('🔄 Fetching enrollments for student:', userId);
+        console.log('🔄 Fetching approved enrollments for student:', userId);
+        // Only get approved enrollments
         const response = await enrollmentApi.getStudentEnrollments(userId, 'approved');
-        const enrollments = response.data;
+        const approvedEnrollments = response.data || [];
         
-        console.log('📚 Student enrollments:', enrollments);
-        console.log('📊 Enrollment count:', enrollments?.length || 0);
+        console.log('📚 Approved enrollments:', approvedEnrollments);
+        console.log('📊 Approved enrollment count:', approvedEnrollments.length);
 
-        // Load full class details
-        const classPromises = enrollments.map(async (enrollment: any) => {
+        // Load full class details for approved enrollments
+        const classPromises = approvedEnrollments.map(async (enrollment: any) => {
           try {
             const classId = typeof enrollment.classId === 'object' ? enrollment.classId._id : enrollment.classId;
+            // Get class details which includes the student list
             const classResponse = await classApi.getById(classId);
-            return classResponse.data;
+            const classData = classResponse.data;
+            
+            // Check if the current user is in the studentIds array
+            const isMember = Array.isArray(classData.studentIds) && 
+              classData.studentIds.some((id: any) => 
+                (id?._id === userId || id === userId)
+              );
+            
+            return isMember ? {
+              ...classData,
+              enrollmentStatus: 'approved'
+            } : null;
           } catch (e) {
             console.error('Failed to load class:', e);
             return null;
           }
         });
 
-        const classes = (await Promise.all(classPromises)).filter(Boolean) as Class[];
+        const classes = (await Promise.all(classPromises)).filter(Boolean) as Array<Class & { enrollmentStatus: string }>;
         
         console.log('📖 Loaded classes:', classes);
 
-        // Map classes to mockSubjects format
+        // Map classes to subjects format
         if (classes.length > 0) {
           const mappedSubjects = classes.map((cls, index) => ({
             id: cls._id,
             name: cls.name,
-            description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''}`,
+            description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''} (${getStatusText()})`,
             teacher: 'Giáo viên',
             progress: 0,
             totalLessons: 0,
             completedLessons: 0,
             upcomingDeadline: new Date().toISOString().split('T')[0],
+            status: cls.enrollmentStatus
           }));
           setSubjects(mappedSubjects);
           setCurrentSubjectId(mappedSubjects[0].id);
           setHasClasses(true);
           console.log('✅ Subjects set:', mappedSubjects);
         } else {
-          console.log('⚠️ No approved classes found');
+          console.log('⚠️ No classes found');
           setSubjects([]);
           setHasClasses(false);
         }
@@ -353,6 +368,9 @@ export function SubjectView() {
     return mockDocuments.filter(doc => doc.chapter === chapterId);
   };
 
+  // No need for status text since we only show approved classes now
+  const getStatusText = () => 'Đã tham gia';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -370,12 +388,18 @@ export function SubjectView() {
               <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-2xl font-bold mb-2">Chưa có lớp học nào</h2>
               <p className="text-muted-foreground mb-6">
-                Bạn chưa đăng ký hoặc chưa được duyệt tham gia lớp học nào.
+                Bạn chưa được duyệt tham gia lớp học nào hoặc chưa đăng ký lớp học nào.
               </p>
-              <Button onClick={() => navigateTo('subject-search')}>
-                <BookOpen className="h-4 w-4 mr-2" />
-                Tìm kiếm lớp học
-              </Button>
+              <div className="space-x-4">
+                <Button onClick={() => navigateTo('subject-search')}>
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Tìm kiếm lớp học
+                </Button>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Tải lại trang
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
