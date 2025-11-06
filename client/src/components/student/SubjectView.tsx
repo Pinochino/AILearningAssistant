@@ -236,39 +236,39 @@ export function SubjectView() {
           return;
         }
 
-        console.log('🔄 Fetching approved enrollments for student:', userId);
-        // Only get approved enrollments
-        const response = await enrollmentApi.getStudentEnrollments(userId, 'approved');
-        const approvedEnrollments = response.data || [];
+        console.log('🔄 Fetching all classes for student:', userId);
         
-        console.log('📚 Approved enrollments:', approvedEnrollments);
-        console.log('📊 Approved enrollment count:', approvedEnrollments.length);
-
-        // Load full class details for approved enrollments
-        const classPromises = approvedEnrollments.map(async (enrollment: any) => {
-          try {
-            const classId = typeof enrollment.classId === 'object' ? enrollment.classId._id : enrollment.classId;
-            // Get class details which includes the student list
-            const classResponse = await classApi.getById(classId);
-            const classData = classResponse.data;
-            
-            // Check if the current user is in the studentIds array
-            const isMember = Array.isArray(classData.studentIds) && 
-              classData.studentIds.some((id: any) => 
-                (id?._id === userId || id === userId)
-              );
-            
-            return isMember ? {
-              ...classData,
-              enrollmentStatus: 'approved'
-            } : null;
-          } catch (e) {
-            console.error('Failed to load class:', e);
-            return null;
-          }
+        // Get all classes where student is a member (from studentIds array)
+        const allClassesResponse = await classApi.getAll({});
+        const allClasses = allClassesResponse.data?.items || [];
+        
+        // Filter classes where student is in studentIds array
+        const memberClasses = allClasses.filter((cls: any) => {
+          return Array.isArray(cls.studentIds) && 
+            cls.studentIds.some((id: any) => 
+              (id?._id === userId || id === userId)
+            );
         });
 
-        const classes = (await Promise.all(classPromises)).filter(Boolean) as Array<Class & { enrollmentStatus: string }>;
+        console.log('📚 All member classes:', memberClasses);
+        console.log('📊 Total member classes count:', memberClasses.length);
+
+        // Get approved enrollments for reference
+        const enrollmentsResponse = await enrollmentApi.getStudentEnrollments(userId, 'approved');
+        const approvedEnrollments = enrollmentsResponse.data || [];
+        
+        // Create a map of classId to enrollment status
+        const enrollmentMap = new Map();
+        approvedEnrollments.forEach((enrollment: any) => {
+          const classId = typeof enrollment.classId === 'object' ? enrollment.classId._id : enrollment.classId;
+          enrollmentMap.set(classId, 'approved');
+        });
+
+        // Map classes with their enrollment status
+        const classes = memberClasses.map((cls: any) => ({
+          ...cls,
+          enrollmentStatus: enrollmentMap.has(cls._id) ? 'approved' : 'direct_add'
+        })) as Array<Class & { enrollmentStatus: string }>;
         
         console.log('📖 Loaded classes:', classes);
 
@@ -277,7 +277,7 @@ export function SubjectView() {
           const mappedSubjects = classes.map((cls, index) => ({
             id: cls._id,
             name: cls.name,
-            description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''} (${getStatusText()})`,
+            description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''} (${getStatusText(cls.enrollmentStatus)})`,
             teacher: 'Giáo viên',
             progress: 0,
             totalLessons: 0,
@@ -369,7 +369,9 @@ export function SubjectView() {
   };
 
   // No need for status text since we only show approved classes now
-  const getStatusText = () => 'Đã tham gia';
+  const getStatusText = (status?: string) => {
+    return status === 'approved' ? 'Đã được duyệt' : 'Đã tham gia';
+  };
 
   if (loading) {
     return (
