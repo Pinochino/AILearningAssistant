@@ -255,50 +255,74 @@ export class ClassesService {
   // Student requests to enroll in a class
   static async requestEnrollment(classId: string, studentId: string, message?: string): Promise<IClassEnrollment> {
     try {
-      // Check if class exists
-      const classDoc = await Class.findById(classId)
+      // Check if class exists and is active
+      const classDoc = await Class.findById(classId).select('+students');
       if (!classDoc) {
-        throw new Error("Class not found")
+        throw new Error("Lớp học không tồn tại");
+      }
+      if (!classDoc.isActive) {
+        throw new Error("Lớp học hiện không nhận đăng ký");
       }
 
-      // Check if student is already enrolled
-      if (classDoc.students?.includes(new mongoose.Types.ObjectId(studentId))) {
-        throw new Error("Student already enrolled in this class")
+      // Convert studentId to ObjectId for comparison
+      const studentObjectId = new mongoose.Types.ObjectId(studentId);
+      
+      // Check if student is already in the class's students array
+      const isStudentInClass = classDoc.students?.some(id => 
+        id && id.toString() === studentObjectId.toString()
+      );
+      
+      if (isStudentInClass) {
+        throw new Error("Bạn đã tham gia lớp học này");
       }
 
-      // Check if there's already a pending request
-      let existingRequest = await ClassEnrollment.findOne({
-        classId,
-        studentId,
-        status: 'pending'
-      })
+      // Check for existing enrollment requests
+      const existingEnrollment = await ClassEnrollment.findOne({
+        classId: classId,
+        studentId: studentObjectId
+      });
 
-      let savedRequest;
-      if (existingRequest) {
-        // Update existing request
-        existingRequest.message = message
-        existingRequest.requestedAt = new Date()
-        savedRequest = await existingRequest.save()
-      } else {
-        // Create new enrollment request
-        const enrollmentRequest = new ClassEnrollment({
-          classId,
-          studentId,
-          message,
-          status: 'pending'
-        })
-        savedRequest = await enrollmentRequest.save()
+      if (existingEnrollment) {
+        if (existingEnrollment.status === 'pending') {
+          throw new Error("Bạn đã có yêu cầu đăng ký đang chờ duyệt cho lớp học này");
+        } else if (existingEnrollment.status === 'approved') {
+          // This should not happen due to previous check, but just in case
+          throw new Error("Bạn đã được chấp nhận vào lớp học này");
+        } else if (existingEnrollment.status === 'rejected') {
+          // Allow re-requesting if previous request was rejected
+          existingEnrollment.status = 'pending';
+          existingEnrollment.message = message;
+          existingEnrollment.requestedAt = new Date();
+          existingEnrollment.reviewedAt = undefined;
+          existingEnrollment.reviewedBy = undefined;
+          const savedRequest = await existingEnrollment.save();
+          await savedRequest.populate([
+            { path: 'classId', select: 'name subject teacherId maxStudents students' },
+            { path: 'studentId', select: 'username email' }
+          ]);
+          return savedRequest;
+        }
       }
-      await savedRequest.populate([
-        { path: 'classId', select: 'name subject teacherId maxStudents students' },
-        { path: 'studentId', select: 'username email' }
-      ])
 
-      return savedRequest
-    } catch (error: any) {
-      throw new Error(`Failed to request enrollment: ${error.message}`)
-    }
+    // Create new enrollment request
+    const enrollmentRequest = new ClassEnrollment({
+      classId,
+      studentId,
+      message,
+      status: 'pending'
+    })
+    
+    const savedRequest = await enrollmentRequest.save()
+    await savedRequest.populate([
+      { path: 'classId', select: 'name subject teacherId maxStudents students' },
+      { path: 'studentId', select: 'username email' }
+    ])
+
+    return savedRequest
+  } catch (error: any) {
+    throw new Error(`Failed to request enrollment: ${error.message}`)
   }
+}
 
   // Get pending enrollment requests for a class (for teachers)
   static async getPendingEnrollments(classId: string): Promise<IClassEnrollment[]> {

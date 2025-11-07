@@ -115,13 +115,49 @@ export function SubjectSearch() {
     }
   };
 
-  const filteredClasses = availableClasses.filter(cls => {
-    const matchesSearch =
-      cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cls.subject.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesSearch;
-  });
+  // Get IDs of all classes that the student has enrolled in (any status)
+  const enrolledClassIds = myEnrollments.map(e => {
+    // Handle both string and object classId formats
+    const classId = typeof e.classId === 'object' ? (e.classId as any)?._id : e.classId;
+    return classId?.toString(); // Ensure we're comparing strings
+  }).filter(Boolean); // Remove any undefined/null values
+
+  console.log('Enrolled class IDs:', enrolledClassIds);
+  console.log('Available classes before filter:', availableClasses.map(c => c._id));
+
+  // Lọc ra các lớp mà sinh viên chưa tham gia (dựa vào studentIds và danh sách enrollment)
+const filteredClasses = availableClasses.filter((cls) => {
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) return false;
+
+  // 1️⃣ Nếu sinh viên đã nằm trong studentIds của lớp → loại bỏ
+  const isAlreadyInClass = Array.isArray(cls.studentIds)
+    ? cls.studentIds.some((id: any) => id?.toString() === currentUserId.toString())
+    : false;
+  if (isAlreadyInClass) {
+    console.log(`Bỏ qua lớp ${cls._id} - sinh viên đã nằm trong lớp`);
+    return false;
+  }
+
+  // 2️⃣ Nếu sinh viên có enrollment với lớp này (đang pending / approved / rejected) → loại bỏ
+  const isEnrolled = enrolledClassIds.includes(cls._id?.toString());
+  if (isEnrolled) {
+    console.log(`Bỏ qua lớp ${cls._id} - đã có bản ghi enrollment`);
+    return false;
+  }
+
+  // 3️⃣ Áp dụng bộ lọc tìm kiếm
+  const searchLower = searchTerm.toLowerCase();
+  const matchesSearch =
+    searchTerm === '' ||
+    cls.name?.toLowerCase().includes(searchLower) ||
+    cls.subject?.toLowerCase().includes(searchLower);
+
+  return matchesSearch;
+});
+
+
+  console.log('Filtered classes count:', filteredClasses.length);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
