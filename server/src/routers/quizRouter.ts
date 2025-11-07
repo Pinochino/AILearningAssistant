@@ -3,13 +3,21 @@ import * as qz from '../controllers/QuizController'
 
 const r = Router()
 
-r.post('/quizzes', qz.create)
-r.post('/quizzes/:id/questions/bulk', qz.addQuestionsBulk)
-r.get('/quizzes/class/:classId', qz.listByClass)
-r.get('/quizzes/:id', qz.getOne)
-r.patch('/quizzes/:id', qz.update)
-r.patch('/quizzes/:id/publish', qz.publish)
-r.delete('/quizzes/:id', qz.remove)
-r.patch('/quizzes/:id/restore', qz.restore)
+// ✅ CRUD operations
+r.post('/', qz.create)
+r.post('/:id/questions/bulk', qz.addQuestionsBulk)
+r.get('/class/:classId', qz.listByClass)
+r.get('/:id', qz.getOne)
+r.patch('/:id', qz.update)
+r.patch('/:id/publish', qz.publish)
+r.delete('/:id', qz.remove)
+r.patch('/:id/restore', qz.restore)
+
+// 🆕 Submit & History
+r.post('/:id/submit', qz.submitQuiz)
+r.get('/:id/attempts', qz.getQuizAttempts)
+r.get('/:id/statistics', qz.getQuizStats)
+r.get('/attempts/my-history', qz.getMyQuizHistory)
+r.get('/attempts/:attemptId', qz.getAttemptDetail)
 
 export default r

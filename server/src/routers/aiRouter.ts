@@ -6,23 +6,21 @@ import * as aiController from '../controllers/AiController'
 
 const aiRouter = Router()
 
-console.log('🤖 AI Router module loaded') // ✅ Thêm log
-
+console.log('🤖 AI Router module loaded')
 
 // 🧠 Generate Flashcards từ Materials bằng AI
 // Chỉ teacher của class hoặc admin mới được tạo
 aiRouter.post(
   '/generate-flashcards',
-  authenticationMiddleware,           // 1️⃣ Check đã login
-  authorizationMiddleware,            // 2️⃣ Check role hợp lệ
-  requireTeacherInClass('classId'),   // 3️⃣ Check teacher của class
+  authenticationMiddleware,
+  authorizationMiddleware,
+  requireTeacherInClass('classId'),
   aiController.generateFlashcards
 )
 
-console.log('✅ Route registered: POST /generate-flashcards') // ✅ Thêm log
+console.log('✅ Route registered: POST /generate-flashcards')
 
-
-// 🎯 Generate Quiz từ Materials bằng AI (TODO)
+// 🎯 Generate Quiz từ Materials bằng AI
 aiRouter.post(
   '/generate-quiz',
   authenticationMiddleware,
@@ -30,5 +28,7 @@ aiRouter.post(
   requireTeacherInClass('classId'),
   aiController.generateQuiz
 )
+
+console.log('✅ Route registered: POST /generate-quiz')
 
 export default aiRouter

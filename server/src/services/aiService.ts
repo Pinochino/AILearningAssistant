@@ -149,6 +149,135 @@ ${prompt ? 'Additional context: ' + prompt : ''}
       difficulty: card.difficulty || 'medium'
     }))
   }
+
+   async generateQuizQuestions(opts: {
+    materials: MaterialLike[]
+    prompt?: string
+    count?: number
+    difficulty?: 'easy' | 'medium' | 'hard'
+  }) {
+    const { materials = [], prompt, count = 10, difficulty = 'medium' } = opts
+
+    if (!materials.length) throw new Error('No materials provided')
+
+    // 1️⃣ Upload tất cả các file
+    const uploadedFiles = await Promise.all(
+      materials.map(async (m): Promise<any> => {
+        if (!m.fileUrl) {
+          console.warn(`⚠️ Missing fileUrl for material: ${m.title}`)
+          return null
+        }
+
+        const absolutePath = path.join(process.cwd(), 'public', m.fileUrl)
+
+        if (!fs.existsSync(absolutePath)) {
+          console.warn(`⚠️ File not found: ${absolutePath}`)
+          return null
+        }
+
+        return this.uploadToGemini(absolutePath)
+      })
+    )
+
+    const validFiles = uploadedFiles.filter(Boolean)
+    if (!validFiles.length) throw new Error('No valid files uploaded')
+
+    // 2️⃣ Gọi model Gemini
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+
+    // 3️⃣ Prompt sinh quiz
+    const basePrompt = `
+You are an educational AI system specialized in creating quiz questions.
+Generate ${count} multiple-choice questions based on the uploaded materials.
+
+IMPORTANT: Return ONLY a valid JSON array, NO additional text.
+
+Format:
+[
+  {
+    "question": "Clear and specific question text",
+    "answers": ["Answer 1", "Answer 2", "Answer 3", "Answer 4"],
+    "correctAnswer": 0,
+    "explanation": "Brief explanation of why this is correct",
+    "difficulty": "easy|medium|hard"
+  }
+]
+
+Requirements:
+- Each question must have 4 answer options
+- correctAnswer is the index (0-3) of the correct answer
+- Questions should be clear, unambiguous, and educational
+- Difficulty: easy (basic concepts), medium (understanding), hard (analysis/application)
+- Include diverse question types: definitions, applications, comparisons, reasoning
+
+${prompt ? `\nAdditional instructions: ${prompt}` : ''}
+${difficulty ? `\nPrefer difficulty level: ${difficulty}` : ''}
+`
+
+    // 4️⃣ Gửi request
+    const result = await model.generateContent([
+      { text: basePrompt },
+      ...validFiles.map((f: any) => ({
+        fileData: { fileUri: f.uri, mimeType: f.mimeType }
+      }))
+    ])
+
+    const text = result.response.text()
+    let questions: Array<{
+      question: string
+      answers: string[]
+      correctAnswer: number
+      explanation?: string
+      difficulty?: string
+    }> = []
+
+    try {
+      // Remove markdown code blocks if present
+      let cleanText = text
+      if (text.includes('```json')) {
+        cleanText = text
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim()
+      } else if (text.includes('```')) {
+        cleanText = text.replace(/```\n?/g, '').trim()
+      }
+
+      questions = JSON.parse(cleanText)
+
+      if (!Array.isArray(questions)) {
+        throw new Error('Response is not an array')
+      }
+    } catch {
+      console.error('Failed to parse JSON from Gemini, trying fallback...')
+      // Fallback: extract JSON objects
+      const matches = [...text.matchAll(/\{[^}]+\}/g)]
+        .map((m) => {
+          try {
+            return JSON.parse(m[0])
+          } catch {
+            return null
+          }
+        })
+        .filter(Boolean) as any[]
+      questions = matches.slice(0, count)
+    }
+
+    // Validate and normalize
+    return questions
+      .filter((q) => q.question && Array.isArray(q.answers) && q.answers.length >= 2)
+      .map((q) => ({
+        question: q.question,
+        answers: q.answers,
+        correctAnswer: q.correctAnswer || 0,
+        explanation: q.explanation,
+        difficulty: q.difficulty || difficulty
+      }))
+      .slice(0, count)
+  }
+
 }
+
+
 
 export default new AIService()

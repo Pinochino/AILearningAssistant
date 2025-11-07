@@ -2,6 +2,7 @@ import { RequestHandler } from 'express'
 import { Types } from 'mongoose'
 import { responseUtils } from '../utils/ResponseUtils'
 import { Quiz, IQuizQuestion } from '../models/Quiz'
+import quizService from '../services/quizService'
 
 const isId = (v?: string) => !!v && Types.ObjectId.isValid(v)
 const getUserId = (req: any): string | undefined => {
@@ -25,7 +26,8 @@ function validateQuestions(questions: IQuizQuestion[]): string | null {
 // POST /quizzes
 export const create: RequestHandler = async (req, res) => {
   try {
-    const { title, classId, chapters, questions, description, durationMinutes, isPublic, isAIGenerated, difficulty } = req.body || {}
+    const { title, classId, chapters, questions, description, durationMinutes, isPublic, isAIGenerated, difficulty } =
+      req.body || {}
     if (!title || !classId || !Array.isArray(chapters) || chapters.length === 0) {
       return responseUtils({ req, res, code: 400, message: 'Missing required fields: title, classId, chapters[]' })
     }
@@ -63,11 +65,7 @@ export const addQuestionsBulk: RequestHandler = async (req, res) => {
     if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid id' })
     const err = validateQuestions(questions || [])
     if (err) return responseUtils({ req, res, code: 400, message: err })
-    const quiz = await Quiz.findByIdAndUpdate(
-      id,
-      { $push: { questions: { $each: questions } } },
-      { new: true }
-    )
+    const quiz = await Quiz.findByIdAndUpdate(id, { $push: { questions: { $each: questions } } }, { new: true })
     if (!quiz) return responseUtils({ req, res, code: 404, message: 'Quiz not found' })
     return responseUtils({ req, res, code: 200, message: 'Questions added', data: quiz })
   } catch (err: any) {
@@ -76,7 +74,6 @@ export const addQuestionsBulk: RequestHandler = async (req, res) => {
 }
 
 // GET /quizzes/class/:classId
-// query: chapter?(single id), search?, isPublic?, page?, limit?, difficulty?
 export const listByClass: RequestHandler = async (req, res) => {
   try {
     const { classId } = req.params
@@ -96,7 +93,10 @@ export const listByClass: RequestHandler = async (req, res) => {
       Quiz.countDocuments(filter)
     ])
     return responseUtils({
-      req, res, code: 200, message: 'OK',
+      req,
+      res,
+      code: 200,
+      message: 'OK',
       data: { items, pagination: { page: p, limit: l, total, pages: Math.ceil(total / l) } }
     })
   } catch (err: any) {
@@ -138,7 +138,7 @@ export const update: RequestHandler = async (req, res) => {
   }
 }
 
-// PATCH /quizzes/:id/publish  (toggle or set)
+// PATCH /quizzes/:id/publish
 export const publish: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params
@@ -152,7 +152,7 @@ export const publish: RequestHandler = async (req, res) => {
   }
 }
 
-// DELETE /quizzes/:id  (soft)
+// DELETE /quizzes/:id
 export const remove: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params
@@ -175,6 +175,155 @@ export const restore: RequestHandler = async (req, res) => {
     const quiz = await Quiz.findById(id)
     if (!quiz) return responseUtils({ req, res, code: 404, message: 'Quiz not found' })
     return responseUtils({ req, res, code: 200, message: 'Quiz restored', data: quiz })
+  } catch (err: any) {
+    return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
+  }
+}
+
+// 🆕 POST /quizzes/:id/submit - Submit quiz and get results
+export const submitQuiz: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { answers, timeSpentMinutes, startedAt } = req.body || {}
+
+    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid quiz id' })
+
+    const userId = getUserId(req)
+    if (!userId) return responseUtils({ req, res, code: 401, message: 'Unauthorized' })
+
+    if (!Array.isArray(answers) || answers.length === 0) {
+      return responseUtils({ req, res, code: 400, message: 'answers[] is required' })
+    }
+
+    if (typeof timeSpentMinutes !== 'number' || timeSpentMinutes < 0) {
+      return responseUtils({ req, res, code: 400, message: 'timeSpentMinutes must be a positive number' })
+    }
+
+    // Validate answers format
+    for (const answer of answers) {
+      if (typeof answer.questionIndex !== 'number' || typeof answer.selectedAnswer !== 'number') {
+        return responseUtils({
+          req,
+          res,
+          code: 400,
+          message: 'Each answer must have questionIndex and selectedAnswer'
+        })
+      }
+    }
+
+    const result = await quizService.submitQuizAttempt({
+      quizId: id,
+      userId,
+      answers,
+      timeSpentMinutes,
+      startedAt: startedAt ? new Date(startedAt) : new Date()
+    })
+
+    return responseUtils({
+      req,
+      res,
+      code: 201,
+      message: 'Quiz submitted successfully',
+      data: result
+    })
+  } catch (err: any) {
+    return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
+  }
+}
+
+// 🆕 GET /quizzes/:id/attempts - Get all attempts for a quiz (for teachers)
+export const getQuizAttempts: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params
+    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid quiz id' })
+
+    const { page = '1', limit = '20' } = req.query as Record<string, string>
+    const p = Math.max(1, parseInt(String(page)) || 1)
+    const l = Math.min(100, Math.max(1, parseInt(String(limit)) || 20))
+
+    const history = await quizService.getUserQuizHistory({
+      userId: '', // Empty to get all users
+      quizId: id,
+      page: p,
+      limit: l
+    })
+
+    return responseUtils({
+      req,
+      res,
+      code: 200,
+      message: 'OK',
+      data: history
+    })
+  } catch (err: any) {
+    return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
+  }
+}
+
+// 🆕 GET /quizzes/:id/statistics - Get quiz statistics
+export const getQuizStats: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params
+    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid quiz id' })
+
+    const stats = await quizService.getQuizStatistics(id)
+
+    return responseUtils({
+      req,
+      res,
+      code: 200,
+      message: 'OK',
+      data: stats
+    })
+  } catch (err: any) {
+    return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
+  }
+}
+
+// 🆕 GET /quizzes/attempts/my-history - Get current user's quiz history
+export const getMyQuizHistory: RequestHandler = async (req, res) => {
+  try {
+    const userId = getUserId(req)
+    if (!userId) return responseUtils({ req, res, code: 401, message: 'Unauthorized' })
+
+    const { classId, page = '1', limit = '20' } = req.query as Record<string, string>
+    const p = Math.max(1, parseInt(String(page)) || 1)
+    const l = Math.min(100, Math.max(1, parseInt(String(limit)) || 20))
+
+    const history = await quizService.getUserQuizHistory({
+      userId,
+      classId: classId && isId(classId) ? classId : undefined,
+      page: p,
+      limit: l
+    })
+
+    return responseUtils({
+      req,
+      res,
+      code: 200,
+      message: 'OK',
+      data: history
+    })
+  } catch (err: any) {
+    return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
+  }
+}
+
+// 🆕 GET /quizzes/attempts/:attemptId - Get attempt detail
+export const getAttemptDetail: RequestHandler = async (req, res) => {
+  try {
+    const { attemptId } = req.params
+    if (!isId(attemptId)) return responseUtils({ req, res, code: 400, message: 'Invalid attempt id' })
+
+    const attempt = await quizService.getAttemptDetail(attemptId)
+
+    return responseUtils({
+      req,
+      res,
+      code: 200,
+      message: 'OK',
+      data: attempt
+    })
   } catch (err: any) {
     return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
   }

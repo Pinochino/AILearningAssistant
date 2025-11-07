@@ -7,6 +7,7 @@ import fs from 'fs'
 import { Material } from '../models/Material'
 import { Flashcard } from '../models/Flashcard'
 import { responseUtils } from '../utils/ResponseUtils'
+import { Quiz } from '~/models/Quiz'
 
 const PUBLIC_DIR = process.env.PUBLIC_DIR ? path.resolve(process.env.PUBLIC_DIR) : path.resolve(process.cwd(), 'public')
 
@@ -350,12 +351,266 @@ ${prompt ? `\nYêu cầu bổ sung từ người dùng: ${prompt}` : ''}
   }
 }
 
-// 🎯 API: Tạo Quiz bằng AI (stub cho sau này)
+// 🎯 API: Tạo Quiz bằng AI
 export const generateQuiz: RequestHandler = async (req, res) => {
-  return responseUtils({
-    req,
-    res,
-    code: 501,
-    message: 'Quiz generation not implemented yet'
-  })
+  try {
+    const {
+      title,
+      materialIds,
+      classId,
+      chapterIds,
+      count = 10,
+      difficulty = 'medium',
+      prompt,
+      durationMinutes,
+      description
+    } = req.body
+
+    // Validate input
+    if (!title || typeof title !== 'string') {
+      return responseUtils({ req, res, code: 400, message: 'title is required' })
+    }
+
+    if (!Array.isArray(materialIds) || materialIds.length === 0) {
+      return responseUtils({ req, res, code: 400, message: 'materialIds[] is required and must be non-empty' })
+    }
+
+    if (!isId(classId)) {
+      return responseUtils({ req, res, code: 400, message: 'Invalid classId' })
+    }
+
+    if (!Array.isArray(chapterIds) || chapterIds.length === 0 || !chapterIds.every(isId)) {
+      return responseUtils({ req, res, code: 400, message: 'chapterIds[] is required and must contain valid IDs' })
+    }
+
+    const userId = getUserId(req)
+    if (!userId) {
+      return responseUtils({ req, res, code: 401, message: 'Unauthorized' })
+    }
+
+    // 📚 Query materials from database
+    const materials = await Material.find({
+      _id: { $in: materialIds.map((id: string) => new Types.ObjectId(id)) },
+      classId: new Types.ObjectId(classId)
+    }).lean()
+
+    if (!materials.length) {
+      return responseUtils({ req, res, code: 404, message: 'No materials found for the given IDs and classId' })
+    }
+
+    console.log(`📚 Found ${materials.length} materials to process`)
+
+    // 🗂 Upload files to Gemini
+    const uploadedParts = []
+    const skippedFiles: string[] = []
+
+    for (const material of materials) {
+      try {
+        console.log('📁 fileUrl:', material.fileUrl)
+
+        const absolutePath = resolveMaterialAbsolutePath(material.fileUrl)
+        console.log('📁 absolutePath:', absolutePath)
+
+        // Check existence
+        if (!fs.existsSync(absolutePath)) {
+          console.warn(`⚠️ File not found: ${absolutePath}`)
+          skippedFiles.push(`${material.fileName} (not found)`)
+          continue
+        }
+
+        const mimeType = detectMimeType(material.fileName)
+
+        // Check MIME type support
+        if (mimeType === 'unsupported' || !SUPPORTED_MIME_TYPES.includes(mimeType)) {
+          console.warn(`⚠️ Unsupported file type: ${material.fileName} (${mimeType})`)
+          skippedFiles.push(`${material.fileName} (unsupported format)`)
+          continue
+        }
+
+        console.log(`📤 Uploading: ${material.fileName}`)
+        const uploadResult = await fileManager.uploadFile(absolutePath, {
+          mimeType,
+          displayName: material.fileName
+        })
+
+        uploadedParts.push({
+          fileData: {
+            mimeType: uploadResult.file.mimeType,
+            fileUri: uploadResult.file.uri
+          }
+        })
+
+        console.log(`✅ Uploaded: ${material.fileName}`)
+      } catch (uploadError: any) {
+        console.error(`❌ Failed to upload ${material.fileName}:`, uploadError.message)
+        skippedFiles.push(`${material.fileName} (${uploadError.message})`)
+      }
+    }
+
+    if (uploadedParts.length === 0) {
+      return responseUtils({
+        req,
+        res,
+        code: 400,
+        message: 'No valid files could be uploaded to Gemini. Only PDF and text files are supported.',
+        data: {
+          skippedFiles,
+          supportedFormats: 'PDF, TXT, HTML, CSS, JS, TS, PY, JSON, CSV, MD, XML, RTF'
+        }
+      })
+    }
+
+    console.log(`✅ Successfully uploaded ${uploadedParts.length} files to Gemini`)
+    if (skippedFiles.length > 0) {
+      console.log(`⚠️ Skipped ${skippedFiles.length} files:`, skippedFiles)
+    }
+
+    // 🧾 Prompt cho Gemini
+    const systemPrompt = `
+Bạn là AI giáo dục chuyên nghiệp. Nhiệm vụ của bạn là tạo quiz trắc nghiệm từ tài liệu học tập.
+
+QUAN TRỌNG: Chỉ trả về JSON array thuần túy, KHÔNG thêm bất kỳ văn bản nào khác.
+
+Hãy phân tích kỹ các tài liệu đã upload và tạo ${count} câu hỏi trắc nghiệm với cấu trúc sau:
+
+[
+  {
+    "question": "Câu hỏi rõ ràng và cụ thể",
+    "answers": ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
+    "correctAnswer": 0,
+    "explanation": "Giải thích ngắn gọn tại sao đáp án này đúng",
+    "difficulty": "easy|medium|hard"
+  }
+]
+
+Yêu cầu:
+- Mỗi câu hỏi phải có đúng 4 đáp án
+- correctAnswer là chỉ số (0-3) của đáp án đúng
+- Câu hỏi phải rõ ràng, không mơ hồ
+- Đáp án sai phải hợp lý, không quá dễ loại trừ
+- Phân loại độ khó: easy (khái niệm cơ bản), medium (cần hiểu), hard (cần phân tích/áp dụng)
+- Đa dạng dạng câu hỏi: định nghĩa, ứng dụng, so sánh, lý giải
+- Ưu tiên kiến thức quan trọng, công thức, định lý chính
+
+${prompt ? `\nYêu cầu bổ sung từ người dùng: ${prompt}` : ''}
+${difficulty ? `\nĐộ khó ưu tiên: ${difficulty}` : ''}
+`.trim()
+
+    // 🤖 Gọi Gemini API
+    console.log('🤖 Calling Gemini API for quiz generation...')
+    const result = await model.generateContent([{ text: systemPrompt }, ...uploadedParts])
+
+    const text = result.response.text().trim()
+    console.log('📥 Gemini response received')
+
+    // 🧩 Parse JSON từ output của Gemini
+    let questionsData: Array<{
+      question: string
+      answers: string[]
+      correctAnswer: number
+      explanation?: string
+      difficulty?: string
+    }> = []
+
+    try {
+      // Remove markdown code blocks if present
+      let cleanText = text
+      if (text.includes('```json')) {
+        cleanText = text
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim()
+      } else if (text.includes('```')) {
+        cleanText = text.replace(/```\n?/g, '').trim()
+      }
+
+      questionsData = JSON.parse(cleanText)
+
+      if (!Array.isArray(questionsData)) {
+        throw new Error('Response is not an array')
+      }
+    } catch (parseError: any) {
+      console.error('❌ Failed to parse JSON from Gemini:', parseError.message)
+      console.log('Raw response:', text.substring(0, 500))
+
+      return responseUtils({
+        req,
+        res,
+        code: 500,
+        message: 'AI returned invalid format. Please try again.',
+        data: { rawResponse: text.substring(0, 200) }
+      })
+    }
+
+    // Validate and filter questions
+    const validQuestions = questionsData
+      .filter((q) => {
+        return (
+          q.question &&
+          Array.isArray(q.answers) &&
+          q.answers.length >= 2 &&
+          typeof q.correctAnswer === 'number' &&
+          q.correctAnswer >= 0 &&
+          q.correctAnswer < q.answers.length
+        )
+      })
+      .slice(0, count)
+
+    if (validQuestions.length === 0) {
+      return responseUtils({
+        req,
+        res,
+        code: 500,
+        message: 'AI generated no valid questions'
+      })
+    }
+
+    console.log(`✅ Parsed ${validQuestions.length} valid questions`)
+
+    // 🗃️ Tạo Quiz trong MongoDB
+    const quiz = await Quiz.create({
+      title: title.trim(),
+      description: description?.trim(),
+      classId: new Types.ObjectId(classId),
+      chapters: chapterIds.map((id: string) => new Types.ObjectId(id)),
+      createdBy: new Types.ObjectId(userId),
+      durationMinutes,
+      isAIGenerated: true,
+      difficulty: difficulty as 'easy' | 'medium' | 'hard',
+      isPublic: false,
+      questions: validQuestions.map((q) => ({
+        question: q.question.trim(),
+        answers: q.answers.map((a) => a.trim()),
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation?.trim()
+      }))
+    })
+
+    console.log(`💾 Created quiz: ${quiz._id}`)
+
+    return responseUtils({
+      req,
+      res,
+      code: 201,
+      message: `Successfully created AI-generated quiz with ${validQuestions.length} questions`,
+      data: {
+        quiz,
+        metadata: {
+          materialsProcessed: uploadedParts.length,
+          totalMaterials: materials.length,
+          generatedQuestions: validQuestions.length,
+          requestedQuestions: count,
+          skippedFiles: skippedFiles.length > 0 ? skippedFiles : undefined
+        }
+      }
+    })
+  } catch (error: any) {
+    console.error('❌ Gemini Quiz Generation Error:', error)
+    return responseUtils({
+      req,
+      res,
+      code: 500,
+      message: error.message || 'Internal server error while generating quiz'
+    })
+  }
 }
