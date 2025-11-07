@@ -46,11 +46,20 @@ export function EnrollmentApproval() {
     loadMyClasses();
   }, []);
 
-  // Load pending enrollments when class is selected
+  // Load pending enrollments when class is selected and poll for updates
   useEffect(() => {
-    if (selectedClass) {
+    if (!selectedClass) return;
+    
+    // Load immediately
+    loadPendingEnrollments(selectedClass._id);
+    
+    // Set up polling every 30 seconds
+    const intervalId = setInterval(() => {
       loadPendingEnrollments(selectedClass._id);
-    }
+    }, 30000);
+    
+    // Clean up interval on unmount or when selected class changes
+    return () => clearInterval(intervalId);
   }, [selectedClass]);
 
   const loadMyClasses = async () => {
@@ -66,10 +75,17 @@ export function EnrollmentApproval() {
       }
 
       const response = await teacherApi.getClasses(teacherId, { limit: 100 });
-      setMyClasses(response.data.items);
+      // Only update if the data has changed to prevent unnecessary re-renders
+      setMyClasses(prevClasses => {
+        const newClasses = response.data.items;
+        if (JSON.stringify(prevClasses) !== JSON.stringify(newClasses)) {
+          return newClasses;
+        }
+        return prevClasses;
+      });
       
-      // Auto-select first class if available
-      if (response.data.items.length > 0) {
+      // Auto-select first class if available and no class is selected
+      if (response.data.items.length > 0 && !selectedClass) {
         setSelectedClass(response.data.items[0]);
       }
     } catch (err: any) {
@@ -83,10 +99,18 @@ export function EnrollmentApproval() {
   const loadPendingEnrollments = async (classId: string) => {
     try {
       const response = await classApi.getPendingEnrollments(classId);
-      setPendingEnrollments(response.data);
+      // Only update if the data has changed to prevent unnecessary re-renders
+      setPendingEnrollments(prevEnrollments => {
+        const newEnrollments = response.data;
+        // Check if the data has actually changed
+        if (JSON.stringify(prevEnrollments) !== JSON.stringify(newEnrollments)) {
+          return newEnrollments;
+        }
+        return prevEnrollments;
+      });
     } catch (err: any) {
       console.error('Error loading pending enrollments:', err);
-      setPendingEnrollments([]);
+      // Don't clear existing data on error, just log it
     }
   };
 
@@ -276,7 +300,7 @@ export function EnrollmentApproval() {
                                 {(enrollment.studentId as any)?.username || 'Sinh viên'}
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                {(enrollment.studentId as any)?.email || ''}
+                                {(enrollment.studentId as any)?.name || ''}
                               </p>
                             </div>
                             {enrollment.message && (
@@ -360,7 +384,7 @@ export function EnrollmentApproval() {
                   Sinh viên: {(selectedEnrollment.studentId as any)?.username || 'N/A'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {(selectedEnrollment.studentId as any)?.email || ''}
+                  {(selectedEnrollment.studentId as any)?.name || ''}
                 </p>
               </div>
               <div className="space-y-2">

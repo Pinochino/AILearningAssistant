@@ -104,28 +104,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
-        // Fallback: Check username/email if role is still student
+        // Fallback: Check username if role is still student
         if (role === 'student') {
           const username = (payload.username || '').toLowerCase();
-          const email = (payload.email || '').toLowerCase();
           
-          if (username.includes('teacher') || email.includes('teacher')) {
+          if (username.includes('teacher')) {
             role = 'teacher';
-          } else if (username.includes('admin') || email.includes('admin')) {
+          } else if (username.includes('admin')) {
             role = 'admin';
           }
         }
         
         console.log('✅ Final role:', role);
         
-        const user: User = {
-          id: payload.id || '1',
-          name: payload.username || payload.email?.split('@')[0] || 'User',
-          username: payload.username,
-          email: payload.email || 'unknown@example.com',
-          role: role,
-          createdAt: new Date(),
-        };
+       const user: User = {
+  id: payload.id || '1',
+  name: payload.fullName || payload.name || '', // ❌ bỏ fallback về username
+  username: payload.username,
+  role: role,
+  createdAt: new Date(),
+  avatar: payload.avatar
+};
+
         
         console.log('✅ User restored from token:', user);
         setUser(user);
@@ -179,28 +179,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Fallback: Check username/email if role is still student
+        // Fallback: Check username if role is still student
         if (role === 'student') {
           const username = (userData.username || '').toLowerCase();
-          const email = (userData.email || '').toLowerCase();
 
-          if (username.includes('teacher') || email.includes('teacher')) {
+          if (username.includes('teacher')) {
             role = 'teacher';
-          } else if (username.includes('admin') || email.includes('admin')) {
+          } else if (username.includes('admin')) {
             role = 'admin';
           }
         }
 
         // Map backend user to frontend User type
-        const user: User = {
-          id: userData._id || '1',
-          name: userData.name || userData.email?.split('@')[0] || 'User',
-          username: userData.username,
-          email: userData.email,
-          role: role,
-          avatar: userData.avatar,
-          createdAt: new Date(),
-        };
+       const user: User = {
+  id: userData._id || '1',
+  name: userData.fullName || userData.name || '', // ❌ không fallback về username nữa
+  username: userData.username,
+  role: role,
+  avatar: userData.avatar,
+  createdAt: new Date(userData.createdAt) || new Date(),
+};
+
+        console.log('🔍 User data from login:', user);
 
         setUser(user);
         localStorage.setItem('currentUser', JSON.stringify(user));

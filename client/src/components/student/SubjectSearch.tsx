@@ -378,7 +378,8 @@ const filteredClasses = availableClasses.filter((cls) => {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
-                            <span>{cls.studentIds.length}/{cls.maxStudents} sinh viên</span>
+                            <span>{Array.isArray(cls.studentIds) ? cls.studentIds.length : 0}/{cls.maxStudents || 0} sinh viên</span>
+
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />

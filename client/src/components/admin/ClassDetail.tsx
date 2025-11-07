@@ -38,19 +38,19 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
       const cls = response.data;
       setClassData(cls);
 
-      // Thông tin giáo viên - đã được populate từ API với thông tin username và email
+      
       if (cls.teacherId) {
         setTeacherInfo({
           username: (cls.teacherId as any)?.username || 'Không xác định',
-          email: (cls.teacherId as any)?.email || 'Email không có sẵn'
+          name: (cls.teacherId as any)?.name || 'name không có sẵn'
         });
       }
 
-      // Thông tin học sinh - đã được populate từ API với thông tin username và email
+      
       if (cls.studentIds && cls.studentIds.length > 0) {
         setStudentInfo(cls.studentIds.map((student: any) => ({
           username: student?.username || 'Không xác định',
-          email: student?.email || 'Email không có sẵn'
+          name: student?.name || 'name không có sẵn'
         })));
       } else {
         setStudentInfo([]);
@@ -66,11 +66,11 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
 
   const getTeacherName = () => {
     if (!teacherInfo) return 'Không xác định';
-    return teacherInfo.email || 'Email không có sẵn';
+    return teacherInfo.name || 'name không có sẵn';
   };
 
   const getStudentName = (student: any, index: number) => {
-    return student?.email || `Học sinh ${index + 1}`;
+    return student?.name || `Học sinh ${index + 1}`;
   };
 
   if (!isOpen) return null;

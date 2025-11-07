@@ -30,7 +30,13 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   ];
 
   // ✅ Nếu user chưa có, không render header
-  if (!user) return null;
+  if (!user) {
+    console.log('No user found in Header component');
+    return null;
+  }
+  
+  // Debug log
+  console.log('User in Header:', user);
 
   // ✅ Xử lý role an toàn
   const role = user.role || 'unknown';
@@ -124,9 +130,13 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                     : 'U'}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-medium">{user.name || 'Người dùng'}</p>
-                <p className="text-xs text-muted-foreground">{getRoleLabel(role)}</p>
+              <div className="hidden md:flex flex-col items-start justify-center ml-2">
+                <span className="text-sm font-semibold text-foreground">
+                  {user.name || user.username || 'Người dùng'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {getRoleLabel(role)}
+                </span>
               </div>
             </DropdownMenuTrigger>
 

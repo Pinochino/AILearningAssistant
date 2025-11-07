@@ -57,7 +57,7 @@ export function ClassManagement() {
         // Try different role formats
         const allUsers = data.data;
         console.log('🔍 All users with roles:', allUsers.map((u: any) => ({
-          username: u.username || u.email,
+          username: u.username || u.name,
           roles: u.roles,
           roleType: Array.isArray(u.roles) ? 'array' : typeof u.roles
         })));
@@ -93,9 +93,9 @@ export function ClassManagement() {
         if (finalTeachers.length === 0) {
           console.warn('⚠️ No teachers found from API, using fallback teachers');
           const fallbackTeachers = [
-            { username: 'teacher1', email: 'teacher1@example.com', _id: 'teacher1' },
-            { username: 'teacher2', email: 'teacher2@example.com', _id: 'teacher2' },
-            { username: 'admin', email: 'admin@example.com', _id: 'admin' }
+            { username: 'teacher1', name: 'Nguyễn Văn A', _id: 'teacher1' },
+            { username: 'teacher2', name: 'Nguyễn Văn B', _id: 'teacher2' },
+            { username: 'admin', name: 'uyen', _id: 'admin' }
           ];
           setTeachers(fallbackTeachers);
         } else {
@@ -727,7 +727,7 @@ export function ClassManagement() {
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
-                      GV: {typeof cls.teacherId === 'string' ? cls.teacherId : (cls.teacherId as any)?.email || 'Không xác định'}
+                      GV: {typeof cls.teacherId === 'string' ? cls.teacherId : (cls.teacherId as any)?.name || 'Không xác định'}
                     </span>
                   </div>
                 )}
