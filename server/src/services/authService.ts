@@ -1,5 +1,4 @@
 import { User } from '~/models/User'
-import { TokenResponse } from '~/types/TokenResponse'
 import { LoginType, RegisterType } from '~/types/UserInterface'
 import { compareHashed } from '~/utils/BcryptUtils'
 import { ValidatedToken, ValidatedTokenStatus } from '~/models/ValidatedToken'
@@ -7,24 +6,22 @@ import { Role, RoleName } from '~/models/Role'
 import emailService from './emailService'
 import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils'
 import { ForgotPassword } from '~/models/ForgotPassword'
-import { Types } from 'mongoose'
 
 const authService = {
-  authenticate: async ({ email, password }: LoginType) => {
+  authenticate: async ({ username, password }: LoginType) => {
     try {
-      console.log('🔐 Login attempt:', { email })
-      
-      const user = await User.findOne({ email }).populate('roles', 'name')
+      console.log('Login attempt:', { username })
+
+      const user = await User.findOne({ username }).populate('roles', 'name')
 
       if (!user) {
-        console.log('❌ User not found:', email)
+        console.log(' User not found:', username)
         throw new Error('Invalid credentials')
       }
 
-      console.log('✅ User found:', {
+      console.log('User found:', {
         id: user._id,
         username: user.username,
-        email: user.email,
         roles: user.roles,
         hasPassword: !!user.password
       })
@@ -32,21 +29,22 @@ const authService = {
       const isValid = await compareHashed(password as string, user.password as string)
 
       if (!isValid) {
-        console.log('❌ Invalid password for:', email)
+        console.log('Invalid password for:', username)
         throw new Error('Invalid credentials')
       }
+      await User.updateOne({ _id: user._id }, { $set: { isActive: true, lastLogin: Date.now() } })
 
-      console.log('✅ Password valid, creating login response')
+      console.log('Password valid, creating login response')
       return createLoginResponse(user)
     } catch (error: any) {
-      console.error('❌ Login error:', error.message)
+      console.error('Login error:', error.message)
       throw new Error('Error in login: ' + error?.message)
     }
   },
 
-  createUser: async ({ email, username, password, roles }: RegisterType) => {
+  createUser: async ({ name, username, password, roles }: RegisterType) => {
     try {
-      let user = await User.findOne({ email })
+      let user = await User.findOne({ username })
 
       if (user) {
         throw new Error('User already have been existed')
@@ -64,7 +62,7 @@ const authService = {
 
       console.log(`newRoles: `, newRoles)
 
-      user = await User.create({ username, email, password, roles: newRoles })
+      user = await User.create({ username, name, password, roles: newRoles })
 
       // await emailService.sendEmail({
       //   from: 'Tranhunghp22112004@gmail.com',

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { User } from '~/models/User'
 import userService from '~/services/userService'
 import { responseUtils } from '~/utils/ResponseUtils'
 
@@ -45,9 +46,11 @@ const userController = {
   updateUser: async (req: Request, res: Response) => {
     try {
       const { userId } = req.params
+      console.log(`User ID: ${userId}`)
       const result = await userService.updateUser(userId, req.body)
       responseUtils({ req, res, code: 200, message: `Update user successfully`, data: result })
     } catch (error: any) {
+      console.log(error.message)
       responseUtils({ req, res, code: 400, message: error.message })
     }
   },
@@ -86,6 +89,25 @@ const userController = {
       const { roleName } = req.params
       const count = await userService.countUsersByRole(roleName)
       responseUtils({ req, res, code: 200, message: `Count users by role successfully`, data: { count } })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  countUsesByActive: async (req: Request, res: Response) => {
+    try {
+      const userCount = await userService.countUsersByActive()
+      responseUtils({ req, res, code: 200, message: `Count users by isActive successfully`, data: { userCount } })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  filterUserByRoleId: async (req: Request, res: Response) => {
+    try {
+      const { roleId } = req.params
+      const users = await userService.getUsersByRoleId(roleId)
+      responseUtils({ req, res, code: 200, message: `Filter users by roleId successfully`, data: { users } })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

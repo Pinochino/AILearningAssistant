@@ -3,10 +3,12 @@ import { hashedText } from '~/utils/BcryptUtils'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 export interface IUser extends SoftDeleteDocument {
+  name: string
   username: string
-  email: string
   password: string
   avatar?: string
+  isActive?: boolean
+  lastLogin?: Date
   roles?: Types.ObjectId[]
   provider?: Types.ObjectId[]
   forgotPassword?: Types.ObjectId[]
@@ -21,15 +23,15 @@ export interface IUser extends SoftDeleteDocument {
 
 const userSchema = new Schema<IUser>(
   {
-    username: {
+    name: {
       type: Schema.Types.String,
-      required: [true, 'Username is required'],
+      // required: [true, 'Name is required'],
       trim: true
     },
-    email: {
+    username: {
       type: Schema.Types.String,
       unique: true,
-      required: [true, 'Email is required'],
+      required: [true, 'Username is required'],
       index: true,
       trim: true
     },
@@ -40,6 +42,13 @@ const userSchema = new Schema<IUser>(
     },
     avatar: {
       type: Schema.Types.String
+    },
+    isActive: {
+      type: Schema.Types.Boolean,
+      default: false
+    },
+    lastLogin: {
+      type: Schema.Types.Date
     },
     roles: [
       {

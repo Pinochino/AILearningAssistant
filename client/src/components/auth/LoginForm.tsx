@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { BookOpen, Brain, ShieldUser } from 'lucide-react';
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
@@ -17,7 +17,7 @@ export function LoginForm() {
     e.preventDefault();
     setError('');
 
-    const success = await login(email, password);
+    const success = await login(username, password);
     if (!success) {
       setError('Email hoặc mật khẩu không đúng');
     }
@@ -36,7 +36,7 @@ export function LoginForm() {
       'student5': 'student5@example.com',
     };
     
-    setEmail(accounts[account] || '');
+    setUsername(accounts[account] || '');
     setPassword('123456');
   };
 
@@ -64,13 +64,13 @@ export function LoginForm() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="text"
+                  type="text"
+                  placeholder="Enter yout username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>

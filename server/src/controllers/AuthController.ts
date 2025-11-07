@@ -7,7 +7,7 @@ const authController = {
     try {
       const { username, email, password } = req.body
 
-      const user = await authService.authenticate({ email, password })
+      const user = await authService.authenticate({ username, password })
       res.cookie('REFRESH_TOKEN', user.refreshToken, {
         sameSite: 'strict',
         httpOnly: false,

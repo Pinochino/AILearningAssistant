@@ -35,25 +35,14 @@ import {
   Activity,
   Clock,
   Award,
-  BarChart3,
-} from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import {
-  AnnouncementSection,
-  Announcement,
-} from "../dashboard/AnnouncementSection";
-import { AnnouncementCreator } from "../dashboard/AnnouncementCreator";
+  BarChart3
+} from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSection'
+import { AnnouncementCreator } from '../dashboard/AnnouncementCreator'
+import { handleApi } from '../../api/handleApi'
+import GetRoleCountByName from '../../hooks/getRoleCount'
+import { Skeleton } from '../ui/skeleton'
 
 // Mock data for user stats (will be replaced with real data)
 const defaultUserStats = [
@@ -204,6 +193,8 @@ const mockLearningProgress = [
   },
 ];
 
+
+
 export function AdminDashboard() {
   const [openCreate, setOpenCreate] = useState(false);
   const [announcements, setAnnouncements] = useState<
@@ -234,6 +225,7 @@ export function AdminDashboard() {
     url: '/subjects', 
     name: 'admin-subjects' 
   });
+
 
   // Calculate user stats from real data
   useEffect(() => {
@@ -296,11 +288,39 @@ export function AdminDashboard() {
       id: Date.now().toString(),
       title,
       content,
-      author: "Admin",
-      date: new Date().toLocaleString(),
-    };
-    setAnnouncements((prev) => [newAnn, ...prev]);
-  };
+      author: 'Admin',
+      date: new Date().toLocaleString()
+    }
+    setAnnouncements((prev) => [newAnn, ...prev])
+  }
+
+  const { data: userCount } = GetRoleCountByName("USER");
+  const { data: adminCount } = GetRoleCountByName("SUPER_ADMIN")
+  const { data: teacherCount } = GetRoleCountByName("TEACHER")
+
+  const [loadingPage, setLoadingPage] = useState<boolean>(false)
+
+
+
+
+
+  useEffect(() => {
+
+   if (userCount?.data || adminCount?.data || teacherCount?.data) {
+    setUserStats([
+      { role: 'Học sinh', count: userCount?.data || 0, color: '#3b82f6', change: '+12%' },
+      { role: 'Giáo viên', count: teacherCount?.data || 0, color: '#10b981', change: '+5%' },
+      { role: 'Admin', count: adminCount?.data || 0, color: '#f59e0b', change: '0%' }
+    ]);
+
+      setLoadingPage(false)
+    } else {
+      setLoadingPage(true)
+    }
+
+  }, [userCount, adminCount, teacherCount])
+
+  console.log("user stats: ", userStats)
 
   return (
     <div className="space-y-6">
@@ -347,8 +367,8 @@ export function AdminDashboard() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {userStats.map((stat) => (
-          <Card key={stat.role}>
+        {Array.from(userStats || []).map((stat, index: number) => (
+          <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.role}
@@ -356,17 +376,9 @@ export function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {stat.count.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                <span
-                  className={
-                    stat.change.startsWith("+")
-                      ? "text-green-600"
-                      : "text-muted-foreground"
-                  }
-                >
+             {loadingPage ? (<Skeleton>Loading</Skeleton>) : ( <div className='text-2xl font-bold'>{stat?.count?.count || 0}</div>)}
+              <p className='text-xs text-muted-foreground'>
+                <span className={stat.change.startsWith('+') ? 'text-green-600' : 'text-muted-foreground'}>
                   {stat.change}
                 </span>{" "}
                 so với tháng trước
@@ -460,9 +472,9 @@ export function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {subjectStats.map((subject) => (
+            {subjectStats.map((subject, index: number) => (
               <div
-                key={subject.name}
+                key={index}
                 className="flex items-center justify-between p-4 border rounded-lg"
               >
                 <div className="space-y-1">
@@ -649,10 +661,10 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockQuizStats.map((stat) => (
+                {mockQuizStats.map((stat, index: number) => (
                   <div
-                    key={stat.subject}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                  key={index}
+                  className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div className="space-y-1">
                       <h3 className="font-medium">
@@ -710,9 +722,9 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockFlashcardStats.map((stat) => (
+                {mockFlashcardStats.map((stat, index: number) => (
                   <div
-                    key={stat.subject}
+                  key={index}
                     className="p-4 border rounded-lg"
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -779,10 +791,10 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockLearningProgress.map((progress) => (
+                {mockLearningProgress.map((progress, index: number) => (
                   <div
-                    key={progress.class}
-                    className="p-4 border rounded-lg"
+                  key={index}
+                  className="p-4 border rounded-lg"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div>

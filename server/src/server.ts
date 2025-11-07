@@ -4,8 +4,9 @@ import webConfigs from '~/configs/webConfigs'
 import routers from '~/routers/routers'
 // import '~/crons/ValidatedTokenClean'
 // import '~/crons/ForgotPasswordClean'
-import connectDB from "./database/connection"
-import classRoutes from "./routes/class.routes"
+import connectDB from './database/connection'
+import classRoutes from './routes/class.routes'
+import { runSeed } from './data/seed'
 
 dotenv.config()
 
@@ -16,13 +17,14 @@ routers(app)
 
 // Connect to MongoDB
 connectDB()
+// runSeed()
 
 // Routes
-app.use("/api", classRoutes)
+app.use('/api', classRoutes)
 
 // Health check
-app.get("/", (req, res) => {
-  res.json({ message: "Server is running!", status: "OK" })
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is running!', status: 'OK' })
 })
 
 const PORT = process.env.PORT || 9000

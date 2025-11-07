@@ -8,6 +8,8 @@ userRouter.get('/list', authenticationMiddleware, authorizationMiddleware, userC
 userRouter.get('/detail/:userId', authenticationMiddleware, userController.getUser)
 userRouter.get('/deleted-list', authenticationMiddleware, userController.findDeletedUsers)
 userRouter.get('/count-by-role/:roleName', authenticationMiddleware, userController.countByRole)
+userRouter.post('/list-user/:roleId', authenticationMiddleware, userController.filterUserByRoleId)
+userRouter.post('/count-by-active', authenticationMiddleware, userController.countUsesByActive)
 userRouter.post('/restore/:userId', authenticationMiddleware, userController.restoreUser)
 userRouter.put('/update/:userId', authenticationMiddleware, userController.updateUser)
 userRouter.delete('/delete/:userId', authenticationMiddleware, authorizationMiddleware, userController.deleteOne)

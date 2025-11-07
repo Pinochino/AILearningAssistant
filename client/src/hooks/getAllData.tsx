@@ -25,3 +25,15 @@ export function GetAllData({ url, name, params }: IGetAllData) {
     error
   };
 }
+
+export function useFetchCountUserByRole(role: 'USER' | 'TEACHER') {
+  const { data } = useQuery({
+    queryKey: ['userCount', role],
+    queryFn: async () => {
+      const res = await handleApi({ url: `/users/count-by-role/${role}`, method: 'GET' })
+      return res.data.count // trả luôn number
+    }
+  })
+
+  return data // number
+}

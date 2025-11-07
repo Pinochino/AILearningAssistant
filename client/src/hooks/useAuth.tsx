@@ -5,40 +5,17 @@ import { setAccessToken, clearAccessToken } from '../api/axiosClient';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demo
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@example.com',
-    role: 'admin',
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Nguyễn Văn Giáo',
-    email: 'teacher@example.com',
-    role: 'teacher',
-    createdAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Trần Thị Học',
-    email: 'student@example.com',
-    role: 'student',
-    createdAt: new Date(),
-  },
-];
 
 export function useAuth() {
   const context = useContext(AuthContext);
+  console.log(context)
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
@@ -144,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const user: User = {
           id: payload.id || '1',
           name: payload.username || payload.email?.split('@')[0] || 'User',
+          username: payload.username,
           email: payload.email || 'unknown@example.com',
           role: role,
           createdAt: new Date(),
@@ -167,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
 
     try {
@@ -175,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:9000/api';
       const response = await axios.post(
         `${API_BASE_URL}/auth/login`,
-        { email, password },
+        { username, password },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -216,7 +194,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Map backend user to frontend User type
         const user: User = {
           id: userData._id || '1',
-          name: userData.username || userData.email?.split('@')[0] || 'User',
+          name: userData.name || userData.email?.split('@')[0] || 'User',
+          username: userData.username,
           email: userData.email,
           role: role,
           avatar: userData.avatar,

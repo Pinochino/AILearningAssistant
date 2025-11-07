@@ -11,7 +11,7 @@ export enum RoleName {
 
 export interface IRole extends SoftDeleteDocument {
   name: RoleName
-  user: Types.ObjectId[]
+  users: Types.ObjectId[]
 }
 
 const roleSchema = new Schema<IRole>(
@@ -21,7 +21,7 @@ const roleSchema = new Schema<IRole>(
       enum: RoleName,
       default: RoleName.USER
     },
-    user: [
+    users: [
       {
         type: Schema.Types.ObjectId,
         ref: 'User'

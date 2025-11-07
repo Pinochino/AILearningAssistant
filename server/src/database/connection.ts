@@ -1,5 +1,6 @@
-import mongoose from "mongoose"
-import dotenv from "dotenv"
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
+import { runSeed } from '~/data/seed'
 
 dotenv.config()
 
@@ -8,17 +9,18 @@ const connectDB = async (): Promise<void> => {
     const mongoUrl = process.env.MONGO_URL
 
     if (!mongoUrl) {
-      throw new Error("MONGO_URL is not defined in environment variables")
+      throw new Error('MONGO_URL is not defined in environment variables')
     }
 
     await mongoose.connect(mongoUrl, {
       retryWrites: true,
       maxPoolSize: 10,
-      connectTimeoutMS: 10000,
+      connectTimeoutMS: 10000
     })
-    console.log("MongoDB connected successfully")
+    console.log('MongoDB connected successfully')
+    runSeed()
   } catch (error) {
-    console.error("MongoDB connection error:", error)
+    console.error('MongoDB connection error:', error)
     process.exit(1)
   }
 }

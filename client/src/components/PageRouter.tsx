@@ -8,7 +8,7 @@ import { StudentDashboard } from './dashboard/StudentDashboard'
 
 // Admin pages
 import { UserManagement } from './admin/UserManagement'
-import { EditUser } from './admin/EditUser'
+import {EditUser} from './admin/EditUser'
 import { Analytics } from './admin/Analytics'
 import { ContentManagement } from './admin/ContentManagement'
 import { SystemSettings } from './admin/SystemSettings'
