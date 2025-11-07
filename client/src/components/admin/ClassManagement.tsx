@@ -357,41 +357,51 @@ export function ClassManagement() {
 
   const addScheduleSlot = (isEdit = false) => {
     if (isEdit) {
-      setEditFormData({
-        ...editFormData,
-        schedule: [...editFormData.schedule, { dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }],
-      });
+      setEditFormData(prev => ({
+        ...prev,
+        schedule: [
+          ...prev.schedule,
+          { dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }
+        ]
+      }));
     } else {
-      setFormData({
-        ...formData,
-        schedule: [...formData.schedule, { dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }],
-      });
+      setFormData(prev => ({
+        ...prev,
+        schedule: [
+          ...prev.schedule,
+          { dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }
+        ]
+      }));
     }
   };
 
   const removeScheduleSlot = (index: number, isEdit = false) => {
     if (isEdit) {
-      setEditFormData({
-        ...editFormData,
-        schedule: editFormData.schedule.filter((_, i) => i !== index),
-      });
+      setEditFormData(prev => ({
+        ...prev,
+        schedule: prev.schedule.filter((_, i) => i !== index),
+      }));
     } else {
-      setFormData({
-        ...formData,
-        schedule: formData.schedule.filter((_, i) => i !== index),
-      });
+      setFormData(prev => ({
+        ...prev,
+        schedule: prev.schedule.filter((_, i) => i !== index),
+      }));
     }
   };
 
   const updateScheduleSlot = (index: number, field: string, value: any, isEdit = false) => {
     if (isEdit) {
-      const newSchedule = [...editFormData.schedule];
-      newSchedule[index] = { ...newSchedule[index], [field]: value };
-      setEditFormData({ ...editFormData, schedule: newSchedule });
+      setEditFormData(prev => {
+        const newSchedule = [...prev.schedule];
+        newSchedule[index] = { ...newSchedule[index], [field]: value };
+        return { ...prev, schedule: newSchedule };
+      });
     } else {
-      const newSchedule = [...formData.schedule];
-      newSchedule[index] = { ...newSchedule[index], [field]: value };
-      setFormData({ ...formData, schedule: newSchedule });
+      setFormData(prev => {
+        const newSchedule = [...prev.schedule];
+        newSchedule[index] = { ...newSchedule[index], [field]: value };
+        return { ...prev, schedule: newSchedule };
+      });
     }
   };
 
@@ -423,16 +433,13 @@ export function ClassManagement() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Tạo lớp học mới</DialogTitle>
-              <DialogDescription>
-                Tạo lớp học mới và thiết lập lịch học
-              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="subject">Môn học</Label>
                 <Input 
                   id="subject" 
-                  placeholder="VD: Toán học, Vật lý, Hóa học..." 
+                  placeholder="Nhập môn học" 
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
                 />
@@ -441,19 +448,19 @@ export function ClassManagement() {
                 <Label htmlFor="grade">Lớp/Ngành (không bắt buộc)</Label>
                 <Input 
                   id="grade" 
-                  placeholder="VD: 12A1, IT, MME, K65... (có thể để trống)" 
+                  placeholder="Nhập lớp ngành( có thể bỏ trống)" 
                   value={formData.grade}
                   onChange={(e) => setFormData({...formData, grade: e.target.value})}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Nhập lớp cụ thể (12A1, 10B...) hoặc ngành (IT, MME...). Để trống nếu áp dụng chung.
+                  Nhập lớp cụ thể hoặc ngành. Để trống nếu áp dụng chung.
                 </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="teacherId">Giáo viên</Label>
                 <Input
                   id="teacherId"
-                  placeholder="Nhập username giáo viên (VD: teacher1, admin, teacher2...)"
+                  placeholder="Nhập username giáo viên"
                   value={formData.teacherId}
                   onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
                 />
@@ -477,7 +484,16 @@ export function ClassManagement() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Lịch học</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addScheduleSlot}>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      addScheduleSlot();
+                    }}
+                  >
                     <Plus className="h-4 w-4 mr-1" />
                     Thêm buổi học
                   </Button>
