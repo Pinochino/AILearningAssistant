@@ -1,257 +1,296 @@
+// src/controllers/MaterialController.ts
 import { RequestHandler } from 'express'
 import { Types } from 'mongoose'
+import path from 'path'
+import fs from 'fs'
+import { Material } from '../models/Material'
+import { Chapter } from '../models/Chapter'
 import { responseUtils } from '../utils/ResponseUtils'
-import { Material, MaterialType } from '../models/Material'
+import docxConverter from '../services/docxConverterService'
 
 const isId = (v?: string) => !!v && Types.ObjectId.isValid(v)
+
 const getUserId = (req: any): string | undefined => {
   const u = req?.user ?? {}
   return u.userId ?? u.id ?? u._id ?? u.sub
 }
 
-function detectMaterialType(mime: string, fileName: string): MaterialType {
-  const m = (mime || '').toLowerCase()
-  const f = (fileName || '').toLowerCase()
-  if (m.includes('pdf') || f.endsWith('.pdf')) return 'pdf'
-  if (m.includes('msword') || m.includes('officedocument.wordprocessingml') || f.endsWith('.docx') || f.endsWith('.doc')) return 'docx'
-  if (m.includes('powerpoint') || m.includes('officedocument.presentationml') || f.endsWith('.ppt') || f.endsWith('.pptx')) return 'pptx'
-  if (m.includes('spreadsheet') || f.endsWith('.xls') || f.endsWith('.xlsx')) return 'xlsx'
-  if (m.startsWith('image/')) return 'image'
-  if (m.startsWith('video/')) return 'video'
-  if (m.startsWith('audio/')) return 'audio'
-  if (m.includes('text/') || f.endsWith('.txt')) return 'txt'
-  return 'other'
-}
-
-/**
- * POST /materials
- * multipart/form-data:
- *  - file: File (multer gắn vào req.file)
- *  - body: { title?: string; description?: string; classId: string; chapter: string; isAIGenerated?: boolean }
- * YÊU CẦU middleware upload: upload.single('file')
- */
-export const upload: RequestHandler = async (req, res) => {
+// POST /materials/upload
+export const uploadMaterial: RequestHandler = async (req, res) => {
   try {
-    const { classId, chapter, title, description, isAIGenerated } = req.body
+    const { title, description, classId, chapterId } = req.body
     const file = req.file
 
+    // Validation
     if (!file) {
-      return responseUtils({ req, res, code: 400, message: 'File is required' })
+      return responseUtils({ req, res, code: 400, message: 'No file uploaded' })
     }
 
-    if (!isId(classId) || !isId(chapter)) {
-      return responseUtils({ req, res, code: 400, message: 'Invalid classId or chapter' })
+    if (!title || !isId(classId) || !isId(chapterId)) {
+      // Cleanup uploaded file nếu validation fail
+      fs.unlinkSync(file.path)
+      return responseUtils({ 
+        req, 
+        res, 
+        code: 400, 
+        message: 'Missing required fields: title, classId, chapterId' 
+      })
     }
 
     const userId = getUserId(req)
     if (!userId) {
+      fs.unlinkSync(file.path)
       return responseUtils({ req, res, code: 401, message: 'Unauthorized' })
     }
 
-    console.log('File uploaded:', file)
-
-    // ✅ Lưu đường dẫn tương đối thay vì tuyệt đối
-    const fileUrl = `/uploads/materials/${file.filename}` // Thay vì file.path
-    const fileName = file.originalname
-    const mimeType = file.mimetype
-    const size = file.size || 0
-    const type = detectMaterialType(mimeType, fileName)
-
-    const doc = await Material.create({
-      title: (title || fileName).toString().trim(),
-      description,
-      classId: new Types.ObjectId(classId),
-      chapter: new Types.ObjectId(chapter),
-      uploadedBy: new Types.ObjectId(userId),
-
-      fileName,
-      fileUrl, // ✅ Đã sửa
-      mimeType,
-      size,
-      type,
-      isAIGenerated: !!isAIGenerated
-    })
-
-    return responseUtils({ req, res, code: 201, message: 'Material uploaded', data: doc })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
-  }
-}
-
-
-/**
- * POST /materials/link
- * Tạo material từ 1 URL có sẵn (không upload file). Optional, dùng khi tài liệu host ngoài.
- * body: { classId, chapter, fileUrl, fileName, mimeType?, title?, description? }
- */
-export const createFromLink: RequestHandler = async (req, res) => {
-  try {
-    const { classId, chapter, fileUrl, fileName, mimeType, title, description, isAIGenerated } = (req.body || {}) as Record<string, any>
-    if (!isId(classId) || !isId(chapter) || !fileUrl || !fileName) {
-      return responseUtils({ req, res, code: 400, message: 'classId, chapter, fileUrl, fileName are required' })
+    // Verify chapter exists and belongs to class
+    const chapter = await Chapter.findById(chapterId).lean()
+    if (!chapter) {
+      fs.unlinkSync(file.path)
+      return responseUtils({ req, res, code: 404, message: 'Chapter not found' })
     }
-    const userId = getUserId(req)
-    if (!userId) return responseUtils({ req, res, code: 401, message: 'Unauthorized' })
 
-    const type = detectMaterialType(mimeType || '', fileName)
-    const doc = await Material.create({
-      title: (title || fileName).toString().trim(),
-      description,
+    if (String(chapter.classId) !== String(classId)) {
+      fs.unlinkSync(file.path)
+      return responseUtils({ 
+        req, 
+        res, 
+        code: 400, 
+        message: 'Chapter does not belong to specified class' 
+      })
+    }
+
+    let finalFilePath = file.path
+    let finalFileName = file.filename
+    let finalMimeType = file.mimetype
+    let fileType = detectFileType(file.mimetype)
+
+    // 🔄 Convert .docx to .pdf automatically
+    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      console.log('🔄 Converting .docx to .pdf...')
+      
+      try {
+        const pdfPath = await docxConverter.convertToPdf(file.path, {
+          deleteOriginal: true  // Xóa .docx gốc sau khi convert
+        })
+
+        finalFilePath = pdfPath
+        finalFileName = path.basename(pdfPath)
+        finalMimeType = 'application/pdf'
+        fileType = 'pdf'
+
+        console.log('✅ Conversion successful')
+      } catch (conversionError: any) {
+        console.error('❌ Conversion failed:', conversionError.message)
+        
+        // Vẫn lưu file .docx gốc nếu conversion fail
+        console.log('⚠️ Saving original .docx file')
+      }
+    }
+
+    // Create relative URL for storage
+    const relativePath = finalFilePath.replace(path.join(process.cwd(), 'public'), '')
+      .replace(/\\/g, '/')  // Convert Windows backslashes to forward slashes
+
+    // Create Material document
+    const material = await Material.create({
+      title: title.trim(),
+      description: description?.trim(),
       classId: new Types.ObjectId(classId),
-      chapter: new Types.ObjectId(chapter),
+      chapter: new Types.ObjectId(chapterId),
       uploadedBy: new Types.ObjectId(userId),
-
-      fileName,
-      fileUrl,
-      mimeType: mimeType || 'application/octet-stream',
-      size: 0,
-      type,
-      isAIGenerated: !!isAIGenerated
+      fileName: finalFileName,
+      fileUrl: relativePath,
+      mimeType: finalMimeType,
+      size: fs.statSync(finalFilePath).size,
+      type: fileType,
+      isAIGenerated: false
     })
 
-    return responseUtils({ req, res, code: 201, message: 'Material created from link', data: doc })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
+    // Add material to chapter's documents array
+    await Chapter.findByIdAndUpdate(
+      chapterId,
+      { $addToSet: { documents: material._id } },
+      { new: true }
+    )
+
+    console.log(`✅ Material uploaded: ${material.title}`)
+
+    return responseUtils({
+      req,
+      res,
+      code: 201,
+      message: 'Material uploaded successfully',
+      data: material
+    })
+  } catch (error: any) {
+    console.error('❌ Upload error:', error)
+    
+    // Cleanup file if error occurs
+    if (req.file?.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path)
+    }
+
+    return responseUtils({
+      req,
+      res,
+      code: 500,
+      message: error.message || 'Internal server error'
+    })
   }
 }
 
-/**
- * GET /materials/class/:classId
- * query: { chapter?: string; search?: string; page?: number; limit?: number; type?: MaterialType }
- */
+// Helper function
+function detectFileType(mimeType: string): string {
+  if (mimeType.includes('pdf')) return 'pdf'
+  if (mimeType.includes('wordprocessingml')) return 'docx'
+  if (mimeType.includes('presentationml')) return 'pptx'
+  if (mimeType.includes('spreadsheetml')) return 'xlsx'
+  if (mimeType.includes('image')) return 'image'
+  if (mimeType.includes('video')) return 'video'
+  if (mimeType.includes('audio')) return 'audio'
+  if (mimeType.includes('text/plain')) return 'txt'
+  return 'other'
+}
+
+// GET /materials/class/:classId
 export const listByClass: RequestHandler = async (req, res) => {
   try {
     const { classId } = req.params
-    if (!isId(classId)) return responseUtils({ req, res, code: 400, message: 'Invalid classId' })
+    if (!isId(classId)) {
+      return responseUtils({ req, res, code: 400, message: 'Invalid classId' })
+    }
+
     const { chapter, search, page = '1', limit = '20', type } = req.query as Record<string, string>
+
     const filter: any = { classId: new Types.ObjectId(classId) }
-    if (chapter && isId(chapter)) filter.chapter = new Types.ObjectId(chapter)
+    if (chapter && isId(chapter)) {
+      filter.chapter = new Types.ObjectId(chapter)
+    }
     if (type) filter.type = type
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
         { fileName: { $regex: search, $options: 'i' } }
       ]
     }
 
-    const p = Math.max(1, parseInt(String(page)) || 1)
-    const l = Math.min(100, Math.max(1, parseInt(String(limit)) || 20))
+    const p = Math.max(1, parseInt(page) || 1)
+    const l = Math.min(100, Math.max(1, parseInt(limit) || 20))
+
     const [items, total] = await Promise.all([
-      Material.find(filter).sort({ createdAt: -1 }).skip((p - 1) * l).limit(l).lean(),
+      Material.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((p - 1) * l)
+        .limit(l)
+        .populate('uploadedBy', 'username email')
+        .populate('chapter', 'title')
+        .lean(),
       Material.countDocuments(filter)
     ])
+
     return responseUtils({
-      req, res, code: 200, message: 'OK',
-      data: { items, pagination: { page: p, limit: l, total, pages: Math.ceil(total / l) } }
+      req,
+      res,
+      code: 200,
+      message: 'OK',
+      data: {
+        items,
+        pagination: {
+          page: p,
+          limit: l,
+          total,
+          pages: Math.ceil(total / l)
+        }
+      }
     })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
+  } catch (error: any) {
+    return responseUtils({
+      req,
+      res,
+      code: 500,
+      message: error.message || 'Internal server error'
+    })
   }
 }
 
-/**
- * GET /materials/chapter/:chapterId
- */
-export const listByChapter: RequestHandler = async (req, res) => {
-  try {
-    const { chapterId } = req.params
-    if (!isId(chapterId)) return responseUtils({ req, res, code: 400, message: 'Invalid chapterId' })
-    const { search, page = '1', limit = '20', type } = req.query as Record<string, string>
-    const filter: any = { chapter: new Types.ObjectId(chapterId) }
-    if (type) filter.type = type
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { fileName: { $regex: search, $options: 'i' } }
-      ]
-    }
-    const p = Math.max(1, parseInt(String(page)) || 1)
-    const l = Math.min(100, Math.max(1, parseInt(String(limit)) || 20))
-    const [items, total] = await Promise.all([
-      Material.find(filter).sort({ createdAt: -1 }).skip((p - 1) * l).limit(l).lean(),
-      Material.countDocuments(filter)
-    ])
-    return responseUtils({
-      req, res, code: 200, message: 'OK',
-      data: { items, pagination: { page: p, limit: l, total, pages: Math.ceil(total / l) } }
-    })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
-  }
-}
-
-/**
- * GET /materials/:id
- */
+// GET /materials/:id
 export const getOne: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params
-    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid id' })
-    const doc = await Material.findById(id)
-    if (!doc) return responseUtils({ req, res, code: 404, message: 'Material not found' })
-    return responseUtils({ req, res, code: 200, message: 'OK', data: doc })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
-  }
-}
-
-/**
- * PATCH /materials/:id
- * body: { title?, description?, pageCount?, durationSec? }
- */
-export const update: RequestHandler = async (req, res) => {
-  try {
-    const { id } = req.params
-    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid id' })
-    const { title, description, pageCount, durationSec } = (req.body || {}) as Record<string, any>
-    const payload: any = {}
-    if (typeof title === 'string') payload.title = title.trim()
-    if (typeof description === 'string') payload.description = description.trim()
-    if (typeof pageCount === 'number') payload.pageCount = Math.max(0, pageCount)
-    if (typeof durationSec === 'number') payload.durationSec = Math.max(0, durationSec)
-
-    if (!Object.keys(payload).length) {
-      return responseUtils({ req, res, code: 400, message: 'No fields to update' })
+    if (!isId(id)) {
+      return responseUtils({ req, res, code: 400, message: 'Invalid id' })
     }
 
-    const updated = await Material.findByIdAndUpdate(id, payload, { new: true })
-    if (!updated) return responseUtils({ req, res, code: 404, message: 'Material not found' })
-    return responseUtils({ req, res, code: 200, message: 'Material updated', data: updated })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
+    const material = await Material.findById(id)
+      .populate('uploadedBy', 'username email')
+      .populate('chapter', 'title')
+      .lean()
+
+    if (!material) {
+      return responseUtils({ req, res, code: 404, message: 'Material not found' })
+    }
+
+    return responseUtils({
+      req,
+      res,
+      code: 200,
+      message: 'OK',
+      data: material
+    })
+  } catch (error: any) {
+    return responseUtils({
+      req,
+      res,
+      code: 500,
+      message: error.message || 'Internal server error'
+    })
   }
 }
 
-/**
- * DELETE /materials/:id  (soft delete)
- */
+// DELETE /materials/:id
 export const remove: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params
-    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid id' })
-    const userId = getUserId(req)
-    const deleted = await (Material as any).deleteById(id, { deletedBy: userId })
-    if (!deleted) return responseUtils({ req, res, code: 404, message: 'Material not found' })
-    return responseUtils({ req, res, code: 200, message: 'Material deleted' })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
-  }
-}
+    if (!isId(id)) {
+      return responseUtils({ req, res, code: 400, message: 'Invalid id' })
+    }
 
-/**
- * PATCH /materials/:id/restore
- */
-export const restore: RequestHandler = async (req, res) => {
-  try {
-    const { id } = req.params
-    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid id' })
-    await (Material as any).restore({ _id: id })
-    const doc = await Material.findById(id)
-    if (!doc) return responseUtils({ req, res, code: 404, message: 'Material not found' })
-    return responseUtils({ req, res, code: 200, message: 'Material restored', data: doc })
-  } catch (err: any) {
-    return responseUtils({ req, res, code: 500, message: err?.message || 'Internal server error' })
+    const material = await Material.findById(id)
+    if (!material) {
+      return responseUtils({ req, res, code: 404, message: 'Material not found' })
+    }
+
+    const userId = getUserId(req)
+
+    // Soft delete
+    await (Material as any).deleteById(id, { deletedBy: userId })
+
+    // Remove from chapter's documents array
+    await Chapter.findByIdAndUpdate(
+      material.chapter,
+      { $pull: { documents: material._id } }
+    )
+
+    // Optional: Delete physical file
+    const absolutePath = path.join(process.cwd(), 'public', material.fileUrl)
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath)
+      console.log(`🗑️ Deleted file: ${material.fileName}`)
+    }
+
+    return responseUtils({
+      req,
+      res,
+      code: 200,
+      message: 'Material deleted successfully'
+    })
+  } catch (error: any) {
+    return responseUtils({
+      req,
+      res,
+      code: 500,
+      message: error.message || 'Internal server error'
+    })
   }
 }

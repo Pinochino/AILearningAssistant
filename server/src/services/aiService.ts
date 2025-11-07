@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { GoogleAIFileManager } from '@google/generative-ai/server' // ✅ đúng
 import fs from 'fs'
 import path from 'path'
+import docxConverter from '../services/docxConverterService'
 
 type MaterialLike = {
   _id?: any
@@ -22,12 +23,35 @@ export class AIService {
 
   // 🔹 Upload file lên Gemini qua File Manager
   private async uploadToGemini(filePath: string) {
-    const mimeType = this.detectMimeType(filePath)
+    let pathToUpload = filePath
+    let mimeType = this.detectMimeType(filePath)
 
-    const result = await this.fileManager.uploadFile(filePath, {
+    // Nếu vẫn là DOCX → convert sang PDF trước khi upload
+    if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      console.log('🔄 Converting DOCX → PDF on-the-fly:', path.basename(filePath))
+      try {
+        const pdfPath = await docxConverter.convertToPdf(filePath, { deleteOriginal: false })
+        pathToUpload = pdfPath
+        mimeType = 'application/pdf'
+        console.log('✅ On-the-fly conversion OK:', path.basename(pdfPath))
+      } catch (e: any) {
+        console.warn('⚠️ On-the-fly convert failed:', e?.message || e)
+        // cho phép fallback khác nếu muốn: trích text ra .txt rồi upload
+        // hoặc ném lỗi để skip file này
+        throw new Error('DOCX not supported and conversion failed')
+      }
+    }
+
+    const st = fs.statSync(pathToUpload)
+    console.log('📤 Uploading to Gemini:', pathToUpload, 'size=', st.size)
+
+    const result = await this.fileManager.uploadFile(pathToUpload, {
       mimeType,
-      displayName: path.basename(filePath)
+      displayName: path.basename(pathToUpload)
     })
+
+    // (tuỳ) đợi ACTIVE rồi mới dùng
+    // await this.fileManager.waitForFilesActive([result.file.name])
 
     return result.file
   }
@@ -79,7 +103,7 @@ export class AIService {
     if (!validFiles.length) throw new Error('No valid files uploaded')
 
     // 2️⃣ Gọi model Gemini
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     // 3️⃣ Prompt hướng dẫn rõ ràng
     const basePrompt = `

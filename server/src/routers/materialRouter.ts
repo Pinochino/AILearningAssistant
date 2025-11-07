@@ -21,16 +21,7 @@ router.post(
     console.log('Body:', req.body) // Log thông tin body
     next()
   },
-  mat.upload
-)
-
-// Tạo từ link (không upload file) – TEACHER
-router.post(
-  '/link',
-  authenticationMiddleware,
-  authorizationMiddleware,
-  requireTeacherInClass('classId'),
-  mat.createFromLink
+  mat.uploadMaterial
 )
 
 // Xem material theo class/chapter – thành viên lớp
@@ -42,20 +33,10 @@ router.get(
   mat.listByClass
 )
 
-router.get(
-  '/chapter/:chapterId',
-  authenticationMiddleware,
-  authorizationMiddleware,
-  requireMemberInClass('chapterId'),
-  mat.listByChapter
-)
-
 // Xem chi tiết 1 material
 router.get('/:id', authenticationMiddleware, authorizationMiddleware, mat.getOne)
 
-// Sửa/Xóa/Khôi phục – (tùy bạn có thể siết chặt hơn để chỉ teacher chỉnh sửa)
-router.patch('/:id', authenticationMiddleware, authorizationMiddleware, mat.update)
+
 router.delete('/:id', authenticationMiddleware, authorizationMiddleware, mat.remove)
-router.patch('/:id/restore', authenticationMiddleware, authorizationMiddleware, mat.restore)
 
 export default router

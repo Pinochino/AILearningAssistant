@@ -8,7 +8,43 @@ import { Material } from '../models/Material'
 import { Flashcard } from '../models/Flashcard'
 import { responseUtils } from '../utils/ResponseUtils'
 
-// 🔐 Đọc API Key từ .env
+const PUBLIC_DIR = process.env.PUBLIC_DIR ? path.resolve(process.env.PUBLIC_DIR) : path.resolve(process.cwd(), 'public')
+
+function resolveMaterialAbsolutePath(fileUrlOrPath: string) {
+  if (!fileUrlOrPath) return ''
+
+  // Nếu đã là absolute path
+  if (path.isAbsolute(fileUrlOrPath)) {
+    if (fs.existsSync(fileUrlOrPath)) return fileUrlOrPath
+  }
+
+  // Chuẩn hóa: loại bỏ các ký tự đầu không cần thiết
+  const cleanPath = fileUrlOrPath
+    .replace(/^\.?\//, '') // Bỏ ./ hoặc /
+    .replace(/^public\//, '') // Bỏ public/ nếu có
+    .replace(/\\/g, '/') // Chuyển \ thành /
+
+  // Thử các cách ghép path khác nhau
+  const candidates = [
+    path.join(process.cwd(), 'public', cleanPath),
+    path.join(process.cwd(), cleanPath),
+    path.join(PUBLIC_DIR, cleanPath)
+  ]
+
+  for (const candidate of candidates) {
+    console.log(`🔍 Trying: ${candidate}`)
+    if (fs.existsSync(candidate)) {
+      console.log(`✅ Found: ${candidate}`)
+      return candidate
+    }
+  }
+
+  console.error(`❌ File not found after checking all candidates`)
+  console.error(`Original path: ${fileUrlOrPath}`)
+  return candidates[0] // Fallback
+}
+
+// 📝 Đọc API Key từ .env
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 if (!GEMINI_API_KEY) {
   console.error('⚠️ Missing GEMINI_API_KEY in .env')
@@ -18,7 +54,7 @@ if (!GEMINI_API_KEY) {
 // 🚀 Khởi tạo Gemini SDK
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
 const fileManager = new GoogleAIFileManager(GEMINI_API_KEY)
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
 // Helper functions
 const isId = (v?: string) => !!v && Types.ObjectId.isValid(v)
@@ -28,26 +64,63 @@ const getUserId = (req: any): string | undefined => {
   return u.userId ?? u.id ?? u._id ?? u.sub
 }
 
+// ✅ FIXED: Danh sách MIME types được Gemini hỗ trợ
+const SUPPORTED_MIME_TYPES = [
+  'application/pdf',
+  'text/plain',
+  'text/html',
+  'text/css',
+  'text/javascript',
+  'application/x-javascript',
+  'text/x-typescript',
+  'application/x-typescript',
+  'text/csv',
+  'text/markdown',
+  'text/x-python',
+  'application/x-python-code',
+  'application/json',
+  'text/xml',
+  'application/rtf',
+  'text/rtf'
+]
+
 const detectMimeType = (filename: string): string => {
   const ext = path.extname(filename).toLowerCase()
   switch (ext) {
     case '.pdf':
       return 'application/pdf'
-    case '.docx':
-      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    case '.pptx':
-      return 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    case '.xlsx':
-      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     case '.txt':
       return 'text/plain'
+    case '.html':
+      return 'text/html'
+    case '.css':
+      return 'text/css'
+    case '.js':
+      return 'text/javascript'
+    case '.ts':
+      return 'text/x-typescript'
+    case '.py':
+      return 'text/x-python'
+    case '.json':
+      return 'application/json'
+    case '.csv':
+      return 'text/csv'
+    case '.md':
+      return 'text/markdown'
+    case '.xml':
+      return 'text/xml'
+    case '.rtf':
+      return 'text/rtf'
+    // ❌ Không hỗ trợ
+    case '.docx':
+    case '.pptx':
+    case '.xlsx':
     case '.jpg':
     case '.jpeg':
-      return 'image/jpeg'
     case '.png':
-      return 'image/png'
+      return 'unsupported'
     default:
-      return 'application/octet-stream'
+      return 'unsupported'
   }
 }
 
@@ -74,7 +147,7 @@ export const generateFlashcards: RequestHandler = async (req, res) => {
       return responseUtils({ req, res, code: 401, message: 'Unauthorized' })
     }
 
-    // 🔍 Query materials from database
+    // 📁 Query materials from database
     const materials = await Material.find({
       _id: { $in: materialIds.map((id: string) => new Types.ObjectId(id)) },
       classId: new Types.ObjectId(classId)
@@ -88,27 +161,34 @@ export const generateFlashcards: RequestHandler = async (req, res) => {
 
     // 🗂 Upload files to Gemini
     const uploadedParts = []
+    const skippedFiles: string[] = []
+
+    console.log('CWD =', process.cwd())
+    console.log('__dirname =', __dirname)
+    console.log('PUBLIC_DIR =', PUBLIC_DIR)
+
     for (const material of materials) {
       try {
-        let absolutePath: string
+        console.log('🔍 fileUrl:', material.fileUrl)
 
-        // ✅ Check if fileUrl is already absolute path (old data)
-        if (path.isAbsolute(material.fileUrl)) {
-          // Old format: "D:\...\server\public\uploads\materials\file.docx"
-          absolutePath = material.fileUrl
-        } else {
-          // New format: "/uploads/materials/file.docx"
-          absolutePath = path.join(process.cwd(), 'public', material.fileUrl)
-        }
+        const absolutePath = resolveMaterialAbsolutePath(material.fileUrl)
+        console.log('🔍 absolutePath:', absolutePath)
 
-        console.log(`🔍 Checking file: ${absolutePath}`)
-
+        // 2) Check tồn tại
         if (!fs.existsSync(absolutePath)) {
           console.warn(`⚠️ File not found: ${absolutePath}`)
+          skippedFiles.push(`${material.fileName} (not found)`)
           continue
         }
 
         const mimeType = detectMimeType(material.fileName)
+
+        // ✅ FIXED: Kiểm tra MIME type có được hỗ trợ không
+        if (mimeType === 'unsupported' || !SUPPORTED_MIME_TYPES.includes(mimeType)) {
+          console.warn(`⚠️ Unsupported file type: ${material.fileName} (${mimeType})`)
+          skippedFiles.push(`${material.fileName} (unsupported format)`)
+          continue
+        }
 
         console.log(`📤 Uploading: ${material.fileName}`)
         const uploadResult = await fileManager.uploadFile(absolutePath, {
@@ -126,6 +206,7 @@ export const generateFlashcards: RequestHandler = async (req, res) => {
         console.log(`✅ Uploaded: ${material.fileName}`)
       } catch (uploadError: any) {
         console.error(`❌ Failed to upload ${material.fileName}:`, uploadError.message)
+        skippedFiles.push(`${material.fileName} (${uploadError.message})`)
       }
     }
 
@@ -134,11 +215,18 @@ export const generateFlashcards: RequestHandler = async (req, res) => {
         req,
         res,
         code: 400,
-        message: 'No valid files could be uploaded to Gemini'
+        message: 'No valid files could be uploaded to Gemini. Only PDF and text files are supported.',
+        data: {
+          skippedFiles,
+          supportedFormats: 'PDF, TXT, HTML, CSS, JS, TS, PY, JSON, CSV, MD, XML, RTF'
+        }
       })
     }
 
     console.log(`✅ Successfully uploaded ${uploadedParts.length} files to Gemini`)
+    if (skippedFiles.length > 0) {
+      console.log(`⚠️ Skipped ${skippedFiles.length} files:`, skippedFiles)
+    }
 
     // 🧾 Prompt cho Gemini
     const systemPrompt = `
@@ -246,7 +334,8 @@ ${prompt ? `\nYêu cầu bổ sung từ người dùng: ${prompt}` : ''}
           materialsProcessed: uploadedParts.length,
           totalMaterials: materials.length,
           generatedCount: flashcards.length,
-          requestedCount: count
+          requestedCount: count,
+          skippedFiles: skippedFiles.length > 0 ? skippedFiles : undefined
         }
       }
     })
