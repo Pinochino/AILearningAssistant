@@ -471,7 +471,7 @@ export function ClassManagement() {
                         <Label className="text-xs">Thứ</Label>
                         <Select 
                           value={slot.dayOfWeek.toString()} 
-                          onValueChange={(val) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val))}
+                          onValueChange={(val: any) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val))}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -598,7 +598,7 @@ export function ClassManagement() {
                         <Label className="text-xs">Thứ</Label>
                         <Select 
                           value={slot.dayOfWeek.toString()} 
-                          onValueChange={(val) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val), true)}
+                          onValueChange={(val: any) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val), true)}
                         >
                           <SelectTrigger>
                             <SelectValue />
