@@ -317,6 +317,24 @@ export function ClassManagement() {
     setIsDeleteDialogOpen(true);
   };
 
+  // Helper function to get teacher's display name
+  const getTeacherDisplayName = (teacherId: any) => {
+    if (!teacherId) return 'Không xác định';
+    
+    // If it's a string (just the ID), try to find the teacher in the teachers list
+    if (typeof teacherId === 'string') {
+      const teacher = teachers.find(t => t._id === teacherId);
+      return teacher?.name || teacher?.username || teacherId;
+    }
+    
+    // If it's an object with name property (populated teacher)
+    if (typeof teacherId === 'object' && teacherId !== null) {
+      return teacherId.name || teacherId.username || 'Không xác định';
+    }
+    
+    return 'Không xác định';
+  };
+
   const confirmDeleteClass = async () => {
     if (!classToDelete) return;
 
@@ -727,7 +745,7 @@ export function ClassManagement() {
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
-                      GV: {typeof cls.teacherId === 'string' ? cls.teacherId : (cls.teacherId as any)?.name || 'Không xác định'}
+                      GV: {getTeacherDisplayName(cls.teacherId)}
                     </span>
                   </div>
                 )}

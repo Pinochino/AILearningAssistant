@@ -25,7 +25,7 @@ export class ClassesService {
 
       // Populate after save using findById
       const populatedClass = await Class.findById(savedClass._id)
-        .populate("teacherId", "username email")
+        .populate("teacherId", "username name email")
         .exec()
 
       return populatedClass || savedClass
@@ -37,8 +37,8 @@ export class ClassesService {
   static async getClassById(id: string): Promise<IClass | null> {
     try {
       const classDoc = await Class.findById(id)
-        .populate("teacherId", "username email")
-        .populate("students", "username email")
+        .populate("teacherId", "username name email")
+        .populate("students", "username name email")
         .exec()
       return classDoc
     } catch (error: any) {
@@ -84,8 +84,8 @@ export class ClassesService {
 
       const [classes, total] = await Promise.all([
         Class.find(query)
-          .populate("teacherId", "username email")
-          .populate("students", "username email")
+          .populate("teacherId", "username name email")
+          .populate("students", "username name email")
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
@@ -125,10 +125,10 @@ export class ClassesService {
       const updatedClass = await Class.findByIdAndUpdate(
         id,
         { ...updateData, updatedAt: new Date() },
-        { new: true, runValidators: true },
+        { new: true, runValidors: true },
       )
-        .populate("teacherId", "username email")
-        .populate("students", "username email")
+        .populate("teacherId", "username name email")
+        .populate("students", "username name email")
         .exec()
       return updatedClass
     } catch (error: any) {
@@ -171,8 +171,8 @@ export class ClassesService {
       classDoc.students.push(new mongoose.Types.ObjectId(studentId))
       await classDoc.save()
 
-      const updatedClass = await classDoc.populate("teacherId", "username email")
-      await updatedClass.populate("students", "username email")
+      const updatedClass = await classDoc.populate("teacherId", "username name email")
+      await updatedClass.populate("students", "username name email")
 
       return updatedClass
     } catch (error: any) {
@@ -183,8 +183,8 @@ export class ClassesService {
   static async unenrollStudent(classId: string, studentId: string): Promise<IClass | null> {
     try {
       const updatedClass = await Class.findByIdAndUpdate(classId, { $pull: { students: studentId } }, { new: true })
-        .populate("teacherId", "username email")
-        .populate("students", "username email")
+        .populate("teacherId", "username name email")
+        .populate("students", "username name email")
         .exec()
       return updatedClass
     } catch (error: any) {

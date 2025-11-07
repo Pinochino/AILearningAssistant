@@ -40,12 +40,20 @@ export interface ClassSchedule {
   endTime: string; // "HH:MM"
 }
 
+export interface UserBasicInfo {
+  _id: string;
+  username: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+}
+
 export interface Class {
   _id: string;
   name: string;
   subject: string;
   grade?: string; // Lớp/Ngành - có thể để trống
-  teacherId: string;
+  teacherId: string | UserBasicInfo; // Can be string ID or populated user object
   studentIds: string[];
   maxStudents: number;
   schedule: ClassSchedule[];
@@ -220,6 +228,9 @@ export const classApi = {
     if (params?.subject) queryParams.append('subject', params.subject);
     if (params?.teacherId) queryParams.append('teacherId', params.teacherId);
     if (params?.dayOfWeek !== undefined) queryParams.append('dayOfWeek', params.dayOfWeek.toString());
+    
+    // Add populate parameter to get teacher details
+    queryParams.append('populate', 'teacherId');
 
     const query = queryParams.toString();
     return apiRequest<PaginatedResponse<Class>>(`/classes${query ? `?${query}` : ''}`);
