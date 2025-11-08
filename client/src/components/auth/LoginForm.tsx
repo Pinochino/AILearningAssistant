@@ -49,11 +49,11 @@ export function LoginForm() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Tên đăng nhập</Label>
                 <Input
                   id="text"
                   type="text"
-                  placeholder="Enter yout username"
+                  placeholder="Nhập thông tin của người dùng"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required

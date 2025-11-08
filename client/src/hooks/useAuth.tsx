@@ -163,41 +163,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       const data = response.data;
+      console.log('Login response:', data); // Debug log
 
       if (data.success && data.data) {
         const { user: userData, accessToken } = data.data;
+        console.log('User data from backend:', userData); // Debug log
 
-        // Map role from backend (array of role objects) to frontend (single string)
+        // Map role from backend (array of role objects/strings) to frontend role
         let role: 'admin' | 'teacher' | 'student' = 'student';
-        if (userData.roles && Array.isArray(userData.roles) && userData.roles.length > 0) {
-          const roleStr = userData.roles[0]?.name?.toLowerCase() || userData.roles[0]?.toLowerCase();
-          console.log('🎭 Role from backend:', roleStr);
-          if (roleStr?.includes('admin') || roleStr?.includes('super_admin')) {
+        
+        // Check if roles is an array and process it
+        if (userData.roles && Array.isArray(userData.roles)) {
+          // Convert all role names to lowercase for case-insensitive comparison
+          const roleNames = userData.roles.map((r: any) => 
+            (typeof r === 'string' ? r : r?.name || '').toLowerCase()
+          );
+          
+          // Check for admin or teacher role (admin has higher priority)
+          if (roleNames.some((r: string) => r.includes('admin') || r.includes('super_admin'))) {
             role = 'admin';
-          } else if (roleStr?.includes('teacher')) {
+          } else if (roleNames.some((r: string) => r.includes('teacher'))) {
+            role = 'teacher';
+          }
+        } 
+        // Fallback to direct role property if roles array is not available
+        else if (userData.role) {
+          const roleStr = String(userData.role).toLowerCase();
+          if (roleStr.includes('admin') || roleStr.includes('super_admin')) {
+            role = 'admin';
+          } else if (roleStr.includes('teacher')) {
             role = 'teacher';
           }
         }
 
-        // Fallback: Check username if role is still student
-        if (role === 'student') {
-          const username = (userData.username || '').toLowerCase();
+        console.log('Mapped role:', role); // Debug log
 
-          if (username.includes('teacher')) {
-            role = 'teacher';
-          } else if (username.includes('admin')) {
-            role = 'admin';
-          }
-        }
-
-        // Map backend user to frontend User type
-       const user: User = {
-  id: userData._id || '1',
-  name: userData.fullName || userData.name || '', // ❌ không fallback về username nữa
-  username: userData.username,
-  role: role,
-  avatar: userData.avatar,
-  createdAt: new Date(userData.createdAt) || new Date(),
+        // Map backend user to frontend User type with all required fields
+        const user: User = {
+          id: userData.id || userData._id?.toString() || '',
+          name: userData.name || userData.username || '',
+          username: userData.username || '',
+          email: userData.email || `${userData.username || 'user'}@example.com`, // Ensure email is always provided
+          role: role,
+          avatar: userData.avatar || '',
+          createdAt: userData.createdAt ? new Date(userData.createdAt) : new Date(),
 };
 
         console.log('🔍 User data from login:', user);
