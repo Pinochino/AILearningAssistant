@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   avatar?: string;
   createdAt: Date;
+  _rawRoles?: any[]; // For debugging role mapping
 }
 
 export interface Subject {

@@ -92,14 +92,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Map role from token
         let role: 'admin' | 'teacher' | 'student' = 'student';
+        let roleName = '';
         
         // Check roles array first (backend format: array of objects with name)
         if (payload.roles && Array.isArray(payload.roles) && payload.roles.length > 0) {
-          const roleStr = payload.roles[0]?.name?.toLowerCase() || payload.roles[0]?.toLowerCase();
-          console.log('🎭 Role from token:', roleStr);
-          if (roleStr?.includes('admin') || roleStr?.includes('super_admin')) {
+          // Get the first role (assuming highest privilege first)
+          const firstRole = payload.roles[0];
+          roleName = (typeof firstRole === 'string' ? firstRole : firstRole?.name || '').toLowerCase();
+          console.log('🎭 Role from token:', { roleName, allRoles: payload.roles });
+          
+          if (roleName.includes('admin') || roleName.includes('super_admin')) {
             role = 'admin';
-          } else if (roleStr?.includes('teacher')) {
+          } else if (roleName.includes('teacher')) {
             role = 'teacher';
           }
         }
@@ -117,14 +121,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('✅ Final role:', role);
         
-       const user: User = {
-  id: payload.id || '1',
-  name: payload.fullName || payload.name || '', // ❌ bỏ fallback về username
-  username: payload.username,
-  role: role,
-  createdAt: new Date(),
-  avatar: payload.avatar
-};
+        const user: User = {
+          id: payload.id || '1',
+          name: payload.name || payload.fullName || payload.username || '',
+          username: payload.username || '',
+          email: payload.email || `${payload.username || 'user'}@example.com`,
+          role: role,
+          avatar: payload.avatar || '',
+          createdAt: new Date(),
+          _rawRoles: payload.roles || []
+        };
+        
+        console.log('Restored user from token:', user);
 
         
         console.log('✅ User restored from token:', user);
@@ -163,40 +171,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       const data = response.data;
-      console.log('Login response:', data); // Debug log
+      console.log('Login response:', data);
 
       if (data.success && data.data) {
         const { user: userData, accessToken } = data.data;
-        console.log('User data from backend:', userData); // Debug log
+        console.log('User data from backend:', userData);
 
         // Map role from backend (array of role objects/strings) to frontend role
         let role: 'admin' | 'teacher' | 'student' = 'student';
+        let roleName = '';
         
         // Check if roles is an array and process it
-        if (userData.roles && Array.isArray(userData.roles)) {
-          // Convert all role names to lowercase for case-insensitive comparison
-          const roleNames = userData.roles.map((r: any) => 
-            (typeof r === 'string' ? r : r?.name || '').toLowerCase()
-          );
+        if (userData.roles && Array.isArray(userData.roles) && userData.roles.length > 0) {
+          // Get the first role (assuming highest privilege first)
+          const firstRole = userData.roles[0];
+          roleName = (typeof firstRole === 'string' ? firstRole : firstRole?.name || '').toLowerCase();
+          console.log('🎭 Role from backend:', { roleName, allRoles: userData.roles });
           
-          // Check for admin or teacher role (admin has higher priority)
-          if (roleNames.some((r: string) => r.includes('admin') || r.includes('super_admin'))) {
+          if (roleName.includes('admin') || roleName.includes('super_admin')) {
             role = 'admin';
-          } else if (roleNames.some((r: string) => r.includes('teacher'))) {
+          } else if (roleName.includes('teacher')) {
             role = 'teacher';
           }
-        } 
+        }
         // Fallback to direct role property if roles array is not available
         else if (userData.role) {
-          const roleStr = String(userData.role).toLowerCase();
-          if (roleStr.includes('admin') || roleStr.includes('super_admin')) {
+          roleName = String(userData.role).toLowerCase();
+          if (roleName.includes('admin') || roleName.includes('super_admin')) {
             role = 'admin';
-          } else if (roleStr.includes('teacher')) {
+          } else if (roleName.includes('teacher')) {
             role = 'teacher';
           }
         }
 
-        console.log('Mapped role:', role); // Debug log
+        console.log('Mapped role:', { role, roleName, allRoles: userData.roles });
 
         // Map backend user to frontend User type with all required fields
         const user: User = {
@@ -207,14 +215,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: role,
           avatar: userData.avatar || '',
           createdAt: userData.createdAt ? new Date(userData.createdAt) : new Date(),
-};
+          // Add raw roles for debugging
+          _rawRoles: userData.roles || []
+        };
+        
+        console.log('User object before setting state:', user);
 
         console.log('🔍 User data from login:', user);
 
+        // Set user and token first
         setUser(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        setAccessToken(accessToken); // ✅ Set both in-memory and localStorage tokens
-        setIsLoading(false);
+        setAccessToken(accessToken);
+        
+        // Force update all components that depend on user state
+        window.dispatchEvent(new Event('storage'));
+        
+        // Add a small delay to ensure state is updated before redirecting
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Redirect based on role
+        if (role === 'admin') {
+          window.location.href = '/admin';
+        } else if (role === 'teacher') {
+          window.location.href = '/teacher';
+        } else {
+          window.location.href = '/student';
+        }
+        
         return true;
       }
 
