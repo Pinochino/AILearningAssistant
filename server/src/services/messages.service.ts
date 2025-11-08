@@ -106,7 +106,7 @@ class MessagesService {
         const skip = (page - 1) * limit;
 
         const messages = await Message.find({ conversation: conversationId })
-            .populate('sender', 'firstName lastName avatar role')
+            .populate('sender', 'name username firstName lastName avatar role email')
             .populate('replyTo', 'content sender')
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -118,13 +118,26 @@ class MessagesService {
 
     static async getConversationsForUser(userId: string) {
         const conversations = await Conversation.find({ participants: userId })
-            .populate('participants', 'firstName lastName avatar role')
+            .populate('participants', 'name username firstName lastName avatar role email')
             .populate('lastMessage')
-            .populate('lastMessage.sender', 'firstName lastName avatar')
+            .populate('lastMessage.sender', 'name username firstName lastName avatar email')
             .sort({ updatedAt: -1 })
             .lean();
 
-        return conversations;
+        // Attach unreadCount based on lastMessage.readBy for lightweight preview bolding
+        const withUnread = (conversations || []).map((c: any) => {
+            let unreadCount = Number(c?.unreadCount || 0);
+            const lm = c?.lastMessage;
+            if (lm && typeof lm === 'object') {
+                const senderId = String(lm?.sender?._id || lm?.sender || lm?.senderId || '');
+                const readBy = Array.isArray(lm?.readBy) ? lm.readBy : [];
+                const hasMeRead = readBy.some((r: any) => String((r?.user || r)) === String(userId));
+                if (senderId && senderId !== String(userId) && !hasMeRead) unreadCount = Math.max(unreadCount, 1);
+            }
+            return { ...c, unreadCount };
+        });
+
+        return withUnread as any;
     }
 
     static async getOrCreateDirectConversation(user1Id: string, user2Id: string) {

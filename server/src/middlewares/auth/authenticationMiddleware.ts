@@ -12,7 +12,7 @@ export default function authenticationMiddleware(req: any, res: Response, next: 
       res.status(400).json({ error: `You dont't have permission to access` })
       return
     }
-    const verifiedToken = jwt.verify(accessToken, process.env.JWT_ACCESS_KEY as string)
+    const verifiedToken = jwt.verify(accessToken, process.env.JWT_SECRET as string)
 
     if (!verifiedToken) {
       res.status(400).json({ error: `Access token is wrong` })

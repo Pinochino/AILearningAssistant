@@ -23,7 +23,7 @@ export const authMiddleware: RequestHandler = async (req: any, res: Response, ne
 
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-        // Expect JWT_SECRET to be loaded at process boot (via app.ts/server.ts)
+        // Expect JWT_SECRET to be loaded at process boot (must match signing key)
         const secret = process.env.JWT_SECRET;
         if (!secret) {
             console.error("Auth middleware debug: JWT_SECRET missing in process.env");

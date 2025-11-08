@@ -43,7 +43,7 @@ async function bootstrap() {
         // Create Socket.IO server
         const io = new Server(server, {
             cors: {
-                origin: process.env.CLIENT_URL || "http://localhost:3000",
+                origin: process.env.CLIENT_URL || "http://localhost:5173",
                 credentials: true
             }
         });
@@ -58,7 +58,7 @@ async function bootstrap() {
                     socket.handshake.headers.authorization?.replace("Bearer ", "");
 
                 if (!token) {
-                    return next(new Error("NOT_AUTH"));
+                    return next(new Error("NO_TOKEN"));
                 }
 
                 if (!process.env.JWT_SECRET) {
@@ -85,7 +85,7 @@ async function bootstrap() {
                 return next();
             } catch (err) {
                 console.error("Socket auth error:", err);
-                return next(new Error("AUTH_ERROR"));
+                return next(new Error("INVALID_TOKEN"));
             }
         });
 

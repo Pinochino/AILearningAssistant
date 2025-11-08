@@ -66,6 +66,7 @@ export default function handleSocket(io: Server, socket: Socket) {
         type?: string;
         replyTo?: string;
         attachments?: any[];
+        clientId?: string;
     }) => {
         try {
             const message = await MessagesService.sendMessage({
@@ -74,7 +75,8 @@ export default function handleSocket(io: Server, socket: Socket) {
                 content: data.content,
                 type: (data.type as any) || "text",
                 replyTo: data.replyTo,
-                attachments: data.attachments
+                attachments: data.attachments,
+                metadata: data.clientId ? { clientId: data.clientId } : undefined
             });
 
             // Emit to conversation room
@@ -82,6 +84,9 @@ export default function handleSocket(io: Server, socket: Socket) {
                 id: message._id,
                 conversationId: message.conversation,
                 sender: message.sender,
+                senderId: message.sender,
+                senderName: `${userData.user.firstName} ${userData.user.lastName}`.trim(),
+                clientId: data.clientId,
                 content: message.content,
                 type: message.type,
                 attachments: message.attachments,

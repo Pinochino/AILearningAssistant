@@ -7,7 +7,7 @@ import crypto from 'crypto'
 import { ValidatedToken } from '~/models/ValidatedToken'
 import { UserInterface } from '~/types/UserInterface'
 
-const secretOrPublicKey = process.env.JWT_ACCESS_KEY as string
+const secretOrPublicKey = process.env.JWT_SECRET as string
 
 const verifyJwt = (token: string) => {
   const valid = jwt.verify(token, secretOrPublicKey)

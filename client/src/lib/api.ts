@@ -4,6 +4,9 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const TOKEN_KEY = "atiui_token";
 
+// Deduplicate identical concurrent requests and apply simple 429 backoff
+const inflight = new Map<string, Promise<any>>();
+
 function getToken(): string | null {
   try {
     return localStorage.getItem(TOKEN_KEY);
@@ -22,6 +25,30 @@ export type RequestOptions = RequestInit & {
   json?: any;
 };
 
+function keyOf(url: string, opts: RequestOptions): string {
+  const method = (opts.method || 'GET').toUpperCase();
+  let bodyStr = '';
+  try {
+    bodyStr = opts.body ? String(opts.body) : (opts.json !== undefined ? JSON.stringify(opts.json) : '');
+  } catch {}
+  return `${method} ${url} ${bodyStr}`;
+}
+
+async function with429Retry<T>(fn: () => Promise<T>, resp?: Response): Promise<T> {
+  try {
+    return await fn();
+  } catch (err: any) {
+    // If previous fetch returned 429, wait and retry once
+    if ((err?.status || resp?.status) === 429) {
+      const retryAfter = Number(resp?.headers?.get?.('retry-after'));
+      const delayMs = Number.isFinite(retryAfter) ? retryAfter * 1000 : 800;
+      await new Promise(res => setTimeout(res, Math.max(300, Math.min(2000, delayMs))));
+      return await fn();
+    }
+    throw err;
+  }
+}
+
 async function request<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
   const url = path.startsWith("http") ? path : `${API_URL}${path}`;
   const { auth = true, json, headers, ...rest } = options;
@@ -37,28 +64,44 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
     if (token) finalHeaders["Authorization"] = `Bearer ${token}`;
   }
 
-  const resp = await fetch(url, {
-    ...rest,
-    headers: finalHeaders,
-    body: json !== undefined ? JSON.stringify(json) : (options.body ?? undefined),
-    credentials: "include",
-  });
+  const doFetch = async () => {
+    const resp = await fetch(url, {
+      ...rest,
+      headers: finalHeaders,
+      body: json !== undefined ? JSON.stringify(json) : (options.body ?? undefined),
+      credentials: "include",
+    });
 
-  if (!resp.ok) {
-    let details: any = undefined;
-    try { details = await resp.json(); } catch {}
-    const error = new Error(details?.error || `HTTP ${resp.status}`) as any;
-    error.status = resp.status;
-    error.details = details;
-    throw error;
+    if (!resp.ok) {
+      let details: any = undefined;
+      try { details = await resp.json(); } catch {}
+      const error = new Error(details?.error || `HTTP ${resp.status}`) as any;
+      error.status = resp.status;
+      error.details = details;
+      throw error;
+    }
+
+    const contentType = resp.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      return resp.json();
+    }
+    // @ts-expect-error allow non-json generic
+    return resp.text();
+  };
+
+  const key = keyOf(url, options as any);
+  if (inflight.has(key)) {
+    // Return the existing promise to dedupe concurrent requests
+    return inflight.get(key)! as Promise<T>;
   }
 
-  const contentType = resp.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) {
-    return resp.json();
+  const p = with429Retry<T>(doFetch);
+  inflight.set(key, p as Promise<any>);
+  try {
+    return await p;
+  } finally {
+    inflight.delete(key);
   }
-  // @ts-expect-error allow non-json generic
-  return resp.text();
 }
 
 export const api = {

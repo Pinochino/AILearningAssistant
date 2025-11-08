@@ -138,6 +138,21 @@ export async function runSeed() {
     aiTutorId: 'math-tutor',
   })
 
+  // Seed read states: đánh dấu chỉ người gửi đã đọc
+  // => Người nhận sẽ thấy chưa đọc để UI có thể bold preview
+  await Message.findByIdAndUpdate(message1._id, {
+    $set: { readBy: [{ user: student1?._id, readAt: new Date() }] }
+  })
+  await Message.findByIdAndUpdate(message2._id, {
+    $set: { readBy: [{ user: teacher1?._id, readAt: new Date() }] }
+  })
+  await Message.findByIdAndUpdate(message3._id, {
+    $set: { readBy: [{ user: teacher1?._id, readAt: new Date() }] }
+  })
+  await Message.findByIdAndUpdate(aiMessage._id, {
+    $set: { readBy: [{ user: student1?._id, readAt: new Date() }] }
+  })
+
   // Update lastMessage
   await Promise.all([
     Conversation.findByIdAndUpdate(directConv._id, { lastMessage: message2._id }),

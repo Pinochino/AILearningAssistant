@@ -14,6 +14,7 @@ import React from 'react'
 import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useFetchCountUserByTeacherRole, useFetchCountUserByUserRole, useGetUsers } from '../../services/UserService'
 import { Skeleton } from '../ui/skeleton'
+import { toast } from 'sonner'
 
 const mockUsers = [
   {
@@ -122,10 +123,10 @@ export function UserManagement() {
   const [selectedRole, setSelectedRole] = useState<string | null>()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [value, setValue] = useState({
+    name: '',
     username: '',
-    email: '',
     password: '',
-    roles: []
+    roles: [] as any[]
   });
   const [userByRoleId, setUserByRoleId] = useState([]);
   const [loadingPage, setLoadingPage] = useState<boolean>(false);
@@ -191,9 +192,28 @@ export function UserManagement() {
   } = useMutation({
     mutationFn: fetchCreateUser,
     onSuccess: () => {
+      toast.success('Tạo tài khoản thành công')
       queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: ['usersByRoleId'] })
+      setValue({ name: '', username: '', password: '', roles: [] })
+      setIsCreateDialogOpen(false)
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Tạo tài khoản thất bại')
     }
   })
+
+  const handleCreateValidated = () => {
+    const name = String(value.name || '').trim()
+    const username = String(value.username || '').trim()
+    const password = String(value.password || '')
+    const rolesArr = Array.isArray(value.roles) ? value.roles : []
+    if (!name) return toast.error('Vui lòng nhập họ và tên')
+    if (!username) return toast.error('Vui lòng nhập username')
+    if (!password || password.length < 6) return toast.error('Mật khẩu phải tối thiểu 6 ký tự')
+    if (!rolesArr.length) return toast.error('Vui lòng chọn vai trò')
+    mutate()
+  }
 
   const handleChangeUserByRoleId = (roleId: string) => {
     console.log(roleId)
@@ -327,21 +347,47 @@ export function UserManagement() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Họ và tên</Label>
-                <Input id="name" placeholder="Nhập họ và tên" />
+                <Input
+                  id="name"
+                  placeholder="Nhập họ và tên"
+                  value={value.name}
+                  onChange={(e) => setValue((prev: any) => ({ ...prev, name: e.target.value }))}
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Nhập email" />
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Nhập username"
+                  value={value.username}
+                  onChange={(e) => setValue((prev: any) => ({ ...prev, username: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Mật khẩu</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Nhập mật khẩu"
+                  value={value.password}
+                  onChange={(e) => setValue((prev: any) => ({ ...prev, password: e.target.value }))}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Vai trò</Label>
-                <Select>
+                <Select onValueChange={(val) => setValue((prev: any) => ({ ...prev, roles: [val] }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn vai trò" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="teacher">Giáo viên</SelectItem>
-                    <SelectItem value="student">Học sinh</SelectItem>
+                    {(Array.isArray(roles?.data) ? roles?.data : Array.isArray(roles) ? roles : [])
+                      .filter((r: any) => r?.name !== 'super-admin' && r?.name !== 'SUPER_ADMIN')
+                      .map((r: any) => (
+                        <SelectItem key={r?._id || r?.id} value={(r?._id || r?.id) as string}>
+                          {r?.name === 'teacher' ? 'Giáo viên' : r?.name === 'student' ? 'Học sinh' : (r?.name || 'Vai trò')}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -349,8 +395,8 @@ export function UserManagement() {
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button onClick={() => setIsCreateDialogOpen(false)}>
-                  Tạo tài khoản
+                <Button onClick={handleCreateValidated} disabled={isPending}>
+                  {isPending ? 'Đang tạo...' : 'Tạo tài khoản'}
                 </Button>
               </div>
             </div>
