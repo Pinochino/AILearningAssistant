@@ -141,7 +141,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => navigateTo('profile')}>
+              <DropdownMenuItem onClick={() => navigateTo('profile', { userId: user?._id })}>
                 <User className="mr-2 h-4 w-4" />
                 Hồ sơ
               </DropdownMenuItem>

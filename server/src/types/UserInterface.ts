@@ -16,7 +16,7 @@ export interface EditUserInterface {
   name: string
   username: string
   password: string
-  roles: string
+  roles?: string
   addRoleId: string
   removeRoleId: string
 }

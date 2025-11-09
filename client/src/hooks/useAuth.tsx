@@ -2,9 +2,11 @@ import { useState, useContext, createContext, useEffect } from 'react';
 import axios from 'axios';
 import { User, UserRole } from '../types';
 import { setAccessToken, clearAccessToken } from '../api/axiosClient';
+import { useAppDispatch } from '../redux/hooks';
 
 interface AuthContextType {
   user: User | null;
+  setUser: (user: User | null) => void;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -14,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
 export function useAuth() {
+  const dispatch = useAppDispatch();
   const context = useContext(AuthContext);
   console.log(context)
   if (context === undefined) {
@@ -260,7 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, setUser }}>
       {children}
     </AuthContext.Provider>
   );

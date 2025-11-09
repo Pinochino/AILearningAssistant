@@ -13,6 +13,7 @@ import { Analytics } from './admin/Analytics'
 import { ContentManagement } from './admin/ContentManagement'
 import { SystemSettings } from './admin/SystemSettings'
 import { ClassManagement } from './admin/ClassManagement'
+import { UserDetailPage } from './admin/UserDetail'
 
 // Teacher pages
 import { StudentsManagement } from './teacher/StudentsManagement'
@@ -58,6 +59,8 @@ export function PageRouter() {
         return <UserManagement />
       case 'edit-user':
         return <EditUser />
+      case 'user-detail':
+        return <UserDetailPage />
       case 'subjects':
         return (
           <div className='space-y-6'>

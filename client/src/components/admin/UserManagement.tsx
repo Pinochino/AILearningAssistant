@@ -14,6 +14,8 @@ import React from 'react'
 import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useGetUsers } from '../../services/UserService'
 import { useFetchCountUserByRole } from '../../hooks/getAllData'
+import {Link} from 'react-router-dom';
+import GetRoleCountByName from '../../hooks/getRoleCount'
 
 const mockUsers = [
   {
@@ -96,14 +98,11 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
           </div>
 
           <div className='flex items-center gap-2'>
-            <Button variant='outline' size='sm'>
+            <Button variant='outline' size='sm' onClick={() => navigateTo('user-detail', { userId: user._id })} >
               <Eye className='h-4 w-4' />
             </Button>
             <Button variant='outline' size='sm' onClick={() => navigateTo('edit-user', { userId: user._id })}>
               <Edit className='h-4 w-4' />
-            </Button>
-            <Button variant='outline' size='sm'>
-              {user.status === 'active' ? <UserX className='h-4 w-4' /> : <UserCheck className='h-4 w-4' />}
             </Button>
             <Button variant='outline' size='sm' value={user._id} onClick={() => handleDeleteUser(user._id)}>
               <Trash2 className='h-4 w-4 text-destructive' />
@@ -130,6 +129,8 @@ export function UserManagement() {
     roles: []
   })
   const [userByRoleId, setUserByRoleId] = useState([])
+  const [userCounts, setUserCounts] = useState<number>(0);
+  const [teacherCounts, setTeacherCounts] = useState<number>(0);
 
   const { mutate: handleDeleteUser } = useMutation({
     mutationFn: async (userId: string) => {
@@ -156,6 +157,8 @@ export function UserManagement() {
     }
   })
 
+  
+
   const fetchUsers = async () => {
     const res = await handleApi({ url: '/users/list', method: 'GET', withCredentials: true })
     return res.data?.data
@@ -169,6 +172,17 @@ export function UserManagement() {
   const users = useGetUsers(searchTerm)
   const userCount = useFetchCountUserByRole("USER")
   const teacherCount = useFetchCountUserByRole("TEACHER")
+
+  useEffect(() => {
+    if (userCount) {
+      setUserCounts(userCount)
+    }
+    if (teacherCount) {
+      setTeacherCounts(teacherCount)
+    }
+  }, [userCount, teacherCount])
+
+
 
   const {
     data: roles,
@@ -303,6 +317,7 @@ export function UserManagement() {
   }, [users])
 
   console.log('Number: ', userActiveCount)
+
 
 
   return (
@@ -445,7 +460,7 @@ export function UserManagement() {
         <Card>
           <CardContent className='p-4'>
             <div className='text-center'>
-              <p className='text-2xl font-bold'>{teacherCount?.data || 0}</p>
+              <p className='text-2xl font-bold'>{teacherCounts || 0}</p>
               <p className='text-sm text-muted-foreground'>Giáo viên</p>
             </div>
           </CardContent>
@@ -453,7 +468,7 @@ export function UserManagement() {
         <Card>
           <CardContent className='p-4'>
             <div className='text-center'>
-              <p className='text-2xl font-bold'>{userCount?.data?.data || 0}</p>
+              <p className='text-2xl font-bold'>{userCounts || 0}</p>
               <p className='text-sm text-muted-foreground'>Học sinh</p>
             </div>
           </CardContent>
@@ -461,7 +476,7 @@ export function UserManagement() {
         <Card>
           <CardContent className='p-4'>
             <div className='text-center'>
-              <p className='text-2xl font-bold'>{userActiveCount?.data?.data}</p>
+              <p className='text-2xl font-bold'>{userActiveCount?.data?.userCount}</p>
               <p className='text-sm text-muted-foreground'>Đang hoạt động</p>
             </div>
           </CardContent>

@@ -46,59 +46,32 @@ const userService = {
   },
 
   updateUser: async (userId: string, props: EditUserInterface) => {
-    console.log('props: ', props)
-
     try {
-      const oldUser = await User.findOne({
-        _id: userId
-      })
+      const oldUser = await User.findById(userId)
+      if (!oldUser) throw new Error('User not found')
 
-      if (!oldUser) {
-        throw new Error('User not found')
+      console.log('old user: ', oldUser.username)
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: { username: props.username, name: props.name } },
+        { new: true }
+      )
+
+      if (props.removeRoleId) {
+        await User.findByIdAndUpdate(userId, { $pull: { roles: props.removeRoleId } })
       }
 
-      console.log('old user: ' + oldUser?.username)
-
-      let userUpdated
-      if (props.addRoleId || props.removeRoleId) {
-        if (props.removeRoleId) {
-          userUpdated = await User.findByIdAndUpdate(
-            oldUser._id,
-            {
-              $set: {
-                username: props.username,
-                name: props.name
-              },
-              $pull: { roles: props.removeRoleId }
-            },
-            {
-              new: true
-            }
-          )
-        }
-
-        if (props.addRoleId) {
-          userUpdated = await User.findByIdAndUpdate(
-            oldUser._id,
-            {
-              $set: {
-                username: props.username,
-                name: props.name
-              },
-              $addToSet: { roles: props.addRoleId }
-            },
-            { new: true }
-          )
-        }
+      if (props.addRoleId) {
+        await User.findByIdAndUpdate(userId, { $addToSet: { roles: props.addRoleId } })
       }
 
-      const newUser = await User.findById(userUpdated?._id)
-
-      console.log('new user: ' + newUser)
+      const newUser = await User.findById(userId)
+      console.log('updated user: ', newUser)
 
       return newUser
     } catch (error: any) {
-      console.log(error?.message)
+      console.error('Update error:', error.message)
       throw new Error(error.message)
     }
   },

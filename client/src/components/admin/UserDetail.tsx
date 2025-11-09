@@ -1,27 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import  { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
-import { ArrowLeft, Save, X, UserCheck, UserX, Users } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from '../ui/alert-dialog'
+import { ArrowLeft, Save,  } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigation } from '../../hooks/useNavigation'
 import { GetUserInfor } from '../../hooks/getUserInfor'
-import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
+import {  useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleApi } from '../../api/handleApi'
 import { GetAllData } from '../../hooks/getAllData'
 
@@ -31,7 +19,7 @@ interface IRole {
   name: string;
 }
 
-export function EditUser() {
+export function UserDetailPage() {
   const { navigateTo, currentParams } = useNavigation()
   const userId = currentParams.userId
 
@@ -204,13 +192,11 @@ export function EditUser() {
             Quay lại
           </Button>
           <div>
-            <h1 className='text-2xl font-bold'>Chỉnh sửa người dùng</h1>
-            <p className='text-muted-foreground'>Cập nhật thông tin và quyền hạn của người dùng</p>
+            <h1 className='text-2xl font-bold'>Thông tin  người dùng</h1>
           </div>
         </div>
 
         <div className='flex items-center gap-2'>
-      
 
           <Button onClick={handleEditUser} disabled={!hasChanges || isSaving} className='gap-2'>
             <Save className='h-4 w-4' />
@@ -269,8 +255,7 @@ export function EditUser() {
         <div className='lg:col-span-2'>
           <Card>
             <CardHeader>
-              <CardTitle>Chỉnh sửa thông tin</CardTitle>
-              <CardDescription>Cập nhật thông tin cá nhân và cài đặt tài khoản</CardDescription>
+              <CardTitle>Thông tin chi tiết của người dùng</CardTitle>
             </CardHeader>
             <CardContent className='space-y-6'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -278,10 +263,13 @@ export function EditUser() {
                   <Label htmlFor='name'>Họ và tên *</Label>
                   <Input
                     id='name'
-                    value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder='Nhập họ và tên'
+                    placeholder={user?.username}
                     autoComplete='new-name'
+                    disabled
+                    style={{
+                      fontWeight: "bolder",
+                      color: "black"
+                    }}
                   />
                 </div>
 
@@ -290,10 +278,12 @@ export function EditUser() {
                   <Input
                     id='name'
                     type='text'
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder='Nhập name'
-                    autoComplete='additional-name'
+                    placeholder={user?.name}
+                    disabled
+                      style={{
+                      fontWeight: "bolder",
+                      color: "black"
+                    }}
                   />
                 </div>
 
@@ -301,37 +291,15 @@ export function EditUser() {
                   <Label htmlFor='phone'>Số điện thoại</Label>
                   <Input
                     id='phone'
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder='Nhập số điện thoại'
+                    placeholder='0335 250 819'
+                    disabled
+                       style={{
+                      fontWeight: "bolder",
+                      color: "black"
+                    }}
                   />
                 </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='role'>Vai trò *</Label>
-                  <Select value={formData.addRoleId} onValueChange={(value: string) => handleInputChange('addRoleId', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Chọn vai trò' />
-                    </SelectTrigger>
-                    <SelectContent>
-
-                      {roles.map((r, index) => {
-                        console.log("e: ", r)
-                        return (
-                          (
-                            <SelectItem value={r?._id} key={index}>{r.name}</SelectItem>
-                          )
-                        )
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-        
               </div>
-
-        
-
             </CardContent>
           </Card>
 
@@ -362,7 +330,6 @@ export function EditUser() {
           )}
         </div>
       </div>
-
 
     </div>
   )

@@ -31,9 +31,13 @@ export function useFetchCountUserByRole(role: 'USER' | 'TEACHER') {
     queryKey: ['userCount', role],
     queryFn: async () => {
       const res = await handleApi({ url: `/users/count-by-role/${role}`, method: 'GET' })
-      return res.data.count // trả luôn number
+      if (res.status < 200 || res.status > 300) {
+        console.error("Fetch failed");
+        return null; // ✅ Luôn return cái gì đó (không undefined)
+      }
+      return res.data.count || res.data?.data?.count
     }
   })
 
-  return data // number
+  return data 
 }

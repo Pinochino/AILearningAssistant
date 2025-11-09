@@ -1,11 +1,11 @@
-import { React, useState } from 'react';
+import {  useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useAuth } from '../../hooks/useAuth';
-import { BookOpen, Brain, ShieldUser } from 'lucide-react';
+import { Brain } from 'lucide-react';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -56,6 +56,7 @@ export function LoginForm() {
                   placeholder="Nhập thông tin của người dùng"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  autoComplete='additional-name'
                   required
                 />
               </div>
@@ -69,6 +70,7 @@ export function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete='new-password'
                 />
               </div>
 
