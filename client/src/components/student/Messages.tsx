@@ -124,7 +124,7 @@ export function Messages() {
     (async () => {
       try {
         // Ensure socket handshake is authenticated before first data fetch
-        try { await ensureSocketConnected(); } catch {}
+        try { await ensureSocketConnected(); } catch { }
         const res = await MessagesService.getConversations() as any;
         const listRaw = Array.isArray(res?.data) ? res.data : [];
         // Exclude AI Tutor conversations
@@ -220,7 +220,7 @@ export function Messages() {
     (async () => {
       try {
         await ensureSocketConnected(); // <--- CHỜ SOCKET LOGIN XONG
-        const socket = getSocket();
+        const socket = await ensureSocketConnected(); // use non-null Socket
         const prev = prevConvRef.current;
         if (prev && prev !== selectedConversation) {
           socket.emit('leave_conversation', { conversationId: prev });
@@ -285,6 +285,9 @@ export function Messages() {
       try {
         await MessagesService.markConversationAsRead(String(currentConv));
         setMessages((prev: any[]) => prev.map(m => (!m.isOwn ? { ...m, hasMeRead: true } : m)));
+        try {
+          window.dispatchEvent(new CustomEvent('conversation_read', { detail: { conversationId: String(currentConv) } }));
+        } catch {}
       } catch { }
     })();
 
@@ -320,7 +323,31 @@ export function Messages() {
       // update messages if this conversation is currently selected
       setMessages((prev: any[]) => {
         if (String(selectedConversation) !== cid) return prev;
-        // create incoming message object the same as previous code
+        // Ignore if already have this server message id
+        if (incomingId && prev.some((m: any) => String(m.id || m._id) === String(incomingId))) {
+          return prev;
+        }
+        // If this is my own message and matches an optimistic clientId, replace it
+        if (clientId && isOwn) {
+          const idx = prev.findIndex((m: any) => m.clientId && String(m.clientId) === String(clientId));
+          if (idx !== -1) {
+            const next = [...prev];
+            next[idx] = {
+              ...(next[idx] as any),
+              _id: incomingId,
+              id: incomingId,
+              conversationId: cid,
+              senderId,
+              isOwn,
+              content,
+              createdAt,
+              clientId,
+              senderName: evt?.senderName || '',
+            };
+            return next;
+          }
+        }
+        // Otherwise append as new message
         const item = {
           _id: incomingId,
           id: incomingId,
@@ -420,8 +447,7 @@ export function Messages() {
     const text = newMessage;
     setNewMessage('');
     try {
-      await ensureSocketConnected(); // <--- CHỜ SOCKET AUTH TRƯỚC KHI GỬI
-      const sock = getSocket();
+      const sock = await ensureSocketConnected();
       sock.emit('send_message', { conversationId: convAtSend, content: text, clientId });
     } catch (err) {
       console.warn("Socket send failed, falling back to REST:", err);
@@ -436,16 +462,6 @@ export function Messages() {
         return { ...m, isOwn, senderName: m?.sender?.name || m?.senderName || m?.sender?.email || 'Người dùng', content: toText(m?.content ?? m?.text) };
       });
       setMessages(list);
-    }
-
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
     }
   };
 

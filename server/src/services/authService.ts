@@ -41,7 +41,7 @@ const authService = {
       const rolePromises = Array.from(roles).map(async (r) => {
         const role = await Role.findOne({
           _id: r,
-          name: { $ne: RoleName.SUPER_ADMIN }
+          name: { $ne: RoleName.ADMIN }
         })
         return role._id
       })
@@ -50,7 +50,7 @@ const authService = {
 
       console.log(`newRoles: `, newRoles)
 
-      user = await User.create({ name, username, email, password, roles: newRoles })
+      user = await User.create({ name, username, password, roles: newRoles })
 
       // await emailService.sendEmail({
       //   from: 'Tranhunghp22112004@gmail.com',

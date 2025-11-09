@@ -70,13 +70,36 @@ app.use(cors({
     credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: "Too many requests from this IP, please try again later."
-});
-app.use(limiter);
+// Rate limiting (configurable)
+const RATE_LIMIT_DISABLED = String(process.env.RATE_LIMIT_DISABLED || '').toLowerCase() === 'true';
+const isDev = (process.env.NODE_ENV || '').toLowerCase() === 'development';
+
+if (!RATE_LIMIT_DISABLED && !isDev) {
+    const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000); // default 1 minute
+    const max = Number(process.env.RATE_LIMIT_MAX || 600); // default 600 req/min/IP
+
+    const generalLimiter = rateLimit({
+        windowMs,
+        max,
+        standardHeaders: true,
+        legacyHeaders: false,
+        skipSuccessfulRequests: true,
+        message: "Too many requests, please try again later."
+    });
+
+    // Stricter limiter for auth endpoints (login/password)
+    const authLimiter = rateLimit({
+        windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 60_000),
+        max: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
+        standardHeaders: true,
+        legacyHeaders: false,
+        skipSuccessfulRequests: true,
+        message: "Too many auth attempts, please slow down."
+    });
+
+    app.use('/api/auth', authLimiter);
+    app.use(generalLimiter);
+}
 
 // Logging middleware
 app.use(morgan('dev'));

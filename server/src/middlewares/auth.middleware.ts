@@ -53,15 +53,15 @@ export const authMiddleware: RequestHandler = async (req: any, res: Response, ne
 
         // Prefer DB role if present, otherwise fall back to JWT role claim
         let roleNameRaw = Array.isArray(populatedUser.roles) && populatedUser.roles.length > 0
-            ? (populatedUser.roles[0]?.name || 'user')
-            : (decoded?.role || 'user');
+            ? (populatedUser.roles[0]?.name || 'student')
+            : (decoded?.role || 'student');
 
         // Normalize common role variants to canonical lower-case
         const norm = String(roleNameRaw).toLowerCase();
         const map: Record<string, string> = {
-            'admin': 'admin', 'administrator': 'admin', 'superadmin': 'super_admin', 'super_admin': 'super_admin',
+            'admin': 'admin', 'administrator': 'admin',
             'teacher': 'teacher', 'instructor': 'teacher',
-            'user': 'user', 'student': 'user'
+            'user': 'student'
         };
         const roleName = map[norm] || norm;
 
@@ -94,5 +94,5 @@ export const requireRole = (roles: string[]) => {
     };
 };
 
-export const requireTeacherOrAdmin = requireRole(['teacher', 'admin', 'super_admin']);
+export const requireTeacherOrAdmin = requireRole(['teacher', 'admin']);
 export const requireAdmin = requireRole(['admin']);

@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SquareLibrary, Brain, BookOpen, Calendar, BarChart3, MessageSquare, Trophy, Target, Clock } from 'lucide-react';
 import { cn } from '../../ui/utils';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { Progress } from '../../ui/progress';
 import { useNavigation } from '../../../hooks/useNavigation';
+import { MessagesService } from '../../../services/messages';
+import { useAuth } from '../../../hooks/useAuth';
+import { getSocket, ensureSocketConnected } from '../../../lib/socket';
 
 interface StudentSidebarProps {
   isOpen: boolean;
@@ -40,13 +43,13 @@ const menuItems = [
     id: 'ai-tutor',
     label: 'Gia sư AI',
     icon: Brain,
-    badge: 'New',
+    badge: null,
   },
   {
     id: 'messages',
     label: 'Tin nhắn',
     icon: MessageSquare,
-    badge: '2',
+    badge: null,
   },
   {
     id: 'achievements',
@@ -59,6 +62,8 @@ const menuItems = [
 export function StudentSidebar({ isOpen }: StudentSidebarProps) {
   const { currentPage, navigateTo } = useNavigation();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { isLoading: isAuthLoading } = useAuth();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const toggleExpanded = (itemId: string) => {
     setExpandedItems(prev =>
@@ -72,6 +77,48 @@ export function StudentSidebar({ isOpen }: StudentSidebarProps) {
     navigateTo(itemId);
   };
 
+  // Fetch unread conversations count and keep it updated on new messages
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (isAuthLoading) return;
+      try {
+        const res: any = await MessagesService.getConversations();
+        const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+        const unread = (list || []).filter((c: any) => Number(c?.unreadCount || 0) > 0).length;
+        if (!cancelled) setUnreadCount(unread);
+      } catch {
+        if (!cancelled) setUnreadCount(0);
+      }
+    })();
+
+    // Listen to realtime new messages to refresh count
+    (async () => {
+      try {
+        await ensureSocketConnected();
+      } catch { }
+      const s = getSocket();
+      if (!s) return;
+      const refresh = async () => {
+        try {
+          const res: any = await MessagesService.getConversations();
+          const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+          const unread = (list || []).filter((c: any) => Number(c?.unreadCount || 0) > 0).length;
+          if (!cancelled) setUnreadCount(unread);
+        } catch { }
+      };
+      s.on('new_message', refresh);
+      return () => { try { s.off('new_message', refresh); } catch { } };
+    })();
+
+    // Listen to local event when a conversation is marked as read to decrement immediately
+    const onConvRead = () => {
+      setUnreadCount((prev) => Math.max(0, Number(prev || 0) - 1));
+    };
+    try { window.addEventListener('conversation_read', onConvRead as any); } catch { }
+
+    return () => { cancelled = true; };
+  }, [isAuthLoading]);
 
   return (
     <aside
@@ -129,12 +176,12 @@ export function StudentSidebar({ isOpen }: StudentSidebarProps) {
               {isOpen && (
                 <>
                   <span className="flex-1 text-left">{item.label}</span>
-                  {item.badge && (
+                  {(item.id === 'messages' ? (unreadCount > 0 ? String(unreadCount) : null) : item.badge) && (
                     <Badge
-                      variant={item.badge === 'New' ? 'default' : 'secondary'}
+                      variant={(item.id === 'ai-tutor' && item.badge === 'New') ? 'default' : 'secondary'}
                       className="text-xs"
                     >
-                      {item.badge}
+                      {item.id === 'messages' ? unreadCount : item.badge}
                     </Badge>
                   )}
                 </>

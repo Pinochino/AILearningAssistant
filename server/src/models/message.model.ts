@@ -19,8 +19,6 @@ const MessageSchema = new Schema({
         user: { type: Types.ObjectId, ref: "User" },
         readAt: { type: Date, default: Date.now }
     }],
-    // For AI messages
-    aiResponse: { type: String, default: null },
     aiTutorId: { type: String, default: null },
     // Message metadata
     metadata: { type: Schema.Types.Mixed, default: {} },

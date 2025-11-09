@@ -16,8 +16,6 @@ export async function runSeed() {
     RoleName.ADMIN,
     RoleName.TEACHER,
     RoleName.STUDENT,
-    RoleName.SUPER_ADMIN,
-    RoleName.USER,
   ] as const
 
   const existing = await Role.find({ name: { $in: roleNames } })
@@ -27,11 +25,10 @@ export async function runSeed() {
     await Role.insertMany(toCreate)
   }
   // Fetch role ids
-  const [ADMIN, TEACHER, STUDENT, SUPER_ADMIN] = await Promise.all([
+  const [ADMIN, TEACHER, STUDENT] = await Promise.all([
     Role.findOne({ name: RoleName.ADMIN }),
     Role.findOne({ name: RoleName.TEACHER }),
     Role.findOne({ name: RoleName.STUDENT }),
-    Role.findOne({ name: RoleName.SUPER_ADMIN })
   ])
 
   // Ensure email index allows multiple nulls by making it sparse unique
@@ -39,10 +36,10 @@ export async function runSeed() {
     const indexes = await (User as any).collection.indexes();
     const hasEmailIndex = Array.isArray(indexes) && indexes.find((ix: any) => ix.name === 'email_1');
     if (hasEmailIndex) {
-      try { await (User as any).collection.dropIndex('email_1'); } catch {}
+      try { await (User as any).collection.dropIndex('email_1'); } catch { }
     }
     await (User as any).collection.createIndex({ email: 1 }, { unique: true, sparse: true, name: 'email_1' });
-  } catch {}
+  } catch { }
 
   // Helper to upsert user with roles[] by username
   async function upsertUser(name: string, username: string, password: string, roleIds: any[], email?: string) {
@@ -62,7 +59,7 @@ export async function runSeed() {
   }
 
   const password = 'password123'
-  await upsertUser('Quản trị hệ thống', 'admin', password, [SUPER_ADMIN?._id || ADMIN?._id].filter(Boolean) as any)
+  await upsertUser('Quản trị hệ thống', 'admin', password, [ADMIN?._id].filter(Boolean) as any)
   await upsertUser('Nguyễn Văn A', 'teacher1', password, [TEACHER?._id].filter(Boolean) as any)
   await upsertUser('Trần Thị B', 'teacher2', password, [TEACHER?._id].filter(Boolean) as any)
   await upsertUser('Lê Văn C', 'student1', password, [STUDENT?._id].filter(Boolean) as any)
@@ -103,7 +100,6 @@ export async function runSeed() {
   const aiConv = await Conversation.create({
     participants: [student1?._id].filter(Boolean),
     conversationType: 'ai',
-    isAiConversation: true,
     aiTutorId: 'math-tutor',
     name: 'AI Tutor - Math',
   })
@@ -132,7 +128,7 @@ export async function runSeed() {
 
   const aiMessage = await Message.create({
     conversation: aiConv._id,
-    sender: student1?._id, // để hợp lệ schema (sender required khi không phải type 'ai')
+    sender: null, // sender is null for AI messages
     content: 'Xin chào! Tôi là AI Tutor chuyên về Toán học... Em có câu hỏi gì không?',
     type: 'ai',
     aiTutorId: 'math-tutor',

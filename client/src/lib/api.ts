@@ -89,13 +89,41 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
     return resp.text();
   };
 
+  // Wrapper to auto-refresh once on 401
+  let retried = false;
+  const doFetchWithRefresh = async (): Promise<T> => {
+    try {
+      return await with429Retry<T>(doFetch);
+    } catch (err: any) {
+      if (auth && err?.status === 401 && !retried) {
+        retried = true;
+        try {
+          const refreshResp = await fetch(`${API_URL}/api/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+          });
+          if (refreshResp.ok) {
+            const data = await refreshResp.json();
+            const newToken = data?.accessToken || data?.data || data?.token;
+            if (newToken) {
+              setToken(newToken);
+              finalHeaders["Authorization"] = `Bearer ${newToken}`;
+              return await with429Retry<T>(doFetch);
+            }
+          }
+        } catch {}
+      }
+      throw err;
+    }
+  };
+
   const key = keyOf(url, options as any);
   if (inflight.has(key)) {
     // Return the existing promise to dedupe concurrent requests
     return inflight.get(key)! as Promise<T>;
   }
 
-  const p = with429Retry<T>(doFetch);
+  const p = doFetchWithRefresh();
   inflight.set(key, p as Promise<any>);
   try {
     return await p;

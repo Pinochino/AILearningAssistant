@@ -274,8 +274,8 @@ export function AdminDashboard() {
 
   const [userStat, setUserStat] = useState(userStats)
 
-  const { data: userCount } = GetRoleCountByName("USER");
-  const { data: adminCount } = GetRoleCountByName("SUPER_ADMIN")
+  const { data: userCount } = GetRoleCountByName("STUDENT");
+  const { data: adminCount } = GetRoleCountByName("ADMIN")
   const { data: teacherCount } = GetRoleCountByName("TEACHER")
 
   const [loadingPage, setLoadingPage] = useState<boolean>(false)
@@ -309,13 +309,6 @@ export function AdminDashboard() {
             Learning Assistant
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Tạo môn học mới
-        </Button>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1">
           <Dialog
             open={openCreate}
@@ -336,18 +329,22 @@ export function AdminDashboard() {
             </DialogContent>
           </Dialog>
         </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+
         <div className="lg:col-span-3">
           <AnnouncementSection
             announcements={announcements}
             canManage
-            onEdit={(id)=>{
-              const target = (announcements || []).find(a=>a.id===id);
+            onEdit={(id) => {
+              const target = (announcements || []).find(a => a.id === id);
               setEditingId(id);
               setFormTitle(target?.title || "");
               setFormContent(target?.content || "");
               setEditOpen(true);
             }}
-            onDelete={(id)=>{
+            onDelete={(id) => {
               setEditingId(id);
               setDeleteOpen(true);
             }}
@@ -360,11 +357,11 @@ export function AdminDashboard() {
               <DialogTitle>Sửa thông báo</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <Input placeholder="Tiêu đề" value={formTitle} onChange={(e)=>setFormTitle(e.target.value)} />
-              <Textarea placeholder="Nội dung" rows={4} value={formContent} onChange={(e)=>setFormContent(e.target.value)} />
+              <Input placeholder="Tiêu đề" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} />
+              <Textarea placeholder="Nội dung" rows={4} value={formContent} onChange={(e) => setFormContent(e.target.value)} />
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={()=> setEditOpen(false)}>Hủy</Button>
-                <Button onClick={async ()=>{
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Hủy</Button>
+                <Button onClick={async () => {
                   if (!editingId) return;
                   try {
                     await AnnouncementService.update(editingId, { title: formTitle.trim(), content: formContent.trim() });
@@ -389,15 +386,15 @@ export function AdminDashboard() {
             </DialogHeader>
             <p>Bạn có chắc muốn xóa thông báo này?</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={()=> setDeleteOpen(false)}>Hủy</Button>
-              <Button variant="destructive" onClick={async ()=>{
+              <Button variant="outline" onClick={() => setDeleteOpen(false)}>Hủy</Button>
+              <Button variant="destructive" onClick={async () => {
                 if (!editingId) return;
                 try {
                   await AnnouncementService.remove(editingId);
-                  setAnnouncements(prev=> prev.filter(a=>a.id!==editingId));
+                  setAnnouncements(prev => prev.filter(a => a.id !== editingId));
                   toast.success('Đã xóa thông báo');
                   setDeleteOpen(false);
-                } catch(e) {
+                } catch (e) {
                   toast.error('Xóa thất bại');
                 }
               }}>Xóa</Button>
@@ -556,42 +553,6 @@ export function AdminDashboard() {
         </CardContent>
       </Card >
 
-      {/* Quick Actions */}
-      < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-6 text-center">
-            <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-medium mb-1">
-              Quản lý người dùng
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Thêm, chỉnh sửa thông tin giáo viên và học sinh
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-6 text-center">
-            <BookOpen className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-medium mb-1">Tạo môn học</h3>
-            <p className="text-sm text-muted-foreground">
-              Thiết lập môn học mới và phân quyền
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-6 text-center">
-            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-medium mb-1">
-              Báo cáo chi tiết
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Xem báo cáo và thống kê chi tiết
-            </p>
-          </CardContent>
-        </Card>
-      </div >
 
       {/* Additional Analytics Stats */}
       < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" >

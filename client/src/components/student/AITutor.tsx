@@ -50,16 +50,25 @@ const aiFeatures = [
 ];
 
 const TEMPLATES: Record<string, string> = {
-  solve: `Giải bài tập (viết rõ đề bài ở chỗ [NHẬP ĐỀ BÀI]):
-Đề bài: [NHẬP ĐỀ BÀI]
-Yêu cầu: Hướng dẫn từng bước, giải thích ý chính, nêu kết quả cuối cùng.`,
+  solve: `Giải bài tập theo từng bước:
+- Môn: 
+- Cấp độ/khối lớp: 
+- Đề bài gốc (nguyên văn):
+- Yêu cầu trình bày: 
+- Ràng buộc (nếu có): 
+- Định dạng đầu ra: `,
   explain: `Giải thích khái niệm:
-Khái niệm/Thuật ngữ: [NHẬP TÊN KHÁI NIỆM]
-Mong muốn: Giải thích ngắn gọn + ví dụ minh họa + công thức (nếu có).`,
+- Khái niệm/Thuật ngữ:
+- Bối cảnh sử dụng:
+- Mức độ chi tiết:
+- Yêu cầu minh hoạ:
+- Nếu có công thức: trình bày và giải thích các ký hiệu`,
   optimize: `Tối ưu kế hoạch học:
-Môn/Ngành: [NHẬP MÔN]
-Mục tiêu: [VD: ôn thi, nâng điểm, hiểu sâu]
-Hãy đề xuất kế hoạch học tối ưu trong 2 tuần với thời lượng hàng ngày.`,
+- Môn/Chủ đề:
+- Mục tiêu:
+- Thời gian sẵn có:
+- Mức hiện tại:
+- Phong cách học:`,
 };
 
 function toText(val: any): string {
@@ -69,6 +78,32 @@ function toText(val: any): string {
     try { return JSON.stringify(val, null, 2); } catch { }
   }
   return String(val);
+}
+
+// Remove basic Markdown formatting to display clean text in chat
+function stripMarkdown(md: string): string {
+  if (!md) return '';
+  return md
+    // code blocks and inline code: drop backticks but keep code
+    .replace(/```[\s\S]*?```/g, (m) => m.replace(/```/g, ''))
+    .replace(/`([^`]+)`/g, '$1')
+    // headings
+    .replace(/^#{1,6}\s+/gm, '')
+    // bold/italic
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    // blockquotes
+    .replace(/^>\s?/gm, '')
+    // images [alt](url) and links -> keep text
+    .replace(/!\[[^\]]*\]\([^\)]*\)/g, '')
+    .replace(/\[([^\]]+)\]\([^\)]*\)/g, '$1')
+    // unordered lists -> bullet
+    .replace(/^\s*[-*+]\s+/gm, '• ')
+    // ordered lists keep number and dot
+    .replace(/^\s*(\d+)\.\s+/gm, '$1. ')
+    .trim();
 }
 
 export function AITutor() {
@@ -287,59 +322,14 @@ export function AITutor() {
   })();
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen flex">
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Chat Interface */}
-        <div className="lg:col-span-3">
-          <Card className="h-[80vh] flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      <Brain className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">AI Tutor</CardTitle>
-                    <CardDescription>Trợ lý học tập thông minh</CardDescription>
-                  </div>
-
-                  {/* Viewport fixed input bar */}
-
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      if (!conversationId) return;
-                      setLoading(true);
-                      try {
-                        const list: any = await MessagesService.getConversationMessages(conversationId, { page: 1, limit: 50 });
-                        const items = Array.isArray(list?.data) ? list.data : (Array.isArray(list?.items) ? list.items : []);
-                        const mapped: ChatMessage[] = (items || []).map((m: any) => ({
-                          id: m._id || m.id,
-                          type: (m.type === 'ai' || m.sender?.role === 'system' || m.sender?.isAI) ? 'ai' : 'user',
-                          content: toText(m.content ?? m.text),
-                          timestamp: new Date(m.createdAt || Date.now()),
-                        }));
-                        setMessages(mapped.length ? mapped : [GREETING]);
-                      } finally {
-                        setLoading(false);
-                      }
-                    }}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-
-            {/* Messages inside scrollable area */}
-            <CardContent ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 pb-40">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full min-h-0">
+        {/* Chat Interface - centered */}
+        <div className="lg:col-span-3 flex flex-col justify-start h-full min-h-0 overflow-hidden">
+          <Card className="w-full max-w-4xl flex flex-col min-h-0 max-h-[90vh]">
+            {/* Messages inside scrollable area (inside chat box) */}
+            <CardContent ref={messagesContainerRef} className="overflow-y-auto min-h-0 p-4 space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -358,7 +348,7 @@ export function AITutor() {
                     <div
                       className={`p-3 rounded-lg ${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
                     >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      <p className="whitespace-pre-wrap">{message.type === 'ai' ? stripMarkdown(message.content) : message.content}</p>
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -397,9 +387,10 @@ export function AITutor() {
               <div ref={messagesEndRef} />
             </CardContent>
 
-            <div className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-4">
-              <div className="mx-auto w-full max-w-4xl">  {/* tăng rộng lên */}
-                <div className="rounded-xl border bg-background/95 backdrop-blur shadow-lg p-3">
+            {/* Prompt inside chat box at the bottom */}
+            <div className="border-t p-1">
+              <div className="mx-auto w-full">
+                <div className="bg-background p-3">
                   <div className="flex gap-2 items-end">
                     <textarea
                       ref={textareaRef}
@@ -418,15 +409,14 @@ export function AITutor() {
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Enter gửi • Shift+Enter xuống dòng</p>
                 </div>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-4">
+        {/* Sidebar - scrollable only */}
+        <div className="lg:col-span-1 space-y-4 h-screen overflow-y-auto">
           {/* AI conversations list */}
           <Card>
             <CardHeader className="pb-3">
@@ -558,6 +548,6 @@ export function AITutor() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }

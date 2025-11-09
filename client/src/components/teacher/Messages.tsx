@@ -97,7 +97,7 @@ export function Messages() {
     (async () => {
       try {
         // Ensure socket handshake is authenticated before first data fetch
-        try { await ensureSocketConnected(); } catch {}
+        try { await ensureSocketConnected(); } catch { }
         const res = await MessagesService.getConversations() as any;
         const list = (Array.isArray(res?.data) ? res.data : [])
           .filter((c: any) => c.conversationType !== 'ai' && !c.aiTutorId)
@@ -196,7 +196,7 @@ export function Messages() {
     (async () => {
       try {
         await ensureSocketConnected();
-        const socket = getSocket();
+        const socket = await ensureSocketConnected();
         const prev = prevConvRef.current;
         if (prev && prev !== selectedConversation) {
           socket.emit('leave_conversation', { conversationId: prev });
@@ -293,6 +293,29 @@ export function Messages() {
       // update messages if this conversation is currently selected
       setMessages((prev: any[]) => {
         if (String(selectedConversation) !== cid) return prev;
+        if (incomingId && prev.some((m: any) => String(m.id || m._id) === String(incomingId))) {
+          return prev;
+        }
+        // If this is my own message and matches an optimistic clientId, replace it
+        if (clientId && isOwn) {
+          const idx = prev.findIndex((m: any) => m.clientId && String(m.clientId) === String(clientId));
+          if (idx !== -1) {
+            const next = [...prev];
+            next[idx] = {
+              ...(next[idx] as any),
+              _id: incomingId,
+              id: incomingId,
+              conversationId: cid,
+              senderId,
+              isOwn,
+              content,
+              createdAt,
+              clientId,
+              senderName: evt?.senderName || '',
+            };
+            return next;
+          }
+        }
         // create incoming message object the same as previous code
         const item = {
           _id: incomingId,

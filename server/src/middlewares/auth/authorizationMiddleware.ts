@@ -10,7 +10,7 @@ export default function authorizationMiddleware(req: any, res: Response, next: N
       return
     }
 
-    const adminRole = Array.from(data.roles).includes(RoleName.SUPER_ADMIN)
+    const adminRole = Array.from(data.roles).includes(RoleName.ADMIN)
 
     if (!adminRole) {
       res.status(403).json({ err: "You don't have right to access" })

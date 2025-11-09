@@ -32,7 +32,7 @@ const generateAccessToken = (user: any) => {
     roles
   }
   const token = jwt.sign(authPayload, secretOrPublicKey, {
-    expiresIn: '5m'
+    expiresIn: process.env.JWT_ACCESS_EXPIRES || '2h'
   })
   return token
 }

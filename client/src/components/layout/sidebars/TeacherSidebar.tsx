@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Brain, BookOpen, Users, FileText, BarChart3, MessageSquare, Calendar, Plus } from 'lucide-react';
 import { cn } from '../../ui/utils';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { useNavigation } from '../../../hooks/useNavigation';
+import { MessagesService } from '../../../services/messages';
+import { useAuth } from '../../../hooks/useAuth';
+import { ensureSocketConnected, getSocket } from '../../../lib/socket';
 
 interface TeacherSidebarProps {
   isOpen: boolean;
@@ -44,16 +47,52 @@ const menuItems = [
     id: 'messages',
     label: 'Tin nhắn',
     icon: MessageSquare,
-    badge: '5',
+    badge: null,
   },
 ];
 
 export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
   const { currentPage, navigateTo } = useNavigation();
+  const { isLoading: isAuthLoading } = useAuth();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const handleItemClick = (itemId: string) => {
     navigateTo(itemId);
   };
+
+  // Fetch unread conversations count and keep it updated on new messages
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (isAuthLoading) return;
+      try {
+        const res: any = await MessagesService.getConversations();
+        const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+        const unread = (list || []).filter((c: any) => Number(c?.unreadCount || 0) > 0).length;
+        if (!cancelled) setUnreadCount(unread);
+      } catch {
+        if (!cancelled) setUnreadCount(0);
+      }
+    })();
+
+    (async () => {
+      try { await ensureSocketConnected(); } catch {}
+      const s = getSocket();
+      if (!s) return;
+      const refresh = async () => {
+        try {
+          const res: any = await MessagesService.getConversations();
+          const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+          const unread = (list || []).filter((c: any) => Number(c?.unreadCount || 0) > 0).length;
+          if (!cancelled) setUnreadCount(unread);
+        } catch {}
+      };
+      s.on('new_message', refresh);
+      return () => { try { s.off('new_message', refresh); } catch {} };
+    })();
+
+    return () => { cancelled = true; };
+  }, [isAuthLoading]);
 
   return (
     <aside
@@ -102,9 +141,9 @@ export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
               {isOpen && (
                 <>
                   <span className="flex-1 text-left">{item.label}</span>
-                  {item.badge && (
+                  {(item.id === 'messages' ? (unreadCount > 0 ? String(unreadCount) : null) : item.badge) && (
                     <Badge variant="secondary" className="text-xs">
-                      {item.badge}
+                      {item.id === 'messages' ? unreadCount : item.badge}
                     </Badge>
                   )}
                 </>

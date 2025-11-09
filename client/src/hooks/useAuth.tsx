@@ -78,7 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (payload?.id) {
           const inferred: User = {
             id: payload.id,
-            name: (payload as any).name || payload.username || 'User',
+            name: (payload as any).name || (payload as any).username || 'User',
+            username: (payload as any).username || undefined,
             email: (payload as any).email || '',
             role: toRole((payload as any).roles ?? (payload as any).role),
             createdAt: new Date(),
@@ -140,31 +141,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const json = await resp.json();
       const data = json?.data || json;
       const token = data?.accessToken;
-      const profile = data?.user;
-      if (!token || !profile) return false;
+      const profile = data?.user; // optional; we'll prefer JWT payload for consistency
+      if (!token) return false;
 
       // Lưu token
       localStorage.setItem(TOKEN_KEY, token);
 
-      const nextUser: User = {
-        id: profile.id || profile._id,
-        name: profile.name || profile.username,
-        email: profile.email || '',
-        role: toRole(profile.role ?? profile.roles),
+      // Luôn suy ra user từ JWT để đồng nhất với flow khởi động lại (decodeJwt)
+      const payload = decodeJwt(token);
+      const nextUser: User = payload?.id ? {
+        id: payload.id,
+        name: (payload as any).name || (profile?.name || profile?.username) || 'User',
+        email: (payload as any).email || (profile?.email || ''),
+        role: toRole((payload as any).roles ?? (payload as any).role ?? (profile?.role ?? profile?.roles)),
+        createdAt: new Date(),
+      } : {
+        // Fallback if JWT missing fields
+        id: (profile as any)?.id || (profile as any)?._id,
+        name: (profile as any)?.name || (profile as any)?.username || 'User',
+        email: (profile as any)?.email || '',
+        role: toRole((profile as any)?.role ?? (profile as any)?.roles),
         createdAt: new Date(),
       };
 
-      // 🔥 Reset any stale socket, refresh auth, rồi đợi socket connect hoàn tất trước khi set user
-      try {
-        resetSocket();
-        refreshSocketAuthFromStorage();
-        await ensureSocketConnected();
-      } catch (err) {
-        console.warn('Socket ensure after login failed', err);
-      }
-
+      // Set user immediately for UI correctness
       setUser(nextUser);
       localStorage.setItem('currentUser', JSON.stringify(nextUser));
+
+      // 🔥 Reset any stale socket, refresh auth, then connect in background (do not block UI)
+      (async () => {
+        try {
+          resetSocket();
+          refreshSocketAuthFromStorage();
+          await ensureSocketConnected();
+        } catch (err) {
+          console.warn('Socket ensure after login failed', err);
+        }
+      })();
 
       return true;
     } catch (err) {

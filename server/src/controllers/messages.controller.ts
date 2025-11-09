@@ -189,7 +189,7 @@ export const getOrCreateAiConversation = async (req: Request, res: Response) => 
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const resolvedAiTutorId = aiTutorId || 'ai-default';
+        const resolvedAiTutorId = aiTutorId || 'ai - mặc định';
 
         const conversation = await MessagesService.getOrCreateAiConversation(
             userId,
@@ -259,7 +259,7 @@ export const createAnnouncement = async (req: Request, res: Response) => {
 
         // Check if user has permission to create announcements
         const role = String((req as any).user?.role || '').toLowerCase();
-        if (!['teacher', 'admin', 'super_admin'].includes(role)) {
+        if (!['teacher', 'admin'].includes(role)) {
             return res.status(403).json({ error: "Insufficient permissions" });
         }
 
@@ -289,6 +289,21 @@ export const sendToAi = async (req: Request, res: Response) => {
 
         if (!userId) {
             return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        // Basic input validation
+        if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+            return res.status(400).json({ error: "Missing or invalid 'prompt'" });
+        }
+        if (!conversationId || typeof conversationId !== 'string') {
+            return res.status(400).json({ error: "Missing 'conversationId'" });
+        }
+
+        // Ensure conversation exists and belongs to user
+        const { Conversation } = await import("../models/conversation.model.js");
+        const convo = await Conversation.findOne({ _id: conversationId, participants: userId }).lean();
+        if (!convo) {
+            return res.status(404).json({ error: "Conversation not found or access denied" });
         }
 
         const aiMessage = await MessagesService.sendToAiAndPersist({

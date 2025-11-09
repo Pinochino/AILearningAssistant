@@ -382,7 +382,7 @@ export function UserManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     {(Array.isArray(roles?.data) ? roles?.data : Array.isArray(roles) ? roles : [])
-                      .filter((r: any) => r?.name !== 'super-admin' && r?.name !== 'SUPER_ADMIN')
+                      .filter((r: any) => r?.name !== 'admin' && r?.name !== 'ADMIN')
                       .map((r: any) => (
                         <SelectItem key={r?._id || r?.id} value={(r?._id || r?.id) as string}>
                           {r?.name === 'teacher' ? 'Giáo viên' : r?.name === 'student' ? 'Học sinh' : (r?.name || 'Vai trò')}

@@ -177,10 +177,10 @@ export function EditUser() {
         queryKey: ['users']
       })
       quertClient.invalidateQueries({
-        queryKey: ['count-role-USER']
+        queryKey: ['count-role-STUDENT']
       })
       quertClient.invalidateQueries({
-        queryKey: ['count-role-SUPER_ADMIN']
+        queryKey: ['count-role-ADMIN']
       })
       quertClient.invalidateQueries({
         queryKey: ['count-role-TEACHER']
@@ -220,11 +220,11 @@ export function EditUser() {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'SUPER_ADMIN':
+      case 'ADMIN':
         return 'Quản trị viên'
       case 'TEACHER':
         return 'Giáo viên'
-      case 'USER':
+      case 'STUDENT':
         return 'Học sinh'
       default:
         return role
@@ -239,11 +239,11 @@ export function EditUser() {
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'SUPER_ADMIN':
+      case 'ADMIN':
         return 'destructive'
       case 'TEACHER':
         return 'default'
-      case 'USER':
+      case 'STUDENT':
         return 'secondary'
       default:
         return 'outline'

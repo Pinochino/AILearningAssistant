@@ -314,59 +314,41 @@ export function TeacherDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Tuần</SelectItem>
-              <SelectItem value="month">Tháng</SelectItem>
-              <SelectItem value="quarter">Quý</SelectItem>
-              <SelectItem value="year">Năm</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" className="gap-2" onClick={() => navigateTo('schedule')}>
-            <Calendar className="h-4 w-4" />
-            Xem lịch học
-          </Button>
-          <Button className="gap-2" onClick={() => navigateTo('content')}>
-            <Plus className="h-4 w-4" />
-            Tạo nội dung mới
-          </Button>
+          {(user?.role === 'admin' || user?.role === 'teacher') && (
+            <div className="lg:col-span-1">
+              <Dialog open={openCreate} onOpenChange={setOpenCreate}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" /> Tạo thông báo
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Tạo thông báo mới</DialogTitle>
+                  </DialogHeader>
+                  <AnnouncementCreator onCreate={handleCreateAnnouncement} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
         </div>
       </div>
       {/* Announcement area for Teacher */}
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {(user?.role === 'admin' || user?.role === 'teacher') && (
-          <div className="lg:col-span-1">
-            <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" /> Tạo thông báo
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Tạo thông báo mới</DialogTitle>
-                </DialogHeader>
-                <AnnouncementCreator onCreate={handleCreateAnnouncement} />
-              </DialogContent>
-            </Dialog>
-          </div>
-        )}
+
         <div className="lg:col-span-3">
           <AnnouncementSection
             announcements={announcements}
             canManage
-            onEdit={(id)=>{
-              const target = (announcements || []).find(a=>a.id===id);
+            onEdit={(id) => {
+              const target = (announcements || []).find(a => a.id === id);
               setEditingId(id);
               setFormTitle(target?.title || '');
               setFormContent(target?.content || '');
               setEditOpen(true);
             }}
-            onDelete={(id)=>{
+            onDelete={(id) => {
               setEditingId(id);
               setDeleteOpen(true);
             }}
@@ -380,11 +362,11 @@ export function TeacherDashboard() {
               <DialogTitle>Sửa thông báo</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <Input placeholder="Tiêu đề" value={formTitle} onChange={(e)=>setFormTitle(e.target.value)} />
-              <Textarea placeholder="Nội dung" rows={4} value={formContent} onChange={(e)=>setFormContent(e.target.value)} />
+              <Input placeholder="Tiêu đề" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} />
+              <Textarea placeholder="Nội dung" rows={4} value={formContent} onChange={(e) => setFormContent(e.target.value)} />
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={()=> setEditOpen(false)}>Hủy</Button>
-                <Button onClick={async ()=>{
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Hủy</Button>
+                <Button onClick={async () => {
                   if (!editingId) return;
                   try {
                     await AnnouncementService.update(editingId, { title: formTitle.trim(), content: formContent.trim() });
@@ -410,8 +392,8 @@ export function TeacherDashboard() {
             </DialogHeader>
             <p>Bạn có chắc muốn xóa thông báo này?</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={()=> setDeleteOpen(false)}>Hủy</Button>
-              <Button variant="destructive" onClick={async ()=>{
+              <Button variant="outline" onClick={() => setDeleteOpen(false)}>Hủy</Button>
+              <Button variant="destructive" onClick={async () => {
                 if (!editingId) return;
                 try {
                   await AnnouncementService.remove(editingId);
