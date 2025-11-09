@@ -273,7 +273,7 @@ export function ClassManagement() {
         return;
       }
       if (!editFormData.teacherId.trim()) {
-        toast.error('Vui lòng nhập username giáo viên');
+        toast.error('Vui lòng nhập tên đăng nhập của giáo viên');
         return;
       }
 
@@ -460,13 +460,11 @@ export function ClassManagement() {
                 <Label htmlFor="teacherId">Giáo viên</Label>
                 <Input
                   id="teacherId"
-                  placeholder="Nhập username giáo viên"
+                  placeholder="Nhập tên đăng nhập của giáo viên"
                   value={formData.teacherId}
                   onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Nhập username chính xác của giáo viên từ hệ thống
-                </p>
+                
               </div>
               <div className="space-y-2">
                 <Label htmlFor="maxStudents">Số học sinh tối đa</Label>
@@ -596,12 +594,12 @@ export function ClassManagement() {
                 <Label htmlFor="edit-teacherId">Giáo viên</Label>
                 <Input
                   id="edit-teacherId"
-                  placeholder="Nhập username giáo viên (VD: teacher1, admin, teacher2...)"
+                  placeholder="Nhập tên đăng nhập giáo viên (VD: teacher1, admin, teacher2...)"
                   value={editFormData.teacherId}
                   onChange={(e) => setEditFormData({...editFormData, teacherId: e.target.value})}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Nhập username giáo viên mới (để trống nếu không muốn thay đổi)
+                  Nhập tên đăng nhập giáo viên mới (để trống nếu không muốn thay đổi)
                 </p>
               </div>
               <div className="space-y-2">

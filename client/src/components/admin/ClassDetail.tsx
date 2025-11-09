@@ -77,15 +77,15 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden" style={{
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden text-sm" style={{
         '--scrollbar-width': '8px',
         '--scrollbar-track-color': '#f8fafc',
         '--scrollbar-thumb-color': '#cbd5e1',
         '--scrollbar-thumb-hover-color': '#94a3b8'
       } as React.CSSProperties}>
-        <div className="p-6 pb-0">
+        <div className="p-4 pb-0">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-base">
               <BookOpen className="h-5 w-5" />
               {classData?.name || 'Chi tiết lớp học'}
             </DialogTitle>
@@ -107,7 +107,7 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
             </CardContent>
           </Card>
         ) : classData ? (
-          <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <ScrollArea className="h-full pr-4">
               <div className="space-y-6 pb-6">
                 {/* Basic Info */}
@@ -119,18 +119,18 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Tên lớp học</Label>
-                        <p className="text-lg font-semibold">{classData.name || 'Chưa đặt tên'}</p>
+                        <p className="text-base font-medium">{classData.name || 'Chưa đặt tên'}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Môn học</Label>
-                        <p className="text-lg font-semibold">{classData.subject}</p>
+                        <p className="text-base font-medium">{classData.subject}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Lớp/Ngành</Label>
-                        <p className="text-lg font-semibold">{classData.grade || 'Không xác định'}</p>
+                        <p className="text-base font-medium">{classData.grade || 'Không xác định'}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Trạng thái</Label>
@@ -142,19 +142,19 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
 
                     <Separator />
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-3">
                       <div className="text-center p-4 bg-muted rounded-lg">
                         <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-2xl font-bold">{classData.studentIds?.length || 0}</p>
+                        <p className="text-xl font-semibold">{classData.studentIds?.length || 0}</p>
                         <p className="text-sm text-muted-foreground">Học sinh</p>
                       </div>
                       <div className="text-center p-4 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold">{classData.maxStudents}</div>
+                        <div className="text-xl font-semibold">{classData.maxStudents}</div>
                         <p className="text-sm text-muted-foreground">Sức chứa tối đa</p>
                       </div>
                       <div className="text-center p-4 bg-muted rounded-lg">
                         <Calendar className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-2xl font-bold">{classData.schedule?.length || 0}</p>
+                        <p className="text-xl font-semibold">{classData.schedule?.length || 0}</p>
                         <p className="text-sm text-muted-foreground">Buổi học/tuần</p>
                       </div>
                     </div>
@@ -270,7 +270,7 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
           </div>
         ) : null}
 
-        <div className="border-t p-4 bg-gray-50">
+        <div className="border-t p-3 bg-gray-50">
           <div className="flex justify-end">
             <Button variant="outline" onClick={onClose}>
               Đóng
