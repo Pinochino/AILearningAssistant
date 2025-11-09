@@ -345,11 +345,11 @@ export function UserManagement() {
             <form onSubmit={handleCreateUser}>
               <div className='space-y-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Tên</Label>
+                  <Label htmlFor='name'>Họ và tên</Label>
                   <Input
                     id='name'
                     type='text'
-                    placeholder='Nhập Name'
+                    placeholder='Nhập họ và tên'
                     onChange={(value) => handleChangeInput(value)}
                     name='name'
                     value={value.name}
@@ -357,10 +357,10 @@ export function UserManagement() {
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Họ và tên</Label>
+                  <Label htmlFor='name'>Tên đăng nhập</Label>
                   <Input
                     id='name'
-                    placeholder='Nhập họ và tên'
+                    placeholder='Nhập tên đăng nhập'
                     onChange={(value) => handleChangeInput(value)}
                     name='username'
                     value={value.username}

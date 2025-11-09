@@ -8,7 +8,7 @@ import logger from 'redux-logger'
 const persistConfig = {
   key: 'root',
   storage,
-  backlist: ['auth']
+  blacklist: ['auth']
 }
 
 const persistedReducer = persistReducer(persistConfig, reducers)

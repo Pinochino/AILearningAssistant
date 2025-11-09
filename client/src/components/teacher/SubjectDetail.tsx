@@ -845,27 +845,22 @@ export function SubjectDetail() {
                             <div className="flex items-center gap-3">
                               <Avatar className="h-10 w-10">
                                 <AvatarFallback>
-                                  {(student?.username || student?.email || 'U')
-                                    .substring(0, 2)
-                                    .toUpperCase()}
+                                  {(student?.name?.charAt(0) || student?.username?.charAt(0) || 'U').toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <h3 className="font-medium">
-                                    {student?.username || 'Unknown'}
-                                  </h3>
-                                </div>
+                              <div className="space-y-0.5">
+                                <h3 className="font-medium">
+                                  {student?.name || student?.username || 'Unknown'}
+                                </h3>
                                 <p className="text-sm text-muted-foreground">
-                                  {student?.email || 'No email'}
+                                  @{student?.username || 'unknown'}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
-                                  Đăng ký:{" "}
-                                  {new Date(enrollment.requestedAt).toLocaleDateString("vi-VN")}
+                                <p className="text-xs text-muted-foreground">
+                                  Đăng ký: {new Date(enrollment.requestedAt).toLocaleDateString('vi-VN')}
                                 </p>
                                 {enrollment.message && (
-                                  <p className="text-sm mt-2 p-2 bg-muted/50 rounded">
-                                    "{enrollment.message}"
+                                  <p className="text-xs mt-1 p-2 bg-muted/50 rounded">
+                                    {enrollment.message}
                                   </p>
                                 )}
                               </div>

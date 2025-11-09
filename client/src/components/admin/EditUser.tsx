@@ -275,24 +275,24 @@ export function EditUser() {
             <CardContent className='space-y-6'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Họ và tên *</Label>
+                  <Label htmlFor='name'>Tên đăng nhập *</Label>
                   <Input
                     id='name'
                     value={formData.username}
                     onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder='Nhập họ và tên'
+                    placeholder='Nhập tên đăng nhập'
                     autoComplete='new-name'
                   />
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Name *</Label>
+                  <Label htmlFor='name'>Họ và tên *</Label>
                   <Input
                     id='name'
                     type='text'
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder='Nhập name'
+                    placeholder='Nhập họ và tên'
                     autoComplete='additional-name'
                   />
                 </div>
