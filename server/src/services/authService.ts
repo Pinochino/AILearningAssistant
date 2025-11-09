@@ -146,32 +146,32 @@ const authService = {
     })
   },
 
-  sendOtp: async (email: string) => {
-    const user = await User.findOne({ email })
+  // sendOtp: async (email: string) => {
+  //   const user = await User.findOne({ email })
 
-    if (!user) {
-      throw new Error('Email is wrong')
-    }
+  //   if (!user) {
+  //     throw new Error('Email is wrong')
+  //   }
 
-    const otp = Math.floor(100000 + Math.random() * 900000)
+  //   const otp = Math.floor(100000 + Math.random() * 900000)
 
-    await emailService.sendEmail({
-      from: 'Tranhunghp22112004@gmail.com',
-      to: user.email as string,
-      subject: 'Forgot password',
-      text: `Your otp is ${otp}`
-      // template: 'otp',
-      // context: { otp: otp }
-    })
+  //   await emailService.sendEmail({
+  //     from: 'Tranhunghp22112004@gmail.com',
+  //     to: user.email as string,
+  //     subject: 'Forgot password',
+  //     text: `Your otp is ${otp}`
+  //     // template: 'otp',
+  //     // context: { otp: otp }
+  //   })
 
-    await ForgotPassword.create({
-      otp,
-      userId: user.id,
-      expired: new Date(Date.now() + 30 * 1000)
-    })
+  //   await ForgotPassword.create({
+  //     otp,
+  //     userId: user.id,
+  //     expired: new Date(Date.now() + 30 * 1000)
+  //   })
 
-    return otp
-  },
+  //   return otp
+  // },
 
   verifyOtp: async (otp: string, email: string) => {
     try {

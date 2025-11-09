@@ -1,7 +1,7 @@
 import { Class, Subject, type IClass, type ISubject } from "../models/class.model"
 import { ClassEnrollment, type IClassEnrollment } from "../models/ClassEnrollment"
 import { User } from "../models/User"
-import mongoose from "mongoose"
+import mongoose, { Types } from "mongoose"
 
 export class ClassesService {
   // Class CRUD operations
@@ -9,7 +9,7 @@ export class ClassesService {
     try {
       // Handle teacherId - can be ObjectId or username
       if (classData.teacherId) {
-        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(classData.teacherId as string);
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(classData.teacherId as unknown as string);
         if (!isValidObjectId) {
           // Find user by username
           const user = await User.findOne({ username: classData.teacherId });
@@ -111,7 +111,7 @@ export class ClassesService {
     try {
       // Handle teacherId - can be ObjectId or username
       if (updateData.teacherId) {
-        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(updateData.teacherId as string);
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(updateData.teacherId as unknown as string);
         if (!isValidObjectId) {
           // Find user by username
           const user = await User.findOne({ username: updateData.teacherId });
@@ -525,17 +525,17 @@ export class ClassesService {
   }> {
     try {
       // Handle teacherId - can be ObjectId or username
-      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(teacherId);
-      let actualTeacherId = teacherId;
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(teacherId)
+      let actualTeacherId: string | Types.ObjectId | null = teacherId
 
       if (!isValidObjectId) {
         // Find user by username and get their _id
-        const user = await User.findOne({ username: teacherId });
+        const user = await User.findOne({ username: teacherId })
         if (user) {
-          actualTeacherId = user._id;
+          actualTeacherId = user._id as Types.ObjectId
         } else {
           // If teacher not found, return empty result
-          actualTeacherId = null;
+          actualTeacherId = null
         }
       }
 
