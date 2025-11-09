@@ -35,9 +35,11 @@ import { NotificationsService } from '../../services/notifications';
 import { UsersService } from '../../services/users';
 import { useAuth } from '../../hooks/useAuth';
 import { getSocket, ensureSocketConnected } from '../../lib/socket';
+import { useNavigation } from '../../hooks/useNavigation';
 
 export function Messages() {
   const { user, isLoading: isAuthLoading } = useAuth();
+  const { currentParams } = useNavigation();
   const meId = (user as any)?.id || (user as any)?._id;
   const meEmail = String((user as any)?.email || '').toLowerCase();
   const toText = (v: any) => {
@@ -89,6 +91,7 @@ export function Messages() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const prevConvRef = useRef<string>('');
+  const handledDirectRef = useRef<boolean>(false);
 
   // Load conversations
   useEffect(() => {
@@ -114,6 +117,30 @@ export function Messages() {
     })();
     return () => { mounted = false; };
   }, [isAuthLoading]);
+
+  // If navigated with a directUserId param, open or create the direct conversation
+  useEffect(() => {
+    (async () => {
+      try {
+        if (isAuthLoading) return;
+        const directUserId = (currentParams as any)?.directUserId as string | undefined;
+        if (!directUserId) return;
+        if (handledDirectRef.current) return;
+        handledDirectRef.current = true;
+        const convRes: any = await MessagesService.getOrCreateDirect(String(directUserId));
+        const conversation = convRes?.data || convRes;
+        if (!conversation) return;
+        const cid = conversation._id || conversation.id;
+        if (!cid) return;
+        setConversations((prev: any[]) => {
+          const exists = prev.find((c) => (c._id || c.id) === cid);
+          if (exists) return prev;
+          return [conversation, ...prev];
+        });
+        setSelectedConversation(cid);
+      } catch {}
+    })();
+  }, [currentParams, isAuthLoading]);
 
   const currentConversation = useMemo(() =>
     conversations.find((c) => (c._id || c.id) === selectedConversation),

@@ -322,7 +322,7 @@ export function TeacherDashboard() {
                     <Plus className="h-4 w-4" /> Tạo thông báo
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Tạo thông báo mới</DialogTitle>
                   </DialogHeader>
@@ -357,13 +357,34 @@ export function TeacherDashboard() {
 
         {/* Edit Announcement Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Sửa thông báo</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <Input placeholder="Tiêu đề" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} />
-              <Textarea placeholder="Nội dung" rows={4} value={formContent} onChange={(e) => setFormContent(e.target.value)} />
+              {(() => {
+                const MAX_TITLE_CHARS = 80;
+                const chars = formTitle.length;
+                const remaining = Math.max(0, MAX_TITLE_CHARS - chars);
+                return (
+                  <div className="space-y-1">
+                    <div className="text-xs text-muted-foreground">Tiêu đề (còn {remaining}/{MAX_TITLE_CHARS} ký tự)</div>
+                    <Input
+                      placeholder="Tiêu đề"
+                      value={formTitle}
+                      onChange={(e) => {
+                        const raw = e.target.value || '';
+                        if (raw.length <= MAX_TITLE_CHARS) {
+                          setFormTitle(raw);
+                        } else {
+                          setFormTitle(raw.slice(0, MAX_TITLE_CHARS));
+                        }
+                      }}
+                    />
+                  </div>
+                );
+              })()}
+              <Textarea placeholder="Nội dung" rows={6} value={formContent} onChange={(e) => setFormContent(e.target.value)} className="max-h-60 overflow-y-auto" />
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setEditOpen(false)}>Hủy</Button>
                 <Button onClick={async () => {
@@ -475,214 +496,6 @@ export function TeacherDashboard() {
         </Card>
       </div>
 
-      {/* Detailed Analytics Tabs */}
-      <Tabs defaultValue="subjects" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="subjects">Lớp học của tôi</TabsTrigger>
-          <TabsTrigger value="students">Hiệu suất sinh viên</TabsTrigger>
-          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-        </TabsList>
-
-        {/* Subjects Tab */}
-        <TabsContent value="subjects" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            {filteredSubjectStats.map((subject) => (
-              <Card key={subject.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-medium text-lg">{subject.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {subject.students} sinh viên • Hoạt động cuối: {new Date(subject.lastActivity).toLocaleDateString('vi-VN')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`flex items-center gap-1 ${subject.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                        {subject.trend === 'up' ? (
-                          <TrendingUp className="h-4 w-4" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4" />
-                        )}
-                        <span className="text-sm font-medium">{Math.abs(subject.trendValue)}%</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigateTo('subjects')}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Xem chi tiết
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{subject.avgScore}%</p>
-                      <p className="text-sm text-muted-foreground">Điểm TB</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{subject.completionRate}%</p>
-                      <p className="text-sm text-muted-foreground">Hoàn thành</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">{subject.quizCount}</p>
-                      <p className="text-sm text-muted-foreground">Quiz</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-orange-600">{subject.flashcardCount}</p>
-                      <p className="text-sm text-muted-foreground">Flashcard</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Students Tab */}
-        <TabsContent value="students" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Hiệu suất sinh viên</CardTitle>
-              <CardDescription>
-                Phân tích chi tiết về tiến độ học tập của từng sinh viên
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockStudentPerformance.map((student) => (
-                  <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium">{student.name}</h3>
-                          <Badge variant="outline" className="text-xs">{student.studentId}</Badge>
-                          {getStatusBadge(student.status)}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{student.subject}</p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>Điểm Quiz: {student.quizScore}%</span>
-                          <span>•</span>
-                          <span>Hoàn thành: {student.completionRate}%</span>
-                          <span>•</span>
-                          <span>Thời gian học: {student.studyTime}h/ngày</span>
-                          <span>•</span>
-                          <span>Hoạt động cuối: {new Date(student.lastActive).toLocaleDateString('vi-VN')}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-32">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>Tiến độ</span>
-                          <span>{student.completionRate}%</span>
-                        </div>
-                        <Progress value={student.completionRate} className="h-2" />
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-semibold text-blue-600">{student.quizScore}%</p>
-                        <p className="text-xs text-muted-foreground">Điểm Quiz</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Activities */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Hoạt động gần đây</CardTitle>
-                <CardDescription>Các hoạt động mới nhất của học sinh</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">{activity.avatar}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <div className="text-sm">
-                        <span className="font-medium">{activity.student}</span>{' '}
-                        {activity.action}
-                        {activity.score && (
-                          <Badge variant="secondary" className="ml-2">
-                            {activity.score}%
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Today's Schedule */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Lịch học hôm nay</CardTitle>
-                <CardDescription>Thứ Năm, 19 tháng 9, 2024</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {upcomingClasses.map((classItem, index) => (
-                    <div key={index} className="border rounded-lg p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{classItem.subject}</h4>
-                        <Badge variant="outline">{classItem.room}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{classItem.time}</p>
-                      <p className="text-sm">{classItem.topic}</p>
-                      <Button size="sm" variant="secondary" className="w-full">
-                        Chuẩn bị bài giảng
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('content')}>
-          <CardContent className="p-4 text-center">
-            <Plus className="h-6 w-6 mx-auto mb-2 text-primary" />
-            <p className="text-sm font-medium">Tạo Quiz</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('content')}>
-          <CardContent className="p-4 text-center">
-            <FileText className="h-6 w-6 mx-auto mb-2 text-primary" />
-            <p className="text-sm font-medium">Upload tài liệu</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('analytics')}>
-          <CardContent className="p-4 text-center">
-            <BarChart3 className="h-6 w-6 mx-auto mb-2 text-primary" />
-            <p className="text-sm font-medium">Xem báo cáo</p>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigateTo('messages')}>
-          <CardContent className="p-4 text-center">
-            <MessageSquare className="h-6 w-6 mx-auto mb-2 text-primary" />
-            <p className="text-sm font-medium">Nhắn tin HS</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    </div >
   );
 }

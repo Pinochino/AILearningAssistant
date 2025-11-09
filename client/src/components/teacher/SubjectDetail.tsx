@@ -64,6 +64,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { TeacherQuizFlashcard } from "./TeacherQuizFlashcard";
+import { useNavigation } from "../../hooks/useNavigation";
 
 const mockSubjects = [
   {
@@ -262,6 +263,7 @@ interface FlashcardItem {
 }
 
 export function SubjectDetail() {
+  const { navigateTo } = useNavigation();
   const [currentSubjectId, setCurrentSubjectId] = useState("1");
   const [quizDuration, setQuizDuration] = useState('');
   const [isCreateChapterOpen, setIsCreateChapterOpen] =
@@ -1621,23 +1623,10 @@ export function SubjectDetail() {
                             .toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium">
-                            {student.name}
-                          </h3>
-                          <Badge
-                            variant={
-                              student.status === "active"
-                                ? "secondary"
-                                : "outline"
-                            }
-                          >
-                            {student.status === "active"
-                              ? "Hoạt động"
-                              : "Không hoạt động"}
-                          </Badge>
-                        </div>
+                      <div>
+                        <p className="font-medium">
+                          {student.name}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           {student.email}
                         </p>
@@ -1666,7 +1655,11 @@ export function SubjectDetail() {
                           className="h-2"
                         />
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigateTo('messages', { directUserId: String(student.id) })}
+                      >
                         <MessageSquare className="h-4 w-4" />
                       </Button>
                     </div>

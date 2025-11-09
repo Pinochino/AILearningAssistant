@@ -51,27 +51,12 @@ const menuItems = [
     icon: MessageSquare,
     badge: null,
   },
-  {
-    id: 'achievements',
-    label: 'Thành tích',
-    icon: Trophy,
-    badge: null,
-  },
 ];
 
 export function StudentSidebar({ isOpen }: StudentSidebarProps) {
   const { currentPage, navigateTo } = useNavigation();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { isLoading: isAuthLoading } = useAuth();
   const [unreadCount, setUnreadCount] = useState<number>(0);
-
-  const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev =>
-      prev.includes(itemId)
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
 
   const handleItemClick = (itemId: string) => {
     navigateTo(itemId);
@@ -140,24 +125,6 @@ export function StudentSidebar({ isOpen }: StudentSidebarProps) {
           )}
         </div>
       </div>
-
-      {/* Study Progress Widget */}
-      {isOpen && (
-        <div className="px-4 mb-4">
-          <div className="bg-sidebar-accent rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-sidebar-accent-foreground" />
-              <span className="text-sm font-medium text-sidebar-accent-foreground">
-                Tiến độ hôm nay
-              </span>
-            </div>
-            <Progress value={65} className="h-2" />
-            <p className="text-xs text-sidebar-accent-foreground/70">
-              65% hoàn thành - Còn 2 bài quiz
-            </p>
-          </div>
-        </div>
-      )}
 
       <nav className="px-2 space-y-1">
         {menuItems.map((item) => (

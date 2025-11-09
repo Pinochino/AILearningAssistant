@@ -12,17 +12,13 @@ import { UserManagement } from "./admin/UserManagement";
 import { EditUser } from "./admin/EditUser";
 import { SubjectManagement } from "./admin/SubjectManagement";
 import { EditSubject } from "./admin/EditSubject";
-import { Analytics } from "./admin/Analytics";
 import { ContentManagement } from "./admin/ContentManagement";
 import { SystemSettings } from "./admin/SystemSettings";
 
 // Teacher pages
 import { SubjectDetail } from "./teacher/SubjectDetail";
-import { StudentsManagement } from "./teacher/StudentsManagement";
-import { ContentManagement as TeacherContentManagement } from "./teacher/ContentManagement";
 import { Schedule as TeacherSchedule } from "./teacher/Schedule";
 import { Messages as TeacherMessages } from "./teacher/Messages";
-import { Analytics as TeacherAnalytics } from "./teacher/Analytics";
 
 // Student pages
 import { SubjectView } from "./student/SubjectView";
@@ -136,8 +132,6 @@ export function PageRouter() {
         return <DocumentsView />;
       case "messages":
         return <Messages />;
-      case "achievements":
-        return <Achievements />;
       default:
         return <StudentDashboard />;
     }

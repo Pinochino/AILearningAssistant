@@ -406,61 +406,6 @@ export function Schedule() {
             </CardContent>
           </Card>
 
-          {/* Upcoming Events */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Sự kiện sắp tới</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {mockUpcomingEvents.map((event) => (
-                  <div key={event.id} className="p-3 border rounded-lg space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{getTypeIcon(event.type)}</span>
-                        <div>
-                          <h4 className="font-medium text-sm">{event.title}</h4>
-                          <p className="text-xs text-muted-foreground">{event.subject}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{new Date(event.date).toLocaleDateString('vi-VN')}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{event.time}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Thao tác nhanh</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                <Bell className="h-4 w-4" />
-                Thiết lập nhắc nhở
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                <Filter className="h-4 w-4" />
-                Lọc theo môn học
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                <Calendar className="h-4 w-4" />
-                Xuất lịch học
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

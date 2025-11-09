@@ -26,18 +26,6 @@ const menuItems = [
     badge: '3',
   },
   {
-    id: 'students',
-    label: 'Học sinh',
-    icon: Users,
-    badge: null,
-  },
-  {
-    id: 'content',
-    label: 'Nội dung học tập',
-    icon: FileText,
-    badge: null,
-  },
-  {
     id: 'schedule',
     label: 'Lịch học',
     icon: Calendar,
@@ -76,7 +64,7 @@ export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
     })();
 
     (async () => {
-      try { await ensureSocketConnected(); } catch {}
+      try { await ensureSocketConnected(); } catch { }
       const s = getSocket();
       if (!s) return;
       const refresh = async () => {
@@ -85,10 +73,10 @@ export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
           const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
           const unread = (list || []).filter((c: any) => Number(c?.unreadCount || 0) > 0).length;
           if (!cancelled) setUnreadCount(unread);
-        } catch {}
+        } catch { }
       };
       s.on('new_message', refresh);
-      return () => { try { s.off('new_message', refresh); } catch {} };
+      return () => { try { s.off('new_message', refresh); } catch { } };
     })();
 
     return () => { cancelled = true; };
@@ -114,16 +102,6 @@ export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
           )}
         </div>
       </div>
-
-      {/* Quick Actions */}
-      {isOpen && (
-        <div className="px-4 mb-4">
-          <Button className="w-full gap-2" size="sm">
-            <Plus className="h-4 w-4" />
-            Tạo nội dung mới
-          </Button>
-        </div>
-      )}
 
       <nav className="px-2 space-y-1">
         {menuItems.map((item) => (
