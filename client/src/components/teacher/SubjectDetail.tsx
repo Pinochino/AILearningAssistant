@@ -474,7 +474,24 @@ export function SubjectDetail() {
     });
   };
 
-  // Load pending enrollments when dialog opens or class changes
+  // Load pending enrollments when component mounts, class changes, or dialog opens
+  useEffect(() => {
+    // Load immediately
+    if (currentSubjectId) {
+      loadPendingEnrollments(currentSubjectId);
+    }
+    
+    // Set up polling every 30 seconds
+    const intervalId = setInterval(() => {
+      if (currentSubjectId) {
+        loadPendingEnrollments(currentSubjectId);
+      }
+    }, 30000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, [currentSubjectId]);
+
   const handleOpenPendingStudents = () => {
     setIsPendingStudentsOpen(true);
     loadPendingEnrollments(currentSubjectId);
@@ -665,43 +682,13 @@ export function SubjectDetail() {
           <span className="text-sm text-muted-foreground">
             {currentSubjectIndex + 1} / {subjects.length}
           </span>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="gap-2 min-w-48"
-              >
-                <BookOpen className="h-4 w-4" />
-                {currentSubject.name}
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64">
-              {subjects.map((subject) => (
-                <DropdownMenuItem
-                  key={subject.id}
-                  onClick={() =>
-                    handleSubjectChange(subject.id)
-                  }
-                  className={
-                    currentSubject.id === subject.id
-                      ? "bg-accent"
-                      : ""
-                  }
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium">
-                      {subject.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {subject.description}
-                    </span>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="outline"
+            className="gap-2 min-w-48 hover:bg-accent hover:text-accent-foreground"
+          >
+            <BookOpen className="h-4 w-4" />
+            {currentSubject.name}
+          </Button>
         </div>
 
         <Button

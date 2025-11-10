@@ -229,18 +229,7 @@ const filteredClasses = availableClasses.filter((cls) => {
                 />
               </div>
             </div>
-            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Lọc theo môn" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả môn</SelectItem>
-                <SelectItem value="toán">Toán học</SelectItem>
-                <SelectItem value="vật lý">Vật lý</SelectItem>
-                <SelectItem value="hóa">Hóa học</SelectItem>
-                <SelectItem value="sinh">Sinh học</SelectItem>
-              </SelectContent>
-            </Select>
+          
           </div>
         </CardContent>
       </Card>
@@ -357,7 +346,7 @@ const filteredClasses = availableClasses.filter((cls) => {
           <CardHeader>
             <CardTitle>Lớp học có sẵn</CardTitle>
             <CardDescription>
-              Các lớp học bạn có thể đăng ký tham gia (chưa đăng ký)
+              Các lớp học bạn có thể đăng ký tham gia 
             </CardDescription>
           </CardHeader>
           <CardContent>

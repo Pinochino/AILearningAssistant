@@ -428,29 +428,10 @@ export function SubjectView() {
             {currentSubjectIndex + 1} / {subjects.length}
           </span>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 min-w-48">
-                <BookOpen className="h-4 w-4" />
-                {currentSubject.name}
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64">
-              {subjects.map((subject) => (
-                <DropdownMenuItem
-                  key={subject.id}
-                  onClick={() => handleSubjectChange(subject.id)}
-                  className={currentSubject.id === subject.id ? 'bg-accent' : ''}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium">{subject.name}</span>
-                    <span className="text-xs text-muted-foreground">{subject.description}</span>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center px-4 py-2 bg-accent rounded-md">
+            <BookOpen className="h-4 w-4 mr-2" />
+            <span className="font-medium">{currentSubject.name}</span>
+          </div>
         </div>
 
         <Button
@@ -468,7 +449,7 @@ export function SubjectView() {
       <div>
         <h1>{currentSubject.name}</h1>
         <p className="text-muted-foreground">
-          {currentSubject.description} • {currentSubject.teacher}
+          {currentSubject.name}
         </p>
       </div>
 
