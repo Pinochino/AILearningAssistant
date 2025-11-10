@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -414,6 +415,7 @@ export function SubjectDetail() {
 
   // Approve enrollment
   const handleApproveEnrollment = async (enrollmentId: string) => {
+    const toastId = toast.loading('Đang xử lý...');
     try {
       const response = await fetch(`http://localhost:9000/api/enrollments/${enrollmentId}/approve`, {
         method: 'POST',
@@ -424,39 +426,52 @@ export function SubjectDetail() {
       });
       const data = await response.json();
       if (data.success) {
-        alert('Đã duyệt sinh viên thành công!');
+        toast.success('Đã duyệt sinh viên thành công!', { id: toastId });
         // Reload pending enrollments
         loadPendingEnrollments(currentSubjectId);
       } else {
-        alert('Lỗi: ' + data.message);
+        toast.error(`Lỗi: ${data.message}`, { id: toastId });
       }
     } catch (error: any) {
-      alert('Lỗi: ' + error.message);
+      toast.error(`Lỗi: ${error.message}`, { id: toastId });
     }
   };
 
   // Reject enrollment
   const handleRejectEnrollment = async (enrollmentId: string) => {
-    try {
-      const response = await fetch(`http://localhost:9000/api/enrollments/${enrollmentId}/reject`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
+    toast('Bạn có chắc muốn từ chối sinh viên này?', {
+      action: {
+        label: 'Xác nhận',
+        onClick: async () => {
+          const toastId = toast.loading('Đang xử lý...');
+          try {
+            const response = await fetch(`http://localhost:9000/api/enrollments/${enrollmentId}/reject`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ reason: 'Không đủ điều kiện' })
+            });
+            const data = await response.json();
+            if (data.success) {
+              toast.success('Đã từ chối sinh viên!', { id: toastId });
+              // Reload pending enrollments
+              loadPendingEnrollments(currentSubjectId);
+            } else {
+              toast.error(`Lỗi: ${data.message}`, { id: toastId });
+            }
+          } catch (error: any) {
+            toast.error(`Lỗi: ${error.message}`, { id: toastId });
+          }
         },
-        body: JSON.stringify({ reason: 'Không đủ điều kiện' })
-      });
-      const data = await response.json();
-      if (data.success) {
-        alert('Đã từ chối sinh viên!');
-        // Reload pending enrollments
-        loadPendingEnrollments(currentSubjectId);
-      } else {
-        alert('Lỗi: ' + data.message);
-      }
-    } catch (error: any) {
-      alert('Lỗi: ' + error.message);
-    }
+      },
+      cancel: {
+        label: 'Hủy',
+        onClick: () => {}
+      },
+      duration: 10000
+    });
   };
 
   // Load pending enrollments when dialog opens or class changes
@@ -858,9 +873,10 @@ export function SubjectDetail() {
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                onClick={() =>
-                                  handleApproveEnrollment(enrollment._id)
-                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApproveEnrollment(enrollment._id);
+                                }}
                                 className="gap-1"
                               >
                                 <CheckCircle className="h-4 w-4" />
@@ -869,9 +885,10 @@ export function SubjectDetail() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  handleRejectEnrollment(enrollment._id)
-                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRejectEnrollment(enrollment._id);
+                                }}
                               >
                                 Từ chối
                               </Button>

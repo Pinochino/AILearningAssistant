@@ -10,11 +10,9 @@ import flashcardRouter from './flashcardRouter'
 import quizRouter from './quizRouter'
 import materialRouter from './materialRouter'
 import chapterRouter from './chapterRouter'
-import aiRouter from './aiRouter'  // ✅ Thêm dòng này
+import aiRouter from './aiRouter' 
 
 const routers = (app: Application) => {
-    console.log('🔧 Registering routes...') // ✅ Thêm log
-
   app.use('/api/auth', authRouter)
   app.use('/api/users', userRouter)
   app.use('/api/files', fileRouter)
@@ -26,10 +24,7 @@ const routers = (app: Application) => {
   app.use('/api/quizzes', quizRouter)
   app.use('/api/materials', materialRouter)
   app.use('/api/chapters', chapterRouter)
-  app.use('/api/ai', aiRouter)  // ✅ Thêm dòng này
-
-    console.log('✅ AI Router registered at /api/ai') // ✅ Thêm log
-
+  app.use('/api/ai', aiRouter)  
 }
 
 export default routers

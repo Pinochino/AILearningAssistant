@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { toast } from 'sonner';
 import {
   CheckCircle,
   XCircle,
@@ -45,11 +46,20 @@ export function EnrollmentApproval() {
     loadMyClasses();
   }, []);
 
-  // Load pending enrollments when class is selected
+  // Load pending enrollments when class is selected and poll for updates
   useEffect(() => {
-    if (selectedClass) {
+    if (!selectedClass) return;
+    
+    // Load immediately
+    loadPendingEnrollments(selectedClass._id);
+    
+    // Set up polling every 30 seconds
+    const intervalId = setInterval(() => {
       loadPendingEnrollments(selectedClass._id);
-    }
+    }, 30000);
+    
+    // Clean up interval on unmount or when selected class changes
+    return () => clearInterval(intervalId);
   }, [selectedClass]);
 
   const loadMyClasses = async () => {
@@ -65,10 +75,17 @@ export function EnrollmentApproval() {
       }
 
       const response = await teacherApi.getClasses(teacherId, { limit: 100 });
-      setMyClasses(response.data.items);
+      // Only update if the data has changed to prevent unnecessary re-renders
+      setMyClasses(prevClasses => {
+        const newClasses = response.data.items;
+        if (JSON.stringify(prevClasses) !== JSON.stringify(newClasses)) {
+          return newClasses;
+        }
+        return prevClasses;
+      });
       
-      // Auto-select first class if available
-      if (response.data.items.length > 0) {
+      // Auto-select first class if available and no class is selected
+      if (response.data.items.length > 0 && !selectedClass) {
         setSelectedClass(response.data.items[0]);
       }
     } catch (err: any) {
@@ -82,42 +99,80 @@ export function EnrollmentApproval() {
   const loadPendingEnrollments = async (classId: string) => {
     try {
       const response = await classApi.getPendingEnrollments(classId);
-      setPendingEnrollments(response.data);
+      // Only update if the data has changed to prevent unnecessary re-renders
+      setPendingEnrollments(prevEnrollments => {
+        const newEnrollments = response.data;
+        // Check if the data has actually changed
+        if (JSON.stringify(prevEnrollments) !== JSON.stringify(newEnrollments)) {
+          return newEnrollments;
+        }
+        return prevEnrollments;
+      });
     } catch (err: any) {
       console.error('Error loading pending enrollments:', err);
-      setPendingEnrollments([]);
+      // Don't clear existing data on error, just log it
     }
   };
 
   const handleApprove = async (enrollmentId: string) => {
-    if (!confirm('Bạn có chắc muốn duyệt yêu cầu này?')) return;
-
-    try {
-      setProcessing(true);
-      await enrollmentApi.approve(enrollmentId);
-      
-      // Reload data
-      if (selectedClass) {
-        await loadPendingEnrollments(selectedClass._id);
-        await loadMyClasses();
-      }
-      
-      alert('Đã duyệt yêu cầu thành công!');
-    } catch (err: any) {
-      alert('Lỗi: ' + (err.message || 'Không thể duyệt yêu cầu'));
-    } finally {
-      setProcessing(false);
-    }
+    toast('Bạn có chắc muốn duyệt yêu cầu này?', {
+      action: {
+        label: 'Xác nhận',
+        onClick: async () => {
+          const toastId = toast.loading('Đang xử lý...');
+          try {
+            setProcessing(true);
+            await enrollmentApi.approve(enrollmentId);
+            
+            // Reload data
+            if (selectedClass) {
+              await loadPendingEnrollments(selectedClass._id);
+              await loadMyClasses();
+            }
+            
+            toast.success('Đã duyệt yêu cầu thành công!', { id: toastId });
+          } catch (err: any) {
+            toast.error(`Lỗi: ${err.message || 'Không thể duyệt yêu cầu'}`, { id: toastId });
+          } finally {
+            setProcessing(false);
+          }
+        },
+      },
+      cancel: {
+        label: 'Hủy',
+        onClick: () => {}
+      },
+      duration: 10000
+    });
   };
 
   const handleReject = (enrollment: ClassEnrollment) => {
-    setSelectedEnrollment(enrollment);
-    setIsRejectDialogOpen(true);
+    toast('Bạn có chắc muốn từ chối yêu cầu này?', {
+      description: 'Vui lòng nhập lý do từ chối bên dưới',
+      action: {
+        label: 'Tiếp tục',
+        onClick: () => {
+          setSelectedEnrollment(enrollment);
+          setIsRejectDialogOpen(true);
+        }
+      },
+      cancel: {
+        label: 'Hủy',
+        onClick: () => {}
+      },
+      duration: 10000
+    });
   };
 
   const handleSubmitReject = async () => {
     if (!selectedEnrollment) return;
 
+    if (!rejectReason.trim()) {
+      toast.error('Vui lòng nhập lý do từ chối');
+      return;
+    }
+
+    const toastId = toast.loading('Đang xử lý...');
     try {
       setProcessing(true);
       await enrollmentApi.reject(selectedEnrollment._id, rejectReason);
@@ -130,9 +185,9 @@ export function EnrollmentApproval() {
       setIsRejectDialogOpen(false);
       setRejectReason('');
       setSelectedEnrollment(null);
-      alert('Đã từ chối yêu cầu!');
+      toast.success('Đã từ chối yêu cầu!', { id: toastId });
     } catch (err: any) {
-      alert('Lỗi: ' + (err.message || 'Không thể từ chối yêu cầu'));
+      toast.error(`Lỗi: ${err.message || 'Không thể từ chối yêu cầu'}`, { id: toastId });
     } finally {
       setProcessing(false);
     }
@@ -245,7 +300,7 @@ export function EnrollmentApproval() {
                                 {(enrollment.studentId as any)?.username || 'Sinh viên'}
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                {(enrollment.studentId as any)?.email || ''}
+                                {(enrollment.studentId as any)?.name || ''}
                               </p>
                             </div>
                             {enrollment.message && (
@@ -329,7 +384,7 @@ export function EnrollmentApproval() {
                   Sinh viên: {(selectedEnrollment.studentId as any)?.username || 'N/A'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {(selectedEnrollment.studentId as any)?.email || ''}
+                  {(selectedEnrollment.studentId as any)?.name || ''}
                 </p>
               </div>
               <div className="space-y-2">

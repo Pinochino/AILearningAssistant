@@ -230,9 +230,9 @@ export function EditClass() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="teacherId">Username giáo viên</Label>
+              <Label htmlFor="username">Username giáo viên</Label>
               <Input 
-                id="teacherId" 
+                id="username" 
                 placeholder="Nhập username giáo viên" 
                 value={formData.teacherId}
                 onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
@@ -290,7 +290,7 @@ export function EditClass() {
                   <Label className="text-xs">Thứ</Label>
                   <Select 
                     value={slot.dayOfWeek.toString()} 
-                    onValueChange={(val) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val))}
+                    onValueChange={(val: string) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val))}
                   >
                     <SelectTrigger>
                       <SelectValue />

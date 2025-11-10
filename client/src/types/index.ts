@@ -3,10 +3,12 @@ export type UserRole = 'admin' | 'teacher' | 'student';
 export interface User {
   id: string;
   name: string;
+  username: string;
   email: string;
   role: UserRole;
   avatar?: string;
   createdAt: Date;
+  _rawRoles?: any[]; // For debugging role mapping
 }
 
 export interface Subject {

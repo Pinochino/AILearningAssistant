@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { BookOpen, Brain, ShieldUser } from 'lucide-react';
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
@@ -17,28 +17,13 @@ export function LoginForm() {
     e.preventDefault();
     setError('');
 
-    const success = await login(email, password);
+    const success = await login(username, password);
     if (!success) {
-      setError('Email hoặc mật khẩu không đúng');
+      setError('Username hoặc mật khẩu không đúng');
     }
   };
 
-  const quickLogin = (account: string) => {
-    const accounts: Record<string, string> = {
-      'admin': 'admin@gmail.com',
-      'teacher1': 'teacher1@example.com',
-      'teacher2': 'teacher2@example.com',
-      'teacher3': 'teacher3@example.com',
-      'student1': 'student1@example.com',
-      'student2': 'student2@example.com',
-      'student3': 'student3@example.com',
-      'student4': 'student4@example.com',
-      'student5': 'student5@example.com',
-    };
-    
-    setEmail(accounts[account] || '');
-    setPassword('123456');
-  };
+ 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -64,13 +49,13 @@ export function LoginForm() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Tên đăng nhập</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="text"
+                  type="text"
+                  placeholder="Nhập thông tin của người dùng"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>
@@ -98,116 +83,7 @@ export function LoginForm() {
               </Button>
             </form>
 
-            {/* Quick Login Options */}
-            <div className="mt-6 space-y-3">
-              <div className="text-center text-sm text-muted-foreground">
-                Hoặc đăng nhập nhanh với:
-              </div>
-              
-              {/* Admin */}
-              <div className="space-y-2">
-                <div className="text-xs font-semibold text-muted-foreground">Admin</div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => quickLogin('admin')}
-                  className="w-full justify-start"
-                >
-                  <ShieldUser className="h-4 w-4 mr-2" />
-                  <span className="text-xs">admin@gmail.com</span>
-                </Button>
-              </div>
-
-              {/* Teachers */}
-              <div className="space-y-2">
-                <div className="text-xs font-semibold text-muted-foreground">Giáo viên</div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('teacher1')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <BookOpen className="h-3 w-3 mb-1" />
-                    <span className="text-xs">GV 1</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('teacher2')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <BookOpen className="h-3 w-3 mb-1" />
-                    <span className="text-xs">GV 2</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('teacher3')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <BookOpen className="h-3 w-3 mb-1" />
-                    <span className="text-xs">GV 3</span>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Students */}
-              <div className="space-y-2">
-                <div className="text-xs font-semibold text-muted-foreground">Học sinh</div>
-                <div className="grid grid-cols-5 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('student1')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <Brain className="h-3 w-3 mb-1" />
-                    <span className="text-xs">HS 1</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('student2')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <Brain className="h-3 w-3 mb-1" />
-                    <span className="text-xs">HS 2</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('student3')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <Brain className="h-3 w-3 mb-1" />
-                    <span className="text-xs">HS 3</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('student4')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <Brain className="h-3 w-3 mb-1" />
-                    <span className="text-xs">HS 4</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin('student5')}
-                    className="flex flex-col items-center p-2 h-auto"
-                  >
-                    <Brain className="h-3 w-3 mb-1" />
-                    <span className="text-xs">HS 5</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 text-center text-sm text-muted-foreground">
-              Tất cả tài khoản dùng mật khẩu: <code className="bg-muted px-2 py-1 rounded">123456</code>
-            </div>
+           
           </CardContent>
         </Card>
       </div>
