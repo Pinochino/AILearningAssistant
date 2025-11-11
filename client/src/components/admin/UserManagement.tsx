@@ -4,7 +4,7 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
-import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX } from 'lucide-react'
+import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX, Check } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
@@ -14,8 +14,8 @@ import React from 'react'
 import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useGetUsers } from '../../services/UserService'
 import { useFetchCountUserByRole } from '../../hooks/getAllData'
-import {Link} from 'react-router-dom';
 import GetRoleCountByName from '../../hooks/getRoleCount'
+
 
 const mockUsers = [
   {
@@ -132,6 +132,7 @@ export function UserManagement() {
   const [userCounts, setUserCounts] = useState<number>(0);
   const [teacherCounts, setTeacherCounts] = useState<number>(0);
 
+
   const { mutate: handleDeleteUser } = useMutation({
     mutationFn: async (userId: string) => {
       return await handleApi({ url: `/users/delete/${userId}`, method: 'DELETE' })
@@ -157,12 +158,7 @@ export function UserManagement() {
     }
   })
 
-  
 
-  const fetchUsers = async () => {
-    const res = await handleApi({ url: '/users/list', method: 'GET', withCredentials: true })
-    return res.data?.data
-  }
 
   const fetchRoles = async () => {
     const res = await handleApi({ url: '/roles/list', method: 'GET' })
@@ -318,7 +314,7 @@ export function UserManagement() {
 
   console.log('Number: ', userActiveCount)
 
-
+  console.log('users:', users)
 
   return (
     <div className='space-y-6'>
@@ -421,6 +417,7 @@ export function UserManagement() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className='pl-9'
                 />
+                    
               </div>
             </div>
             <Select value={selectedRole} onValueChange={handleChangeUserByRoleId}>

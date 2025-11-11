@@ -190,24 +190,6 @@ export function Profile() {
           </div>
         </div>
 
-        <div className='flex items-center gap-2'>
-          {isEditing ? (
-            <>
-              <Button variant='outline' onClick={handleCancel}>
-                Hủy
-              </Button>
-              <Button onClick={handleSave} disabled={!hasChanges || isSaving} className='gap-2'>
-                <Save className='h-4 w-4' />
-                {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={handleEditUser} className='gap-2'>
-              <Edit className='h-4 w-4' />
-              Chỉnh sửa
-            </Button>
-          )}
-        </div>
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
@@ -268,39 +250,32 @@ export function Profile() {
             <CardContent className='space-y-6'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Họ và tên *</Label>
+                  <Label htmlFor='username'>Tên đăng nhập *</Label>
                   <Input
                     id='username'
-                    value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder='Nhập họ và tên'
+                    placeholder={user?.username}
+                    disabled
+                    style={{
+                      fontWeight: "bolder"
+                    }}
                   />
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='email'>Name *</Label>
+                  <Label htmlFor='name'>Họ và tên *</Label>
                   <Input
                     id='name'
                     type='name'
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder='Nhập name'
+                    placeholder={user?.name}
+                    disabled
+                    style={{
+                      fontWeight: "bolder"
+                    }}
                   />
                 </div>
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='address'>Địa chỉ</Label>
-                <Input
-                  id='address'
-                  placeholder='Hà Nội, Phùng Khoang'
-                  disabled
-                  style={{
-                    fontWeight: 'bolder',
-                    color: 'black'
-                  }}
-                />
-              </div>
+             
             </CardContent>
           </Card>
         </div>

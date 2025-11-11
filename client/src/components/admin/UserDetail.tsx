@@ -260,7 +260,7 @@ export function UserDetailPage() {
             <CardContent className='space-y-6'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Họ và tên *</Label>
+                  <Label htmlFor='name'>Tên đăng nhập *</Label>
                   <Input
                     id='name'
                     placeholder={user?.username}
@@ -274,7 +274,7 @@ export function UserDetailPage() {
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Name *</Label>
+                  <Label htmlFor='name'>Họ và tên *</Label>
                   <Input
                     id='name'
                     type='text'
@@ -287,18 +287,7 @@ export function UserDetailPage() {
                   />
                 </div>
 
-                <div className='space-y-2'>
-                  <Label htmlFor='phone'>Số điện thoại</Label>
-                  <Input
-                    id='phone'
-                    placeholder='0335 250 819'
-                    disabled
-                       style={{
-                      fontWeight: "bolder",
-                      color: "black"
-                    }}
-                  />
-                </div>
+              
               </div>
             </CardContent>
           </Card>

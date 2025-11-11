@@ -7,17 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { ArrowLeft, Save, X, UserCheck, UserX, Users } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from '../ui/alert-dialog'
 import { toast } from 'sonner'
 import { useNavigation } from '../../hooks/useNavigation'
 import { GetUserInfor } from '../../hooks/getUserInfor'
@@ -297,16 +286,7 @@ export function EditUser() {
                   />
                 </div>
 
-                <div className='space-y-2'>
-                  <Label htmlFor='phone'>Số điện thoại</Label>
-                  <Input
-                    id='phone'
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder='Nhập số điện thoại'
-                  />
-                </div>
-
+              
                 <div className='space-y-2'>
                   <Label htmlFor='role'>Vai trò *</Label>
                   <Select value={formData.addRoleId} onValueChange={(value: string) => handleInputChange('addRoleId', value)}>
@@ -319,7 +299,7 @@ export function EditUser() {
                         console.log("e: ", r)
                         return (
                           (
-                            <SelectItem value={r?._id} key={index}>{r.name}</SelectItem>
+                            <SelectItem value={r?._id} key={index}>{getRoleLabel(r.name.toUpperCase())}</SelectItem>
                           )
                         )
                       })}
