@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
@@ -228,14 +228,20 @@ export function SubjectDetail() {
   const [studentSearchTerm, setStudentSearchTerm] = useState('')
   const [aiPrompt, setAiPrompt] = useState<string>('')
   const [aiFile, setAiFile] = useState<File | null>(null)
-
+  const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
-  const [order, setOrder] = useState(0)
+  const [chapters, setChapters] = useState<any[]>([])
 
   // Hàm tạo chương mới
   const handleCreateChapter = async () => {
+    // Bắt đầu thông báo loading
+    const toastId = toast.loading('Đang tạo chương...', {
+      duration: 0 // Duration set to 0 to keep the loading toast until it's done
+    })
+
     try {
       console.log('Sending request to create chapter...')
+
       // Gửi yêu cầu tạo chương mới
       const response = await axios.post(
         'http://localhost:9000/api/chapters',
@@ -250,14 +256,54 @@ export function SubjectDetail() {
         }
       )
 
+      // Xử lý thành công
       console.log('Chapter created:', response.data)
+      toast.success('Tạo chương thành công!', { id: toastId })
 
       setIsCreateChapterOpen(false) // Đóng dialog sau khi tạo thành công
       // Có thể cần cập nhật lại danh sách chương trong FE
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating chapter:', error)
+
+      // Xử lý lỗi
+      toast.error(`Lỗi: ${error.message}`, { id: toastId })
     }
   }
+
+  // Hàm gọi API để lấy các chương
+  const fetchChapters = async () => {
+    setLoading(true)
+    try {
+      console.log(`Requesting API: http://localhost:9000/api/chapters/class/${currentSubjectId}`)
+
+      const response = await axios.get(`http://localhost:9000/api/chapters/class/${currentSubjectId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
+
+      console.log(response)
+
+      // Kiểm tra nếu response có dữ liệu, chỉ lúc này mới cập nhật chapters và reset lỗi
+      if (response.data && response.data.data) {
+        setChapters(response.data.data) // Lưu danh sách chương vào state
+        setError(null) // Reset lỗi khi có dữ liệu thành công
+      } else {
+        setError('Không có chương nào được tìm thấy')
+      }
+
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching chapters:', error)
+      setError('Lỗi khi tải dữ liệu chương') // Thiết lập lỗi khi có lỗi xảy ra
+      setLoading(false)
+    }
+  }
+
+  // Gọi API khi component mount
+  useEffect(() => {
+    fetchChapters()
+  }, [currentSubjectId])
 
   // Quiz form states
   const [quizTitle, setQuizTitle] = useState('')
@@ -430,6 +476,16 @@ export function SubjectDetail() {
     loadPendingEnrollments(currentSubjectId)
   }
 
+  // Đóng mở phần xem tài liệu
+  const handleToggleDocuments = (chapterId: string) => {
+    setExpandedChapter(expandedChapter === chapterId ? null : chapterId)
+  }
+
+  // Lấy tất cả các tài liệu thuộc chương tương ứng
+  const getDocumentsForChapter = (chapterId: string) => {
+    return mockDocuments.filter((doc) => doc.chapterId === chapterId)
+  }
+
   const handleChapterSelect = (chapterId: string, checked: boolean) => {
     if (checked) {
       setSelectedChapters([...selectedChapters, chapterId])
@@ -444,14 +500,6 @@ export function SubjectDetail() {
     } else {
       setSelectedFlashcardChapters(selectedFlashcardChapters.filter((id) => id !== chapterId))
     }
-  }
-
-  const handleToggleDocuments = (chapterId: string) => {
-    setExpandedChapter(expandedChapter === chapterId ? null : chapterId)
-  }
-
-  const getDocumentsForChapter = (chapterId: string) => {
-    return mockDocuments.filter((doc) => doc.chapterId === chapterId)
   }
 
   const addQuestion = () => {
@@ -1296,14 +1344,35 @@ export function SubjectDetail() {
 
         {/* Chapters Tab */}
         <TabsContent value='chapters' className='space-y-4'>
-          {mockChapters.map((chapter) => (
-            <Card key={chapter.id}>
+          {/* Empty State khi không có chương */}
+          {!loading && !error && chapters.length === 0 && (
+            <Card>
+              <CardContent className='!p-12 text-center' style={{ padding: '3rem' }}>
+                <BookOpen className='h-12 w-12 mx-auto mb-4 text-muted-foreground' />
+                <p className='text-muted-foreground'>Chưa có chương nào cho môn học này</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Empty State khi có lỗi */}
+          {!loading && error && (
+            <Card>
+              <CardContent className='!p-12 text-center' style={{ padding: '3rem' }}>
+                <BookOpen className='h-12 w-12 mx-auto mb-4 text-muted-foreground' />
+                <p className='text-muted-foreground'>{error}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Hiển thị danh sách các chương */}
+          {chapters.map((chapter) => (
+            <Card key={chapter._id}>
               <CardHeader>
                 <div className='flex items-center justify-between'>
                   <div>
                     <CardTitle className='text-lg'>{chapter.title}</CardTitle>
                     <div className='flex items-center gap-4 text-sm text-muted-foreground mt-1'>
-                      <span>{chapter.documents} tài liệu</span>
+                      <span>{chapter.documents.length} tài liệu</span>
                     </div>
                   </div>
                 </div>
@@ -1351,7 +1420,7 @@ export function SubjectDetail() {
                     onClick={() => handleToggleDocuments(chapter.id)} // Sử dụng handleToggleDocuments để mở/thu gọn tài liệu
                   >
                     <FileText className='h-4 w-4' />
-                    Xem tài liệu ({getDocumentsForChapter(chapter.id).length})
+                    Xem tài liệu ({chapter.documents.length})
                   </Button>
                 </div>
 
@@ -1362,36 +1431,84 @@ export function SubjectDetail() {
                       <FileText className='h-4 w-4' />
                       Tài liệu chương
                     </h4>
-                    {getDocumentsForChapter(chapter.id).length > 0 ? (
+                    {chapter.documents.length > 0 ? (
                       <div className='space-y-2'>
-                        {getDocumentsForChapter(chapter.id).map((doc) => (
-                          <div
-                            key={doc.id}
-                            className='flex items-center justify-between p-3 bg-background rounded-lg border'
-                          >
-                            <div className='flex items-center gap-3'>
-                              {getFileIcon(doc.type)}
-                              <div>
-                                <h5 className='font-medium text-sm'>{doc.title}</h5>
-                                <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-                                  <span>{getFileTypeLabel(doc.type)}</span>
-                                  <span>•</span>
-                                  <span>{doc.size}</span>
-                                  <span>•</span>
-                                  <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
+                        {chapter.documents.map(
+                          (doc: {
+                            id: Key | null | undefined
+                            type: string
+                            title:
+                              | string
+                              | number
+                              | bigint
+                              | boolean
+                              | ReactElement<unknown, string | JSXElementConstructor<any>>
+                              | Iterable<ReactNode>
+                              | ReactPortal
+                              | Promise<
+                                  | string
+                                  | number
+                                  | bigint
+                                  | boolean
+                                  | ReactPortal
+                                  | ReactElement<unknown, string | JSXElementConstructor<any>>
+                                  | Iterable<ReactNode>
+                                  | null
+                                  | undefined
+                                >
+                              | null
+                              | undefined
+                            size:
+                              | string
+                              | number
+                              | bigint
+                              | boolean
+                              | ReactElement<unknown, string | JSXElementConstructor<any>>
+                              | Iterable<ReactNode>
+                              | ReactPortal
+                              | Promise<
+                                  | string
+                                  | number
+                                  | bigint
+                                  | boolean
+                                  | ReactPortal
+                                  | ReactElement<unknown, string | JSXElementConstructor<any>>
+                                  | Iterable<ReactNode>
+                                  | null
+                                  | undefined
+                                >
+                              | null
+                              | undefined
+                            uploadDate: string | number | Date
+                          }) => (
+                            <div
+                              key={doc.id}
+                              className='flex items-center justify-between p-3 bg-background rounded-lg border'
+                            >
+                              <div className='flex items-center gap-3'>
+                                {getFileIcon(doc.type)}
+                                <div>
+                                  <h5 className='font-medium text-sm'>{doc.title}</h5>
+                                  <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                                    <span>{getFileTypeLabel(doc.type)}</span>
+                                    <span>•</span>
+                                    <span>{doc.size}</span>
+                                    <span>•</span>
+                                    <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
+                                  </div>
                                 </div>
                               </div>
+                              <div className='flex items-center gap-2'>
+                                <Button size='sm' variant='outline'>
+                                  <Eye className='h-4 w-4' />
+                                </Button>
+                                <Button size='sm' variant='outline'>
+                                  <Download className='h-4 w-4' />
+                                </Button>
+                              </div>
                             </div>
-                            <div className='flex items-center gap-2'>
-                              <Button size='sm' variant='outline'>
-                                <Eye className='h-4 w-4' />
-                              </Button>
-                              <Button size='sm' variant='outline'>
-                                <Download className='h-4 w-4' />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                          )
+                        )}
                       </div>
                     ) : (
                       <p className='text-sm text-muted-foreground text-center py-4'>
