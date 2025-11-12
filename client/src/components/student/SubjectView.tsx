@@ -412,40 +412,37 @@ export function SubjectView() {
   return (
     <div className="space-y-6">
       {/* Subject Navigation */}
-      <div className="flex items-center justify-between bg-muted/30 p-4 rounded-lg">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handlePrevSubject}
-          className="gap-2"
-        >
-          <ChevronLeft className="h-4 w-4" />
+      <div className='flex items-center justify-between bg-muted/30 p-4 rounded-lg'>
+        <Button variant='ghost' size='sm' onClick={handlePrevSubject} className='gap-2'>
+          <ChevronLeft className='h-4 w-4' />
           Môn trước
         </Button>
 
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
+        <div className='flex items-center gap-4'>
+          <span className='text-sm text-muted-foreground'>
             {currentSubjectIndex + 1} / {subjects.length}
           </span>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 min-w-48">
-                <BookOpen className="h-4 w-4" />
+              <button className='flex items-center gap-2 border rounded-md px-3 py-2 text-sm' style={{background: 'white'}}>
+                <BookOpen className='h-4 w-4' />
                 {currentSubject.name}
-                <ChevronDown className="h-4 w-4" />
-              </Button>
+                <ChevronDown className='h-4 w-4' />
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64">
+
+            {/* 💡 Thêm z-index để tránh bị che */}
+            <DropdownMenuContent className='w-64 z-[9999] space-y-1 rounded-xl'>
               {subjects.map((subject) => (
                 <DropdownMenuItem
                   key={subject.id}
                   onClick={() => handleSubjectChange(subject.id)}
                   className={currentSubject.id === subject.id ? 'bg-accent' : ''}
                 >
-                  <div className="flex flex-col">
-                    <span className="font-medium">{subject.name}</span>
-                    <span className="text-xs text-muted-foreground">{subject.description}</span>
+                  <div className='flex flex-col'>
+                    <span className='font-medium'>{subject.name}</span>
+                    <span className='text-xs text-muted-foreground'>{subject.description}</span>
                   </div>
                 </DropdownMenuItem>
               ))}
@@ -453,14 +450,9 @@ export function SubjectView() {
           </DropdownMenu>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleNextSubject}
-          className="gap-2"
-        >
+        <Button variant='ghost' size='sm' onClick={handleNextSubject} className='gap-2'>
           Môn sau
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className='h-4 w-4' />
         </Button>
       </div>
 
@@ -468,7 +460,7 @@ export function SubjectView() {
       <div>
         <h1>{currentSubject.name}</h1>
         <p className="text-muted-foreground">
-          {currentSubject.description} • {currentSubject.teacher}
+          {currentSubject.description}x
         </p>
       </div>
 

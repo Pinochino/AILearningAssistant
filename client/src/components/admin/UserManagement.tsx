@@ -15,50 +15,19 @@ import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } 
 import { useGetUsers } from '../../services/UserService'
 import { useFetchCountUserByRole } from '../../hooks/getAllData'
 
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn Giáo',
-    email: 'teacher1@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý'],
-    joinDate: '2024-01-15',
-    lastLogin: '2024-09-18'
-  },
-  {
-    id: '2',
-    name: 'Trần Thị Hóa',
-    email: 'teacher2@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Hóa học', 'Sinh học'],
-    joinDate: '2024-02-10',
-    lastLogin: '2024-09-17'
-  },
-  {
-    id: '3',
-    name: 'Lê Minh Học',
-    email: 'student1@example.com',
-    role: 'student',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý', 'Hóa học'],
-    joinDate: '2024-03-01',
-    lastLogin: '2024-09-18'
-  },
-  {
-    id: '4',
-    name: 'Phạm Thị Thông',
-    email: 'student2@example.com',
-    role: 'student',
-    status: 'inactive',
-    subjects: ['Toán học', 'Sinh học'],
-    joinDate: '2024-03-05',
-    lastLogin: '2024-09-10'
-  }
-]
-
-const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser }) => {
+const DisplayUsers = ({
+  users,
+  navigateTo,
+  getRoleBadgeVariant,
+  getRoleLabel,
+  handleDeleteUser
+}: {
+  users: any[]
+  navigateTo: (path: string, params?: any) => void
+  getRoleBadgeVariant: (role: string) => string
+  getRoleLabel: (role: string) => string
+  handleDeleteUser: (userId: string) => void
+}) => {
   console.log('User: ', users)
 
   return (
@@ -70,7 +39,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
               <AvatarFallback>
                 {user.username
                   .split(' ')
-                  .map((n) => n[0])
+                  .map((n: any[]) => n[0])
                   .join('')
                   .toUpperCase()}
               </AvatarFallback>
@@ -123,12 +92,18 @@ export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState<string | null>()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<{
+    username: string
+    name: string
+    password: string
+    roles: string[]
+  }>({
     username: '',
     name: '',
     password: '',
     roles: []
   })
+
   const [userByRoleId, setUserByRoleId] = useState([])
 
   const { mutate: handleDeleteUser } = useMutation({
@@ -167,8 +142,8 @@ export function UserManagement() {
   }
 
   const users = useGetUsers(searchTerm)
-  const userCount = useFetchCountUserByRole("USER")
-  const teacherCount = useFetchCountUserByRole("TEACHER")
+  const userCount = useFetchCountUserByRole('USER')
+  const teacherCount = useFetchCountUserByRole('TEACHER')
 
   const {
     data: roles,
@@ -220,15 +195,7 @@ export function UserManagement() {
     queryFn: fetchUsersByRoleId
   })
 
-  console.log("usersByRoleId: ", usersByRoleId)
-
-  const filteredUsers = mockUsers.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole
-    return matchesSearch && matchesRole
-  })
+  console.log('usersByRoleId: ', usersByRoleId)
 
   const filterUserIsActive = async () => {
     const res = await handleApi({ url: `/users/count-by-active`, method: 'POST' })
@@ -304,7 +271,6 @@ export function UserManagement() {
 
   console.log('Number: ', userActiveCount)
 
-
   return (
     <div className='space-y-6'>
       {/* Header */}
@@ -330,11 +296,11 @@ export function UserManagement() {
             <form onSubmit={handleCreateUser}>
               <div className='space-y-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Tên</Label>
+                  <Label htmlFor='username'>Tên</Label>
                   <Input
-                    id='name'
+                    id='username'
                     type='text'
-                    placeholder='Nhập Name'
+                    placeholder='Nhập tên đăng nhập'
                     onChange={(value) => handleChangeInput(value)}
                     name='name'
                     value={value.name}

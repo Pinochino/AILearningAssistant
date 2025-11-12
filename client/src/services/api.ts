@@ -62,20 +62,6 @@ export interface Class {
   updatedAt: string;
 }
 
-export interface Subject {
-  _id: string;
-  name: string;
-  code: string;
-  description?: string;
-  credits: number;
-  department: string;
-  teacherId?: string;
-  prerequisites?: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface ClassEnrollment {
   _id: string;
   classId: string;
@@ -169,49 +155,6 @@ async function apiRequest<T>(
     throw new Error('An unknown error occurred');
   }
 }
-
-// Subject API
-export const subjectApi = {
-  async getAll(params?: { department?: string; credits?: number }) {
-    const queryParams = new URLSearchParams();
-    if (params?.department) queryParams.append('department', params.department);
-    if (params?.credits) queryParams.append('credits', params.credits.toString());
-    
-    const query = queryParams.toString();
-    return apiRequest<Subject[]>(`/subjects${query ? `?${query}` : ''}`);
-  },
-
-  async getById(id: string) {
-    return apiRequest<Subject>(`/subjects/${id}`);
-  },
-
-  async create(data: Omit<Subject, '_id' | 'createdAt' | 'updatedAt'>) {
-    return apiRequest<Subject>('/subjects', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async update(id: string, data: Partial<Subject>) {
-    return apiRequest<Subject>(`/subjects/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async delete(id: string) {
-    return apiRequest<void>(`/subjects/${id}`, {
-      method: 'DELETE',
-    });
-  },
-
-  async assignTeacher(id: string, teacherId: string) {
-    return apiRequest<Subject>(`/subjects/${id}/assign-teacher`, {
-      method: 'POST',
-      body: JSON.stringify({ teacherId }),
-    });
-  },
-};
 
 // Class API
 export const classApi = {

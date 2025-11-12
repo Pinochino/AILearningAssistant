@@ -19,7 +19,7 @@ const menuItems = [
     id: 'subjects',
     label: 'Môn học của tôi',
     icon: BookOpen,
-    badge: '3',
+    badge: null,
   },
   {
     id: 'students',
@@ -43,7 +43,7 @@ const menuItems = [
     id: 'messages',
     label: 'Tin nhắn',
     icon: MessageSquare,
-    badge: '5',
+    badge: null,
   },
 ];
 
@@ -74,16 +74,6 @@ export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
           )}
         </div>
       </div>
-
-      {/* Quick Actions */}
-      {isOpen && (
-        <div className="px-4 mb-4">
-          <Button className="w-full gap-2" size="sm">
-            <Plus className="h-4 w-4" />
-            Tạo nội dung mới
-          </Button>
-        </div>
-      )}
 
       <nav className="px-2 space-y-1">
         {menuItems.map((item) => (

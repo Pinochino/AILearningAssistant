@@ -4,7 +4,7 @@ import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-de
 export interface IChapter extends SoftDeleteDocument {
   title: string
   order: number
-  classId: Types.ObjectId     // 🔹 Thêm dòng này
+  classId: Types.ObjectId     
   documents: Types.ObjectId[]
   quizzes: Types.ObjectId[]
   flashcards: Types.ObjectId[]

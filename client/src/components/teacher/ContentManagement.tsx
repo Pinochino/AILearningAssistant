@@ -473,7 +473,7 @@ export function ContentManagement() {
           </Dialog>
           <Dialog
             open={isCreateQuizOpen}
-            onOpenChange={(open) => {
+            onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
               setIsCreateQuizOpen(open);
               if (!open) resetQuizForm();
             }}
@@ -528,7 +528,7 @@ export function ContentManagement() {
                           checked={selectedChapters.includes(
                             chapter.id,
                           )}
-                          onCheckedChange={(checked) =>
+                          onCheckedChange={(checked: boolean) =>
                             handleChapterSelect(
                               chapter.id,
                               checked as boolean,
@@ -790,7 +790,7 @@ export function ContentManagement() {
 
           <Dialog
             open={isCreateFlashcardOpen}
-            onOpenChange={(open) => {
+            onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
               setIsCreateFlashcardOpen(open);
               if (!open) resetFlashcardForm();
             }}
@@ -845,7 +845,7 @@ export function ContentManagement() {
                           checked={selectedFlashcardChapters.includes(
                             chapter.id,
                           )}
-                          onCheckedChange={(checked) =>
+                          onCheckedChange={(checked: boolean) =>
                             handleFlashcardChapterSelect(
                               chapter.id,
                               checked as boolean,

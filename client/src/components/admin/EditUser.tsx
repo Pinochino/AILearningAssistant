@@ -25,74 +25,17 @@ import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleApi } from '../../api/handleApi'
 import { GetAllData } from '../../hooks/getAllData'
 
-// Mock data - trong thực tế sẽ fetch từ API
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn Giáo',
-    email: 'teacher1@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý'],
-    joinDate: '2024-01-15',
-    lastLogin: '2024-09-18',
-    phone: '0123456789',
-    address: 'Hà Nội',
-    bio: 'Giáo viên có kinh nghiệm 5 năm trong lĩnh vực giáo dục'
-  },
-  {
-    id: '2',
-    name: 'Trần Thị Hóa',
-    email: 'teacher2@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Hóa học', 'Sinh học'],
-    joinDate: '2024-02-10',
-    lastLogin: '2024-09-17',
-    phone: '0987654321',
-    address: 'TP.HCM',
-    bio: 'Chuyên gia hóa học với nhiều năm kinh nghiệm'
-  },
-  {
-    id: '3',
-    name: 'Lê Minh Học',
-    email: 'student1@example.com',
-    role: 'student',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý', 'Hóa học'],
-    joinDate: '2024-03-01',
-    lastLogin: '2024-09-18',
-    phone: '0369852147',
-    address: 'Đà Nẵng',
-    bio: 'Học sinh chăm chỉ, có tiềm năng trong các môn khoa học',
-    studentId: 'SV2024001'
-  },
-  {
-    id: '4',
-    name: 'Phạm Thị Thông',
-    email: 'student2@example.com',
-    role: 'student',
-    status: 'inactive',
-    subjects: ['Toán học', 'Sinh học'],
-    joinDate: '2024-03-05',
-    lastLogin: '2024-09-10',
-    phone: '0741258963',
-    address: 'Cần Thơ',
-    bio: 'Học sinh có năng khiếu về toán học',
-    studentId: 'SV2024002'
-  }
-]
-
 interface IRole {
-  id: string;
-  name: string;
+  _id: any
+  id: string
+  name: string
 }
 
 export function EditUser() {
   const { navigateTo, currentParams } = useNavigation()
   const userId = currentParams.userId
 
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const [user, setUser] = useState<any>(null)
   // const [isLoading, setIsLoading] = useState(true)
@@ -109,28 +52,29 @@ export function EditUser() {
     phone: '',
     address: '',
     bio: '',
-    studentId: ''
+    studentId: '',
+    role: ''
   })
 
-  const { isLoading, data, error } = GetUserInfor(userId);
+  const { isLoading, data, error } = GetUserInfor(userId)
 
-  const [roles, setRoles] = useState<IRole[]>([{
-    id: '',
-    name: ''
-  }])
+  const [roles, setRoles] = useState<IRole[]>([
+    {
+      id: '',
+      name: '',
+      _id: undefined
+    }
+  ])
 
   const { data: roleList, isLoading: rolesListLoading } = GetAllData({ url: '/roles/list', name: 'RoleList' })
 
-
   useEffect(() => {
     if (data?.data) {
-      setUser(data?.data);
+      setUser(data?.data)
     }
-  }, [data]);
-
+  }, [data])
 
   formData.removeRoleId = user?.roles[0]._id
-
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -141,48 +85,50 @@ export function EditUser() {
   }
 
   useEffect(() => {
-    const roles = roleList?.data;
+    const roles = roleList?.data
 
     if (roles) {
       setRoles(roles)
     }
-
-  }, [roleList?.data, roles]);
+  }, [roleList?.data, roles])
 
   console.log('id: ', userId)
 
-  const { isLoading: editUserLoading, mutate: updateUser, error: editUserError } = useMutation({
+  const {
+    isPending: editUserLoading,
+    mutate: updateUser,
+    error: editUserError
+  } = useMutation({
     mutationFn: async () => {
       const res = await handleApi({
         url: `/users/update/${userId}`,
         method: 'PUT',
         data: formData,
-        withCredentials: true,
+        withCredentials: true
       })
 
-      const result = await res.data;
-      return result;
+      const result = await res.data
+      return result
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`detail-infor-${userId}`, userId] });
-      queryClient.invalidateQueries({ queryKey: [`users`] });
-      toast.success('Cập nhật người dùng thành công!');
+      queryClient.invalidateQueries({ queryKey: [`detail-infor-${userId}`, userId] })
+      queryClient.invalidateQueries({ queryKey: [`users`] })
+      toast.success('Cập nhật người dùng thành công!')
     },
     onError: (err: any) => {
-      console.error('Update failed', err);
-      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật');
-    },
+      console.error('Update failed', err)
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật')
+    }
   })
 
   const handleEditUser = () => {
     if (!formData.username || !formData.name) {
-      toast.error('Họ tên và Username là bắt buộc');
-      return;
+      toast.error('Họ tên và Tên đăng nhập là bắt buộc')
+      return
     }
-    console.log('Sending update: ', formData);
-    updateUser();
+    console.log('Sending update: ', formData)
+    updateUser()
   }
-
 
   const handleToggleStatus = async () => {
     const newStatus = formData.status === 'active' ? 'inactive' : 'active'
@@ -196,8 +142,6 @@ export function EditUser() {
       toast.error('Có lỗi xảy ra khi thay đổi trạng thái')
     }
   }
-
-
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -225,7 +169,7 @@ export function EditUser() {
     }
   }
 
-  console.log('loading: ', isLoading);
+  console.log('loading: ', isLoading)
 
   if (isLoading) {
     return (
@@ -306,16 +250,14 @@ export function EditUser() {
                   <AvatarFallback className='text-lg'>
                     {user?.name
                       .split(' ')
-                      .map((n) => n[0])
+                      .map((n: any[]) => n[0])
                       .join('')
                       .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <h3 className='font-semibold text-lg'>{user.name}</h3>
                 <p className='text-sm text-muted-foreground'>{user.username}</p>
-                {/* {formData.role === 'student' && formData.studentId && (
-                  <p className='text-sm text-muted-foreground font-medium'>Mã sinh viên: {formData._id}</p>
-                )} */}
+
                 <div className='flex gap-2 mt-2'>
                   <Badge variant={getRoleBadgeVariant(user?.roles[0].name)}>{getRoleLabel(user?.roles[0].name)}</Badge>
                   <Badge variant={user.isActive === 'active' ? 'secondary' : 'outline'}>
@@ -352,86 +294,42 @@ export function EditUser() {
                   <Input
                     id='name'
                     value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder='Nhập họ và tên'
                     autoComplete='new-name'
                   />
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Name *</Label>
+                  <Label htmlFor='username'>Tên đăng nhập *</Label>
                   <Input
-                    id='name'
+                    id='username'
                     type='text'
                     value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder='Nhập name'
+                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    placeholder='Nhập tên đăng nhập'
                     autoComplete='additional-name'
                   />
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='phone'>Số điện thoại</Label>
-                  <Input
-                    id='phone'
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder='Nhập số điện thoại'
-                  />
-                </div>
-
-                <div className='space-y-2'>
                   <Label htmlFor='role'>Vai trò *</Label>
-                  <Select value={formData.addRoleId} onValueChange={(value: string) => handleInputChange('addRoleId', value)}>
+                  <Select
+                    value={formData.addRoleId}
+                    onValueChange={(value: string) => handleInputChange('addRoleId', value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder='Chọn vai trò' />
                     </SelectTrigger>
                     <SelectContent>
-
-                      {roles.map((r, index) => {
-                        console.log("e: ", r)
-                        return (
-                          (
-                            <SelectItem value={r?._id} key={index}>{r.name}</SelectItem>
-                          )
-                        )
-                      })}
+                      {roles.map((r, index) => (
+                        <SelectItem value={r._id} key={index}>
+                          {getRoleLabel(r.name)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* {formData.role === 'student' && (
-                  <div className='space-y-2'>
-                    <Label htmlFor='studentId'>Mã sinh viên *</Label>
-                    <Input
-                      id='studentId'
-                      value={formData.studentId}
-                      onChange={(e) => handleInputChange('studentId', e.target.value)}
-                      placeholder='Nhập mã sinh viên'
-                    />
-                  </div>
-                )} */}
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='address'>Địa chỉ</Label>
-                <Input
-                  id='address'
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder='Nhập địa chỉ'
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='bio'>Giới thiệu</Label>
-                <textarea
-                  id='bio'
-                  className='w-full min-h-[100px] px-3 py-2 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring'
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder='Nhập giới thiệu về người dùng'
-                />
               </div>
             </CardContent>
           </Card>

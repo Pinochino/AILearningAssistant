@@ -401,7 +401,7 @@ export function StudentQuizFlashcard() {
                 </div>
 
                 <div className="flex gap-2">
-                    <Dialog open={isCreateQuizOpen} onOpenChange={(open) => {
+                    <Dialog open={isCreateQuizOpen} onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
                         setIsCreateQuizOpen(open);
                         if (!open) resetQuizForm();
                     }}>
@@ -436,7 +436,7 @@ export function StudentQuizFlashcard() {
                                                 <Checkbox
                                                     id={`chapter-${chapter.id}`}
                                                     checked={selectedChapters.includes(chapter.id)}
-                                                    onCheckedChange={(checked) => handleChapterSelect(chapter.id, checked as boolean)}
+                                                    onCheckedChange={(checked: boolean) => handleChapterSelect(chapter.id, checked as boolean)}
                                                 />
                                                 <Label htmlFor={`chapter-${chapter.id}`}>{chapter.title}</Label>
                                             </div>
@@ -655,7 +655,7 @@ export function StudentQuizFlashcard() {
                     </Dialog>
 
                     {/* Global Flashcard Button */}
-                    <Dialog open={isCreateFlashcardOpen} onOpenChange={(open) => {
+                    <Dialog open={isCreateFlashcardOpen} onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
                         setIsCreateFlashcardOpen(open);
                         if (!open) resetFlashcardForm();
                     }}>
@@ -690,7 +690,7 @@ export function StudentQuizFlashcard() {
                                                 <Checkbox
                                                     id={`flashcard-chapter-${chapter.id}`}
                                                     checked={selectedFlashcardChapters.includes(chapter.id)}
-                                                    onCheckedChange={(checked) => handleFlashcardChapterSelect(chapter.id, checked as boolean)}
+                                                    onCheckedChange={(checked: boolean) => handleFlashcardChapterSelect(chapter.id, checked as boolean)}
                                                 />
                                                 <Label htmlFor={`flashcard-chapter-${chapter.id}`}>{chapter.title}</Label>
                                             </div>

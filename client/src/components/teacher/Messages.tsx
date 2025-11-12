@@ -351,7 +351,7 @@ export function Messages() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={(e) => {
+                          onClick={(e: { stopPropagation: () => void; }) => {
                             e.stopPropagation();
                             handleStar(message.id);
                           }}
@@ -365,7 +365,7 @@ export function Messages() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={(e) => {
+                          onClick={(e: { stopPropagation: () => void; }) => {
                             e.stopPropagation();
                             handleArchive(message.id);
                           }}

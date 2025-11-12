@@ -83,13 +83,6 @@ export function PageRouter() {
         return <Analytics />
       case 'content':
         return <ContentManagement />
-      case 'gamification':
-        return (
-          <div className='space-y-6'>
-            <h1>Gamification</h1>
-            <p className='text-muted-foreground'>Tính năng gamification đang được phát triển...</p>
-          </div>
-        )
       case 'settings':
         return <SystemSettings />
       default:

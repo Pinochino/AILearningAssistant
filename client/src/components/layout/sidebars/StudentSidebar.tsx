@@ -21,7 +21,7 @@ const menuItems = [
     id: 'subjects',
     label: 'Môn học',
     icon: BookOpen,
-    badge: '5',
+    badge: null,
   },
   {
     id: 'subject-search',
@@ -40,13 +40,13 @@ const menuItems = [
     id: 'ai-tutor',
     label: 'Gia sư AI',
     icon: Brain,
-    badge: 'New',
+    badge: null,
   },
   {
     id: 'messages',
     label: 'Tin nhắn',
     icon: MessageSquare,
-    badge: '2',
+    badge: null,
   },
   {
     id: 'achievements',
@@ -93,24 +93,6 @@ export function StudentSidebar({ isOpen }: StudentSidebarProps) {
           )}
         </div>
       </div>
-
-      {/* Study Progress Widget */}
-      {isOpen && (
-        <div className="px-4 mb-4">
-          <div className="bg-sidebar-accent rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-sidebar-accent-foreground" />
-              <span className="text-sm font-medium text-sidebar-accent-foreground">
-                Tiến độ hôm nay
-              </span>
-            </div>
-            <Progress value={65} className="h-2" />
-            <p className="text-xs text-sidebar-accent-foreground/70">
-              65% hoàn thành - Còn 2 bài quiz
-            </p>
-          </div>
-        </div>
-      )}
 
       <nav className="px-2 space-y-1">
         {menuItems.map((item) => (

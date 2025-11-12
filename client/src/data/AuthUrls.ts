@@ -3,5 +3,4 @@ export const authUrls = {
   createUser: '/auth/register',
   logout: '/auth/logout',
   refreshToken: '/auth/refresh-token',
-  
 }
