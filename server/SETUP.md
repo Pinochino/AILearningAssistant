@@ -6,7 +6,7 @@ Tạo file `.env` trong thư mục `server` với nội dung sau:
 
 ```env
 # Server Configuration
-PORT=4000
+PORT=9000
 NODE_ENV=development
 
 # Database

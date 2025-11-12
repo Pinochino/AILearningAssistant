@@ -5,9 +5,10 @@ import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-de
 export interface IUser extends SoftDeleteDocument {
   name: string
   username: string
-  email?: string
   password: string
   avatar?: string
+  isActive?: boolean
+  lastLogin?: Date
   roles?: Types.ObjectId[]
   provider?: Types.ObjectId[]
   forgotPassword?: Types.ObjectId[]
@@ -29,14 +30,8 @@ const userSchema = new Schema<IUser>(
     },
     username: {
       type: Schema.Types.String,
-      required: [true, 'Username is required'],
-      trim: true
-    },
-    email: {
-      type: Schema.Types.String,
       unique: true,
-      required: false,
-      sparse: true,
+      required: [true, 'Username is required'],
       index: true,
       trim: true
     },
@@ -47,6 +42,13 @@ const userSchema = new Schema<IUser>(
     },
     avatar: {
       type: Schema.Types.String
+    },
+    isActive: {
+      type: Schema.Types.Boolean,
+      default: false
+    },
+    lastLogin: {
+      type: Schema.Types.Date
     },
     roles: [
       {

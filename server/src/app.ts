@@ -9,6 +9,7 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import { create } from "express-handlebars";
+import classRoutes from './routes/class.routes'
 // import passport from "./configs/passport";
 
 // Register mongoose models first (must happen before routes/controllers import)
@@ -18,9 +19,10 @@ import "./models/announcement.model.js";
 import messagesRoutes from "./routes/messages.routes.js";
 import notificationsRoutes from "./routes/notifications.routes.js";
 import announcementsRoutes from "./routes/announcements.routes.js";
-import authRouter from "./routers/authRouter";
-import userRouter from "./routers/userRouter";
-import roleRouter from "./routers/roleRouter";
+import classesRoutes from "./routes/class.routes.js";
+import authRouter from "./routers/authRouter.js";
+import userRouter from "./routers/userRouter.js";
+import roleRouter from "./routers/roleRouter.js";
 
 // Import server-1 routes
 // import authRouter from "./routers/authRouter";
@@ -133,17 +135,21 @@ app.get("/health", (req, res) => {
 app.use("/api/messages", messagesRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/announcements", announcementsRoutes);
-
+app.use('/api', classRoutes)
 // Server-1 API routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 // app.use("/api/files", fileRouter);
 // app.use("/api/email", emailRouter);
 // app.use("/api/excel", xlsxRouter);
+app.use("/api", classesRoutes);
+// Compatibility: also accept requests without '/api' prefix
+app.use("/", classRoutes);
 app.use("/api/roles", roleRouter);
 
-// 404 handler
+// 404 handler with verbose logging
 app.use((req, res) => {
+    console.warn("404 Route not found:", req.method, req.originalUrl);
     res.status(404).json({ error: "Route not found" });
 });
 

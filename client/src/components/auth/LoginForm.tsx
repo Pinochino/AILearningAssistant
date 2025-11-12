@@ -5,7 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useAuth } from '../../hooks/useAuth';
-import { BookOpen, Brain, ShieldUser } from 'lucide-react';
+import { Brain } from 'lucide-react';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -19,20 +19,11 @@ export function LoginForm() {
 
     const success = await login(username, password);
     if (!success) {
-      setError('Tên đăng nhập hoặc mật khẩu không đúng');
+      setError('Username hoặc mật khẩu không đúng');
     }
   };
 
-  const quickLogin = (role: string) => {
-    if (role === 'admin') {
-      setUsername('admin');
-    } else if (role === 'teacher') {
-      setUsername('teacher1');
-    } else {
-      setUsername('student1');
-    }
-    setPassword('password123');
-  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -60,10 +51,12 @@ export function LoginForm() {
               <div className="space-y-2">
                 <Label htmlFor="username">Tên đăng nhập</Label>
                 <Input
-                  id="username"
-                  placeholder="admin, teacher1, student1..."
+                  id="text"
+                  type="text"
+                  placeholder="Nhập thông tin của người dùng"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  autoComplete='additional-name'
                   required
                 />
               </div>
@@ -77,6 +70,7 @@ export function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete='new-password'
                 />
               </div>
 
@@ -91,45 +85,7 @@ export function LoginForm() {
               </Button>
             </form>
 
-            {/* Quick Login Options */}
-            <div className="mt-6 space-y-3">
-              <div className="text-center text-sm text-muted-foreground">
-                Hoặc đăng nhập nhanh với:
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => quickLogin('admin')}
-                  className="flex flex-col items-center p-3 h-auto"
-                >
-                  <ShieldUser className="h-4 w-4 mb-1" />
-                  <span className="text-xs">Admin</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => quickLogin('teacher')}
-                  className="flex flex-col items-center p-3 h-auto"
-                >
-                  <BookOpen className="h-4 w-4 mb-1" />
-                  <span className="text-xs">Giáo viên</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => quickLogin('student')}
-                  className="flex flex-col items-center p-3 h-auto"
-                >
-                  <Brain className="h-4 w-4 mb-1" />
-                  <span className="text-xs">Học sinh</span>
-                </Button>
-              </div>
-            </div>
 
-            <div className="mt-4 text-center text-sm text-muted-foreground">
-              Demo - Mật khẩu cho tất cả tài khoản: <code>password</code>
-            </div>
           </CardContent>
         </Card>
       </div>

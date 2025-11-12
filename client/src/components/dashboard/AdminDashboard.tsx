@@ -53,15 +53,13 @@ const userStats = [
     role: "Học sinh",
     count: 1245,
     color: "#3b82f6",
-    change: "+12%",
   },
   {
     role: "Giáo viên",
     count: 89,
     color: "#10b981",
-    change: "+5%",
   },
-  { role: "Admin", count: 5, color: "#f59e0b", change: "0%" },
+  { role: "Admin", count: 5, color: "#f59e0b" },
 ];
 
 const subjectStats = [
@@ -285,9 +283,9 @@ export function AdminDashboard() {
 
     if (userCount?.data || adminCount?.data || teacherCount?.data) {
       setUserStat([
-        { role: 'Học sinh', count: userCount?.data || 0, color: '#3b82f6', change: '+12%' },
-        { role: 'Giáo viên', count: teacherCount?.data || 0, color: '#10b981', change: '+5%' },
-        { role: 'Admin', count: adminCount?.data || 0, color: '#f59e0b', change: '0%' }
+        { role: 'Học sinh', count: userCount?.data || 0, color: '#3b82f6' },
+        { role: 'Giáo viên', count: teacherCount?.data || 0, color: '#10b981' },
+        { role: 'Admin', count: adminCount?.data || 0, color: '#f59e0b' }
       ]);
 
       setLoadingPage(false)
@@ -415,12 +413,6 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               {loadingPage ? (<Skeleton></Skeleton>) : (<div className='text-2xl font-bold'>{stat.count}</div>)}
-              <p className='text-xs text-muted-foreground'>
-                <span className={stat.change.startsWith('+') ? 'text-green-600' : 'text-muted-foreground'}>
-                  {stat.change}
-                </span>{" "}
-                so với tháng trước
-              </p>
             </CardContent>
           </Card>
         ))
@@ -501,59 +493,6 @@ export function AdminDashboard() {
         </Card >
       </div >
 
-      {/* Subject Details Table */}
-      < Card >
-        <CardHeader>
-          <CardTitle>Chi tiết môn học</CardTitle>
-          <CardDescription>
-            Thông tin chi tiết về từng môn học trong hệ thống
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {subjectStats.map((subject) => (
-              <div
-                key={subject.name}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-medium">
-                      {subject.name}
-                    </h3>
-                    <Badge variant="secondary">
-                      {subject.students} học sinh
-                    </Badge>
-                    <Badge variant="outline">
-                      {subject.teachers} GV
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{subject.quizzes} quiz</span>
-                    <span>•</span>
-                    <span>
-                      Tỷ lệ hoàn thành: {subject.completion}%
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-32">
-                    <Progress
-                      value={subject.completion}
-                      className="h-2"
-                    />
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card >
-
-
       {/* Additional Analytics Stats */}
       < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" >
         <Card>
@@ -568,9 +507,6 @@ export function AdminDashboard() {
                 </p>
                 <p className="text-xl font-semibold">
                   {mockOverallStats.totalUsers.toLocaleString()}
-                </p>
-                <p className="text-xs text-green-600">
-                  +12% so với tháng trước
                 </p>
               </div>
             </div>
@@ -590,9 +526,6 @@ export function AdminDashboard() {
                 <p className="text-xl font-semibold">
                   {mockOverallStats.totalCourses}
                 </p>
-                <p className="text-xs text-green-600">
-                  +3 môn mới
-                </p>
               </div>
             </div>
           </CardContent>
@@ -606,13 +539,10 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Quiz hoàn thành
+                  Tổng số Quiz
                 </p>
                 <p className="text-xl font-semibold">
                   {mockOverallStats.totalQuizzes}
-                </p>
-                <p className="text-xs text-green-600">
-                  +8% tuần này
                 </p>
               </div>
             </div>
@@ -627,13 +557,10 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Người dùng hoạt động
+                  Tổng số Flashcard
                 </p>
                 <p className="text-xl font-semibold">
                   {mockOverallStats.activeUsers}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  87% tổng số
                 </p>
               </div>
             </div>

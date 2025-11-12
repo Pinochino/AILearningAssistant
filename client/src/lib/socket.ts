@@ -4,10 +4,14 @@ import { io, Socket } from 'socket.io-client';
 let socket: Socket | null = null;
 let connecting = false;
 
-const API_URL =
-  (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000';
+// Get base URL and ensure it's in the correct format for WebSocket
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:9000';
+// Parse the URL to handle different environments
+const url = new URL(API_BASE_URL);
+// Create WebSocket URL with correct protocol and path
+const WS_URL = `${url.protocol === 'https:' ? 'wss:' : 'ws:'}//${url.host}${url.pathname.replace(/\/api$/, '/socket.io')}`;
 
-const TOKEN_KEY = 'atiui_token';
+const TOKEN_KEY = 'accessToken';
 
 /**
  * Chỉ tạo socket khi có token và chưa có kết nối
@@ -40,9 +44,16 @@ export async function ensureSocketConnected(): Promise<Socket> {
   return new Promise((resolve, reject) => {
     try {
       // ✅ chỉ khởi tạo socket ở đây, không auto connect từ đầu
-      socket = io(API_URL, {
+      // Create socket with explicit configuration
+      socket = io(WS_URL, {
         autoConnect: false,
         transports: ['websocket'],
+        path: '/socket.io',
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        timeout: 20000,
         // Send token via auth payload (server reads from socket.handshake.auth.token)
         auth: { token },
       });
@@ -68,7 +79,7 @@ export async function ensureSocketConnected(): Promise<Socket> {
         try {
           const latest = localStorage.getItem(TOKEN_KEY) || '';
           if (socket) socket.auth = { token: latest } as any;
-        } catch {}
+        } catch { }
       });
 
       socket.on('disconnect', (reason) => {
@@ -94,7 +105,7 @@ export function refreshSocketAuthFromStorage() {
   try {
     const latest = localStorage.getItem(TOKEN_KEY) || '';
     (socket as any).auth = { token: latest };
-  } catch {}
+  } catch { }
 }
 
 /**
@@ -111,7 +122,7 @@ export function disconnectSocket() {
 export function resetSocket() {
   try {
     if (socket) {
-      try { if (socket.connected) socket.disconnect(); } catch {}
+      try { if (socket.connected) socket.disconnect(); } catch { }
     }
   } finally {
     socket = null;

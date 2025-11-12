@@ -1,5 +1,4 @@
 import { User } from '~/models/User'
-import { TokenResponse } from '~/types/TokenResponse'
 import { LoginType, RegisterType } from '~/types/UserInterface'
 import { compareHashed } from '~/utils/BcryptUtils'
 import { ValidatedToken, ValidatedTokenStatus } from '~/models/ValidatedToken'
@@ -12,27 +11,41 @@ import { Types } from 'mongoose'
 const authService = {
   authenticate: async ({ username, password }: LoginType) => {
     try {
+      console.log('Login attempt:', { username })
+
       const user = await User.findOne({ username }).populate('roles', 'name')
 
       if (!user) {
+        console.log(' User not found:', username)
         throw new Error('Invalid credentials')
       }
+
+      console.log('User found:', {
+        id: user._id,
+        username: user.username,
+        roles: user.roles,
+        hasPassword: !!user.password
+      })
 
       const isValid = await compareHashed(password as string, user.password as string)
 
       if (!isValid) {
+        console.log('Invalid password for:', username)
         throw new Error('Invalid credentials')
       }
+      await User.updateOne({ _id: user._id }, { $set: { isActive: true, lastLogin: Date.now() } })
 
+      console.log('Password valid, creating login response')
       return createLoginResponse(user)
     } catch (error: any) {
+      console.error('Login error:', error.message)
       throw new Error('Error in login: ' + error?.message)
     }
   },
 
-  createUser: async ({ name, username, password, roles, email }: RegisterType) => {
+  createUser: async ({ name, username, password, roles }: RegisterType) => {
     try {
-      let user = email ? await User.findOne({ email }) : await User.findOne({ username })
+      let user = await User.findOne({ username })
 
       if (user) {
         throw new Error('User already have been existed')
@@ -134,32 +147,32 @@ const authService = {
     })
   },
 
-  sendOtp: async (email: string) => {
-    const user = await User.findOne({ email })
+  // sendOtp: async (email: string) => {
+  //   const user = await User.findOne({ email })
 
-    if (!user) {
-      throw new Error('Email is wrong')
-    }
+  //   if (!user) {
+  //     throw new Error('Email is wrong')
+  //   }
 
-    const otp = Math.floor(100000 + Math.random() * 900000)
+  //   const otp = Math.floor(100000 + Math.random() * 900000)
 
-    await emailService.sendEmail({
-      from: 'Tranhunghp22112004@gmail.com',
-      to: user.email as string,
-      subject: 'Forgot password',
-      text: `Your otp is ${otp}`
-      // template: 'otp',
-      // context: { otp: otp }
-    })
+  //   await emailService.sendEmail({
+  //     from: 'Tranhunghp22112004@gmail.com',
+  //     to: user.email as string,
+  //     subject: 'Forgot password',
+  //     text: `Your otp is ${otp}`
+  //     // template: 'otp',
+  //     // context: { otp: otp }
+  //   })
 
-    await ForgotPassword.create({
-      otp,
-      userId: user.id,
-      expired: new Date(Date.now() + 30 * 1000)
-    })
+  //   await ForgotPassword.create({
+  //     otp,
+  //     userId: user.id,
+  //     expired: new Date(Date.now() + 30 * 1000)
+  //   })
 
-    return otp
-  },
+  //   return otp
+  // },
 
   verifyOtp: async (otp: string, email: string) => {
     try {

@@ -25,3 +25,22 @@ export function GetAllData({ url, name, params }: IGetAllData) {
     error
   };
 }
+
+export function useFetchCountUserByRole(role: 'STUDENT' | 'TEACHER' | 'ADMIN') {
+  const { data } = useQuery({
+    queryKey: ['userCount', role],
+    queryFn: async () => {
+      const res = await handleApi({ url: `/users/count-by-role/${role}`, method: 'GET' })
+      if (res.status < 200 || res.status > 300) {
+        console.error('Fetch failed')
+        return 0
+      }
+      // Server responds with { data: number }
+      const payload = res.data
+      const value = (payload?.data ?? payload?.count) as number | undefined
+      return typeof value === 'number' ? value : 0
+    }
+  })
+
+  return data
+}

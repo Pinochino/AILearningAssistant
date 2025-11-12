@@ -7,6 +7,7 @@ import Announcement from '../models/announcement.model.js'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { pathToFileURL } from 'url'
+import { Class, Subject, type IClass, type ISubject } from '~/models/class.model'
 
 dotenv.config()
 
@@ -24,6 +25,11 @@ export async function runSeed() {
   if (toCreate.length) {
     await Role.insertMany(toCreate)
   }
+
+  let superAdminRole = await Role.findOne({ name: RoleName.ADMIN })
+  let teacherRole = await Role.findOne({ name: RoleName.TEACHER })
+  let userRole = await Role.findOne({ name: RoleName.STUDENT })
+
   // Fetch role ids
   const [ADMIN, TEACHER, STUDENT] = await Promise.all([
     Role.findOne({ name: RoleName.ADMIN }),
@@ -46,7 +52,6 @@ export async function runSeed() {
     const doc = await User.findOne({ username })
     if (!doc) {
       const payload: any = { name, username, password, roles: roleIds }
-      if (email) payload.email = email
       await User.create(payload)
       return
     }
@@ -64,6 +69,9 @@ export async function runSeed() {
   await upsertUser('Trần Thị B', 'teacher2', password, [TEACHER?._id].filter(Boolean) as any)
   await upsertUser('Lê Văn C', 'student1', password, [STUDENT?._id].filter(Boolean) as any)
   await upsertUser('Phạm Thị D', 'student2', password, [STUDENT?._id].filter(Boolean) as any)
+  await upsertUser('Trần Thị H', 'student3', password, [STUDENT?._id].filter(Boolean) as any)
+  await upsertUser('Trần Thị K', 'student4', password, [STUDENT?._id].filter(Boolean) as any)
+  await upsertUser('Trần Thị M', 'student5', password, [STUDENT?._id].filter(Boolean) as any)
 
   // Fetch created users
   const [admin, teacher1, teacher2, student1, student2] = await Promise.all([
@@ -182,7 +190,7 @@ export async function runSeed() {
     actor: student1?._id,
     type: 'class_join_request',
     title: 'Yêu cầu tham gia lớp',
-    body: `${student1?.firstName || 'Học sinh'} muốn tham gia lớp Lớp Toán 10A`,
+    body: `${student1?.name || 'Học sinh'} muốn tham gia lớp Lớp Toán 10A`,
     data: { classId: groupConv._id, className: 'Lớp Toán 10A', requesterId: student1?._id },
   })
   await Notification.create({
@@ -190,7 +198,7 @@ export async function runSeed() {
     actor: student2?._id,
     type: 'comment_reply',
     title: 'Có phản hồi bình luận của bạn',
-    body: `${student2?.firstName || 'Học sinh'} đã trả lời bình luận của bạn trong một quiz/flashcard`,
+    body: `${student2?.name || 'Học sinh'} đã trả lời bình luận của bạn trong một quiz/flashcard`,
     data: { contentType: 'quiz', contentId: 'quiz-001' },
   })
   await Notification.create({
@@ -198,7 +206,7 @@ export async function runSeed() {
     actor: student1?._id,
     type: 'new_comment_on_my_content',
     title: 'Bình luận mới trên nội dung của bạn',
-    body: `${student1?.firstName || 'Học sinh'} đã bình luận vào quiz/flashcard bạn tạo`,
+    body: `${student1?.name || 'Học sinh'} đã bình luận vào quiz/flashcard bạn tạo`,
     data: { contentType: 'flashcard', contentId: 'fc-001' },
   })
 
@@ -223,7 +231,7 @@ export async function runSeed() {
     actor: student2?._id,
     type: 'comment_reply',
     title: 'Có phản hồi bình luận của bạn',
-    body: `${student2?.firstName || 'Bạn học'} đã trả lời bình luận của bạn trong một quiz/flashcard`,
+    body: `${student2?.name || 'Bạn học'} đã trả lời bình luận của bạn trong một quiz/flashcard`,
     data: { contentType: 'quiz', contentId: 'quiz-001' },
   })
   await Notification.create({
@@ -231,7 +239,7 @@ export async function runSeed() {
     actor: teacher1?._id,
     type: 'new_comment_on_my_content',
     title: 'Bình luận mới trên nội dung của bạn',
-    body: `${teacher1?.firstName || 'Giáo viên'} đã bình luận vào quiz/flashcard bạn tạo`,
+    body: `${teacher1?.name || 'Giáo viên'} đã bình luận vào quiz/flashcard bạn tạo`,
     data: { contentType: 'flashcard', contentId: 'fc-002' },
   })
 
@@ -251,6 +259,77 @@ async function main() {
     console.log('✅ Đã kết nối MongoDB')
 
     await runSeed()
+
+    // 6. Seed Classes
+    console.log('🏫 Creating classes...')
+
+    // Fetch required users for class seeding in this scope
+    const [teacher1, student1, student2] = await Promise.all([
+      User.findOne({ username: 'teacher1' }),
+      User.findOne({ username: 'student1' }),
+      User.findOne({ username: 'student2' }),
+    ])
+
+    const classesToSeed: Array<Partial<IClass>> = [
+      // ===== LỚP CẤP 3 (có grade cụ thể) =====
+      {
+        name: "Toán học - 12A1",
+        subject: "Toán học",
+        grade: "12A1",
+        description: "Lớp Toán học nâng cao dành cho học sinh lớp 12A1",
+        teacherId: teacher1?._id as any,
+        students: [student1?._id as any, student2?._id as any],
+        schedule: [
+          { dayOfWeek: 1, startTime: "07:00", endTime: "08:30" },
+          { dayOfWeek: 3, startTime: "07:00", endTime: "08:30" },
+          { dayOfWeek: 5, startTime: "07:00", endTime: "08:30" }
+        ],
+        maxStudents: 40,
+      },
+      {
+        name: "Vật lý - 12A1",
+        subject: "Vật lý",
+        grade: "12A1",
+        description: "Lớp Vật lý thí nghiệm cho học sinh 12A1",
+        teacherId: teacher1?._id as any,
+        students: [student1?._id as any, student2?._id as any],
+        schedule: [
+          { dayOfWeek: 2, startTime: "08:45", endTime: "10:15" },
+          { dayOfWeek: 4, startTime: "08:45", endTime: "10:15" }
+        ],
+        maxStudents: 35,
+      },
+      {
+        name: "Trí tuệ nhân tạo",
+        subject: "Trí tuệ nhân tạo",
+        grade: undefined, // Không có grade - áp dụng chung
+        description: "Machine Learning, Deep Learning và ứng dụng AI - Tất cả ngành",
+        teacherId: teacher1?._id as any,
+        students: [student2?._id as any],
+        schedule: [
+          { dayOfWeek: 4, startTime: "15:30", endTime: "17:00" },
+          { dayOfWeek: 6, startTime: "08:00", endTime: "09:30" }
+        ],
+        maxStudents: 70,
+      }
+    ]
+
+    // Insert classes (idempotent by name)
+    for (const classData of classesToSeed) {
+      const existingClass = await Class.findOne({ name: classData.name })
+      if (!existingClass) {
+        await Class.create(classData)
+        console.log(`✅ Created class: ${classData.name}`)
+      } else {
+        console.log(`⏭️  Skipped (exists): ${classData.name}`)
+      }
+    }
+
+    console.log('\n🎉 Database seeding completed!')
+    console.log('\n📊 Summary:')
+    console.log(`   - Roles: ${await Role.countDocuments()}`)
+    console.log(`   - Users: ${await User.countDocuments()}`)
+    console.log(`   - Classes: ${await Class.countDocuments()}`)
   } catch (err) {
     console.error('❌ Lỗi khi seed dữ liệu:', err)
     process.exitCode = 1

@@ -10,8 +10,9 @@ interface IResponse {
 
 export const responseUtils = ({ req, res, code, message, data }: IResponse) => {
   res.status(code).json({
-    msg: message,
-    data
+    success: code >= 200 && code < 300,
+    message: message,
+    data: data
   })
   return
 }

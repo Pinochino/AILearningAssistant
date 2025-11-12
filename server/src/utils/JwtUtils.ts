@@ -1,11 +1,11 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import jwt from 'jsonwebtoken'
-import { IUser } from '~/models/User'
-import { JwtPayloadInterface } from '~/types/JwtPayload'
+import { IUser } from '../models/User.js'
+import { JwtPayloadInterface } from '../types/JwtPayload.js'
 import crypto from 'crypto'
-import { ValidatedToken } from '~/models/ValidatedToken'
-import { UserInterface } from '~/types/UserInterface'
+import { ValidatedToken } from '../models/ValidatedToken.js'
+import { UserInterface } from '../types/UserInterface.js'
 
 const secretOrPublicKey = process.env.JWT_SECRET as string
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -14,11 +14,14 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Eye
+  Eye,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { StudentQuizFlashcard } from './StudentQuizFlashcard';
 import { useNavigation } from '../../hooks/useNavigation';
+import { enrollmentApi, classApi, type Class } from '../../services/api';
 
 const mockSubjects = [
   {
@@ -202,22 +205,120 @@ export function SubjectView() {
   const { navigateTo } = useNavigation();
   const [currentSubjectId, setCurrentSubjectId] = useState('1');
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
+  const [subjects, setSubjects] = useState<typeof mockSubjects>([]);
+  const [loading, setLoading] = useState(true);
+  const [hasClasses, setHasClasses] = useState(false);
 
-  const currentSubject = mockSubjects.find(s => s.id === currentSubjectId) || mockSubjects[0];
-  const currentSubjectIndex = mockSubjects.findIndex(s => s.id === currentSubjectId);
+  // Get current user ID
+  const getCurrentUserId = () => {
+    const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.id || user._id;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // Load real classes from API
+  useEffect(() => {
+    const loadClasses = async () => {
+      try {
+        const userId = getCurrentUserId();
+        console.log('👤 Current User ID:', userId);
+
+        if (!userId) {
+          console.warn('⚠️ No user ID found in localStorage');
+          setLoading(false);
+          return;
+        }
+
+        console.log('🔄 Fetching all classes for student:', userId);
+
+        // Get all classes where student is a member (from studentIds array)
+        const allClassesResponse = await classApi.getAll({});
+        const allClasses = allClassesResponse.data?.items || [];
+
+        // Filter classes where student is in studentIds array
+        const memberClasses = allClasses.filter((cls: any) => {
+          return Array.isArray(cls.studentIds) &&
+            cls.studentIds.some((id: any) =>
+              (id?._id === userId || id === userId)
+            );
+        });
+
+        console.log('📚 All member classes:', memberClasses);
+        console.log('📊 Total member classes count:', memberClasses.length);
+
+        // Get approved enrollments for reference
+        const enrollmentsResponse = await enrollmentApi.getStudentEnrollments(userId, 'approved');
+        const approvedEnrollments = enrollmentsResponse.data || [];
+
+        // Create a map of classId to enrollment status
+        const enrollmentMap = new Map();
+        approvedEnrollments.forEach((enrollment: any) => {
+          const classId = typeof enrollment.classId === 'object' ? enrollment.classId._id : enrollment.classId;
+          enrollmentMap.set(classId, 'approved');
+        });
+
+        // Map classes with their enrollment status
+        const classes = memberClasses.map((cls: any) => ({
+          ...cls,
+          enrollmentStatus: enrollmentMap.has(cls._id) ? 'approved' : 'direct_add'
+        })) as Array<Class & { enrollmentStatus: string }>;
+
+        console.log('📖 Loaded classes:', classes);
+
+        // Map classes to subjects format
+        if (classes.length > 0) {
+          const mappedSubjects = classes.map((cls, index) => ({
+            id: cls._id,
+            name: cls.name,
+            description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''} (${getStatusText(cls.enrollmentStatus)})`,
+            teacher: 'Giáo viên',
+            progress: 0,
+            totalLessons: 0,
+            completedLessons: 0,
+            upcomingDeadline: new Date().toISOString().split('T')[0],
+            status: cls.enrollmentStatus
+          }));
+          setSubjects(mappedSubjects);
+          setCurrentSubjectId(mappedSubjects[0].id);
+          setHasClasses(true);
+          console.log('✅ Subjects set:', mappedSubjects);
+        } else {
+          console.log('⚠️ No classes found');
+          setSubjects([]);
+          setHasClasses(false);
+        }
+      } catch (err) {
+        console.error('❌ Failed to load classes:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClasses();
+  }, []);
+
+  const currentSubject = subjects.find(s => s.id === currentSubjectId) || subjects[0];
+  const currentSubjectIndex = subjects.findIndex(s => s.id === currentSubjectId);
 
   const handleSubjectChange = (subjectId: string) => {
     setCurrentSubjectId(subjectId);
   };
 
   const handlePrevSubject = () => {
-    const prevIndex = currentSubjectIndex > 0 ? currentSubjectIndex - 1 : mockSubjects.length - 1;
-    setCurrentSubjectId(mockSubjects[prevIndex].id);
+    const prevIndex = currentSubjectIndex > 0 ? currentSubjectIndex - 1 : subjects.length - 1;
+    setCurrentSubjectId(subjects[prevIndex].id);
   };
 
   const handleNextSubject = () => {
-    const nextIndex = currentSubjectIndex < mockSubjects.length - 1 ? currentSubjectIndex + 1 : 0;
-    setCurrentSubjectId(mockSubjects[nextIndex].id);
+    const nextIndex = currentSubjectIndex < subjects.length - 1 ? currentSubjectIndex + 1 : 0;
+    setCurrentSubjectId(subjects[nextIndex].id);
   };
 
   const getActivityIcon = (type: string) => {
@@ -267,6 +368,47 @@ export function SubjectView() {
     return mockDocuments.filter(doc => doc.chapter === chapterId);
   };
 
+  // No need for status text since we only show approved classes now
+  const getStatusText = (status?: string) => {
+    return status === 'approved' ? 'Đã được duyệt' : 'Đã tham gia';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hasClasses || subjects.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-12">
+            <div className="text-center">
+              <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-2xl font-bold mb-2">Chưa có lớp học nào</h2>
+              <p className="text-muted-foreground mb-6">
+                Bạn chưa được duyệt tham gia lớp học nào hoặc chưa đăng ký lớp học nào.
+              </p>
+              <div className="space-x-4">
+                <Button onClick={() => navigateTo('subject-search')}>
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Tìm kiếm lớp học
+                </Button>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Tải lại trang
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Subject Navigation */}
@@ -283,32 +425,13 @@ export function SubjectView() {
 
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
-            {currentSubjectIndex + 1} / {mockSubjects.length}
+            {currentSubjectIndex + 1} / {subjects.length}
           </span>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 min-w-48">
-                <BookOpen className="h-4 w-4" />
-                {currentSubject.name}
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64">
-              {mockSubjects.map((subject) => (
-                <DropdownMenuItem
-                  key={subject.id}
-                  onClick={() => handleSubjectChange(subject.id)}
-                  className={currentSubject.id === subject.id ? 'bg-accent' : ''}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium">{subject.name}</span>
-                    <span className="text-xs text-muted-foreground">{subject.description}</span>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center px-4 py-2 bg-accent rounded-md">
+            <BookOpen className="h-4 w-4 mr-2" />
+            <span className="font-medium">{currentSubject.name}</span>
+          </div>
         </div>
 
         <Button
@@ -326,252 +449,90 @@ export function SubjectView() {
       <div>
         <h1>{currentSubject.name}</h1>
         <p className="text-muted-foreground">
-          {currentSubject.description} • {currentSubject.teacher}
+          {currentSubject.name}
         </p>
-      </div>
-
-      {/* Progress Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Tiến độ tổng</p>
-                <p className="text-xl font-semibold">{currentSubject.progress}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-sm text-muted-foreground">Bài học</p>
-                <p className="text-xl font-semibold">{currentSubject.completedLessons}/{currentSubject.totalLessons}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-sm text-muted-foreground">Deadline gần nhất</p>
-                <p className="text-xl font-semibold">
-                  {new Date(currentSubject.upcomingDeadline).toLocaleDateString('vi-VN')}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Tình trạng</p>
-                <Badge variant={currentSubject.progress >= 70 ? 'default' : 'secondary'}>
-                  {currentSubject.progress >= 70 ? 'Đúng tiến độ' : 'Cần cố gắng'}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Main Content */}
       <Tabs defaultValue="chapters" className="space-y-4">
         <TabsList>
           <TabsTrigger value="chapters">Chương học</TabsTrigger>
-          <TabsTrigger value="activities">Hoạt động gần đây</TabsTrigger>
-          <TabsTrigger value="tasks">Nhiệm vụ</TabsTrigger>
           <TabsTrigger value="student-content">Quiz & Flashcard</TabsTrigger>
         </TabsList>
 
         {/* Chapters Tab */}
         <TabsContent value="chapters" className="space-y-4">
           {mockChapters.map((chapter) => (
-            <Card key={chapter.id} className={!chapter.isUnlocked ? 'opacity-60' : ''}>
+            <Card key={chapter.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg flex items-center gap-2">
                       {chapter.title}
-                      {!chapter.isUnlocked && <span className="text-muted-foreground">🔒</span>}
                     </CardTitle>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                      <span>{chapter.completedLessons}/{chapter.lessons} bài học</span>
-                      <span>•</span>
-                      <span>{chapter.completedQuizzes}/{chapter.quizzes} quiz</span>
-                      <span>•</span>
-                      <span>{chapter.studiedFlashcards}/{chapter.flashcards} flashcard</span>
-                    </div>
                   </div>
-                  <Badge variant="secondary">{chapter.progress}%</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Tiến độ chương</span>
-                    <span>{chapter.progress}%</span>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleToggleDocuments(chapter.id)}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Xem tài liệu ({getDocumentsForChapter(chapter.id).length})
+                    </Button>
                   </div>
-                  <Progress value={chapter.progress} className="h-2" />
-                </div>
 
-                {chapter.isUnlocked && (
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Button size="sm" className="gap-2">
-                        <Play className="h-4 w-4" />
-                        Tiếp tục học
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => handleToggleDocuments(chapter.id)}
-                      >
+                  {/* Documents Section */}
+                  {expandedChapter === chapter.id && (
+                    <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
                         <FileText className="h-4 w-4" />
-                        Xem tài liệu ({getDocumentsForChapter(chapter.id).length})
-                      </Button>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Target className="h-4 w-4" />
-                        Làm quiz
-                      </Button>
-                    </div>
-
-                    {/* Documents Section */}
-                    {expandedChapter === chapter.id && (
-                      <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-                        <h4 className="font-medium mb-3 flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          Tài liệu chương
-                        </h4>
-                        {getDocumentsForChapter(chapter.id).length > 0 ? (
-                          <div className="space-y-2">
-                            {getDocumentsForChapter(chapter.id).map((doc) => (
-                              <div key={doc.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
-                                <div className="flex items-center gap-3">
-                                  {getFileIcon(doc.type)}
-                                  <div>
-                                    <h5 className="font-medium text-sm">{doc.title}</h5>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      <span>{getFileTypeLabel(doc.type)}</span>
-                                      <span>•</span>
-                                      <span>{doc.size}</span>
-                                      <span>•</span>
-                                      <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
-                                    </div>
+                        Tài liệu chương
+                      </h4>
+                      {getDocumentsForChapter(chapter.id).length > 0 ? (
+                        <div className="space-y-2">
+                          {getDocumentsForChapter(chapter.id).map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                              <div className="flex items-center gap-3">
+                                {getFileIcon(doc.type)}
+                                <div>
+                                  <h5 className="font-medium text-sm">{doc.title}</h5>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span>{getFileTypeLabel(doc.type)}</span>
+                                    <span>•</span>
+                                    <span>{doc.size}</span>
+                                    <span>•</span>
+                                    <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <Button size="sm" variant="outline">
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button size="sm" variant="outline">
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                </div>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            Chưa có tài liệu nào cho chương này
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {!chapter.isUnlocked && (
-                  <p className="text-sm text-muted-foreground">
-                    Hoàn thành chương trước để mở khóa
-                  </p>
-                )}
+                              <div className="flex items-center gap-2">
+                                <Button size="sm" variant="outline">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Chưa có tài liệu nào cho chương này
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
-        </TabsContent>
-
-        {/* Activities Tab */}
-        <TabsContent value="activities" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Hoạt động gần đây</CardTitle>
-              <CardDescription>
-                Các hoạt động học tập bạn đã thực hiện
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockRecentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-center gap-4 p-3 border rounded-lg">
-                    <div className="text-2xl">{getActivityIcon(activity.type)}</div>
-                    <div className="flex-1 space-y-1">
-                      <h3 className="font-medium">{activity.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="outline" className="text-xs">{activity.chapter}</Badge>
-                        <span>•</span>
-                        <span>{new Date(activity.completedAt).toLocaleDateString('vi-VN')}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {activity.type === 'quiz' && activity.score && (
-                        <Badge variant="default">{activity.score}%</Badge>
-                      )}
-                      {activity.type === 'flashcard' && activity.progress && (
-                        <Badge variant="secondary">{activity.progress}%</Badge>
-                      )}
-                      {activity.type === 'lesson' && activity.completed && (
-                        <Badge variant="default">Hoàn thành</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tasks Tab */}
-        <TabsContent value="tasks" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Nhiệm vụ sắp tới</CardTitle>
-              <CardDescription>
-                Các bài tập và kiểm tra cần hoàn thành
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockUpcomingTasks.map((task) => (
-                  <div key={task.id} className="flex items-center gap-4 p-3 border rounded-lg">
-                    <div className="text-2xl">{getActivityIcon(task.type)}</div>
-                    <div className="flex-1 space-y-1">
-                      <h3 className="font-medium">{task.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="outline" className="text-xs">{task.chapter}</Badge>
-                        <span>•</span>
-                        <span>Hạn: {new Date(task.dueDate).toLocaleDateString('vi-VN')}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getPriorityColor(task.priority)}>
-                        {task.priority === 'high' ? 'Cao' :
-                          task.priority === 'medium' ? 'Trung bình' : 'Thấp'}
-                      </Badge>
-                      <Button size="sm">Bắt đầu</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Student Content Tab */}
@@ -579,6 +540,6 @@ export function SubjectView() {
           <StudentQuizFlashcard />
         </TabsContent>
       </Tabs>
-    </div>
+    </div >
   );
 }

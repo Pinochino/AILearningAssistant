@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -32,9 +32,7 @@ const mockDocuments = [
     teacher: 'GV. Nguyễn Văn Giáo',
     size: '2.5 MB',
     downloads: 156,
-    views: 324,
     uploadDate: '2024-09-15',
-    status: 'published',
   },
   {
     id: '2',
@@ -44,9 +42,7 @@ const mockDocuments = [
     teacher: 'GV. Trần Thị Hóa',
     size: '45.2 MB',
     downloads: 89,
-    views: 234,
     uploadDate: '2024-09-14',
-    status: 'published',
   },
   {
     id: '3',
@@ -56,9 +52,7 @@ const mockDocuments = [
     teacher: 'GV. Lê Văn Phúc',
     size: '1.8 MB',
     downloads: 67,
-    views: 145,
     uploadDate: '2024-09-13',
-    status: 'pending',
   },
 ];
 
@@ -72,7 +66,6 @@ const mockQuizzes = [
     attempts: 234,
     avgScore: 85.2,
     createdDate: '2024-09-12',
-    status: 'active',
   },
   {
     id: '2',
@@ -83,7 +76,6 @@ const mockQuizzes = [
     attempts: 178,
     avgScore: 78.9,
     createdDate: '2024-09-11',
-    status: 'active',
   },
 ];
 
@@ -95,9 +87,7 @@ const mockFlashcards = [
     teacher: 'GV. Nguyễn Văn Giáo',
     cardCount: 25,
     studyCount: 456,
-    avgRetention: 89.5,
     createdDate: '2024-09-10',
-    status: 'active',
   },
   {
     id: '2',
@@ -106,9 +96,7 @@ const mockFlashcards = [
     teacher: 'GV. Lê Văn Phúc',
     cardCount: 32,
     studyCount: 298,
-    avgRetention: 82.1,
     createdDate: '2024-09-09',
-    status: 'active',
   },
 ];
 
@@ -123,15 +111,6 @@ export function ContentManagement() {
       case 'video': return <Video className="h-4 w-4 text-blue-600" />;
       case 'image': return <Image className="h-4 w-4 text-green-600" />;
       default: return <FileText className="h-4 w-4" />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'published': return <Badge variant="default">Đã xuất bản</Badge>;
-      case 'pending': return <Badge variant="secondary">Chờ duyệt</Badge>;
-      case 'active': return <Badge variant="default">Hoạt động</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -260,7 +239,6 @@ export function ContentManagement() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium">{doc.title}</h3>
-                          {getStatusBadge(doc.status)}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span>{doc.subject}</span>
@@ -270,10 +248,6 @@ export function ContentManagement() {
                           <span>{doc.size}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{doc.downloads} tải về</span>
-                          <span>•</span>
-                          <span>{doc.views} lượt xem</span>
-                          <span>•</span>
                           <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
                         </div>
                       </div>
@@ -313,7 +287,6 @@ export function ContentManagement() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{quiz.title}</h3>
-                        {getStatusBadge(quiz.status)}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{quiz.subject}</span>
@@ -362,7 +335,6 @@ export function ContentManagement() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{flashcard.title}</h3>
-                        {getStatusBadge(flashcard.status)}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{flashcard.subject}</span>
@@ -373,8 +345,6 @@ export function ContentManagement() {
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{flashcard.studyCount} lượt học</span>
-                        <span>•</span>
-                        <span>Ghi nhớ: {flashcard.avgRetention}%</span>
                         <span>•</span>
                         <span>{new Date(flashcard.createdDate).toLocaleDateString('vi-VN')}</span>
                       </div>

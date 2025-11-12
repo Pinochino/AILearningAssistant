@@ -7,6 +7,7 @@ import { useNavigation } from '../../../hooks/useNavigation';
 import { MessagesService } from '../../../services/messages';
 import { useAuth } from '../../../hooks/useAuth';
 import { ensureSocketConnected, getSocket } from '../../../lib/socket';
+import { teacherApi } from '../../../services/api';
 
 interface TeacherSidebarProps {
   isOpen: boolean;
@@ -23,12 +24,6 @@ const menuItems = [
     id: 'subjects',
     label: 'Môn học của tôi',
     icon: BookOpen,
-    badge: '3',
-  },
-  {
-    id: 'schedule',
-    label: 'Lịch học',
-    icon: Calendar,
     badge: null,
   },
   {
@@ -41,12 +36,30 @@ const menuItems = [
 
 export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
   const { currentPage, navigateTo } = useNavigation();
-  const { isLoading: isAuthLoading } = useAuth();
+  const { isLoading: isAuthLoading, user } = useAuth();
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [classCount, setClassCount] = useState<number>(0);
 
   const handleItemClick = (itemId: string) => {
     navigateTo(itemId);
   };
+
+  // Fetch class count
+  useEffect(() => {
+    const fetchClassCount = async () => {
+      if (!user?.id) return;
+      try {
+        const response = await teacherApi.getClasses(user.id);
+        if (response.success && response.data?.items) {
+          setClassCount(response.data.items.length);
+        }
+      } catch (error) {
+        console.error('Failed to fetch class count:', error);
+      }
+    };
+
+    fetchClassCount();
+  }, [user?.id]);
 
   // Fetch unread conversations count and keep it updated on new messages
   useEffect(() => {
@@ -119,11 +132,12 @@ export function TeacherSidebar({ isOpen }: TeacherSidebarProps) {
               {isOpen && (
                 <>
                   <span className="flex-1 text-left">{item.label}</span>
-                  {(item.id === 'messages' ? (unreadCount > 0 ? String(unreadCount) : null) : item.badge) && (
-                    <Badge variant="secondary" className="text-xs">
-                      {item.id === 'messages' ? unreadCount : item.badge}
-                    </Badge>
-                  )}
+                  {(item.id === 'messages' ? (unreadCount > 0 ? String(unreadCount) : null) :
+                    item.id === 'subjects' ? (classCount > 0 ? String(classCount) : null) : item.badge) && (
+                      <Badge variant="secondary" className="text-xs">
+                        {item.id === 'messages' ? unreadCount : (item.id === 'subjects' ? classCount : item.badge)}
+                      </Badge>
+                    )}
                 </>
               )}
             </Button>

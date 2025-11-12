@@ -444,7 +444,6 @@ export function TeacherDashboard() {
               <div>
                 <p className="text-sm text-muted-foreground">Tổng sinh viên</p>
                 <p className="text-xl font-semibold">{mockOverallStats.totalStudents}</p>
-                <p className="text-xs text-green-600">+{mockOverallStats.activeStudents} đang hoạt động</p>
               </div>
             </div>
           </CardContent>
@@ -459,7 +458,6 @@ export function TeacherDashboard() {
               <div>
                 <p className="text-sm text-muted-foreground">Môn học</p>
                 <p className="text-xl font-semibold">{mockOverallStats.totalSubjects}</p>
-                <p className="text-xs text-muted-foreground">Đang giảng dạy</p>
               </div>
             </div>
           </CardContent>
@@ -472,9 +470,8 @@ export function TeacherDashboard() {
                 <Target className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Điểm TB Quiz</p>
+                <p className="text-sm text-muted-foreground">Số lượng Quiz</p>
                 <p className="text-xl font-semibold">{mockOverallStats.avgQuizScore}%</p>
-                <p className="text-xs text-green-600">+2.1% so với tháng trước</p>
               </div>
             </div>
           </CardContent>
@@ -487,9 +484,8 @@ export function TeacherDashboard() {
                 <Activity className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Tỷ lệ hoàn thành</p>
+                <p className="text-sm text-muted-foreground">Số lượng Flashcard</p>
                 <p className="text-xl font-semibold">{mockOverallStats.completionRate}%</p>
-                <p className="text-xs text-green-600">+3.2% so với tháng trước</p>
               </div>
             </div>
           </CardContent>

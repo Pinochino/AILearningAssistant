@@ -1,4 +1,4 @@
-import { React, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { AdminSidebar } from './sidebars/AdminSidebar';
 import { TeacherSidebar } from './sidebars/TeacherSidebar';

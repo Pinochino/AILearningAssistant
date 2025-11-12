@@ -7,7 +7,7 @@ const authController = {
     try {
       const { username, email, password } = req.body
 
-      const user = await authService.authenticate(req.body)
+      const user = await authService.authenticate({ username, password })
       res.cookie('REFRESH_TOKEN', user.refreshToken, {
         sameSite: 'strict',
         httpOnly: false,
@@ -58,15 +58,15 @@ const authController = {
     }
   },
 
-  sendOtpCode: async (req: Request, res: Response) => {
-    try {
-      const { email } = req.body
-      const otp = await authService.sendOtp(email)
-      responseUtils({ req, res, code: 200, message: `Send otp successfully`, data: otp })
-    } catch (error: any) {
-      responseUtils({ req, res, code: 400, message: error.message })
-    }
-  },
+  // sendOtpCode: async (req: Request, res: Response) => {
+  //   try {
+  //     const { email } = req.body
+  //     const otp = await authService.sendOtp(email)
+  //     responseUtils({ req, res, code: 200, message: `Send otp successfully`, data: otp })
+  //   } catch (error: any) {
+  //     responseUtils({ req, res, code: 400, message: error.message })
+  //   }
+  // },
 
   forgotPassword: async (req: Request, res: Response) => {
     try {
@@ -80,7 +80,7 @@ const authController = {
 
   updatePassord: async (req: Request, res: Response) => {
     try {
-      const { id: userId } = req.user
+      const { id: userId } = req.user as any
       const { password: newPassword } = req.body
       await authService.updatePassword(userId, newPassword)
       responseUtils({ req, res, code: 200, message: `Update password successfully` })

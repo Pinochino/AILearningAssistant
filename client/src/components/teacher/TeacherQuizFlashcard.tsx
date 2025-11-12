@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -61,10 +61,7 @@ const mockQuizzes = [
         createdDate: '2024-09-15',
         lastModified: '2024-09-16',
         difficulty: 'Trung bình',
-        isPublic: true,
-        duration: 30, // minutes
-        status: 'active',
-        tags: ['Hàm số', 'Đồ thị'],
+        duration: 30,
     },
     {
         id: '2',
@@ -80,10 +77,7 @@ const mockQuizzes = [
         createdDate: '2024-09-13',
         lastModified: '2024-09-14',
         difficulty: 'Khó',
-        isPublic: false,
         duration: 45,
-        status: 'active',
-        tags: ['Đạo hàm', 'Quy tắc'],
     },
     {
         id: '3',
@@ -99,10 +93,7 @@ const mockQuizzes = [
         createdDate: '2024-09-10',
         lastModified: '2024-09-11',
         difficulty: 'Khó',
-        isPublic: true,
         duration: 35,
-        status: 'draft',
-        tags: ['Ứng dụng', 'Cực trị'],
     },
 ];
 
@@ -119,9 +110,6 @@ const mockFlashcards = [
         createdDate: '2024-09-14',
         lastModified: '2024-09-15',
         difficulty: 'Trung bình',
-        isPublic: true,
-        status: 'active',
-        tags: ['Công thức', 'Cơ bản'],
     },
     {
         id: '2',
@@ -135,9 +123,6 @@ const mockFlashcards = [
         createdDate: '2024-09-12',
         lastModified: '2024-09-13',
         difficulty: 'Khó',
-        isPublic: false,
-        status: 'active',
-        tags: ['Lượng giác', 'Tính chất'],
     },
     {
         id: '3',
@@ -151,9 +136,6 @@ const mockFlashcards = [
         createdDate: '2024-09-08',
         lastModified: '2024-09-09',
         difficulty: 'Khó',
-        isPublic: true,
-        status: 'draft',
-        tags: ['Ứng dụng', 'Khảo sát'],
     },
 ];
 
@@ -191,7 +173,6 @@ interface TeacherQuizFlashcardProps {
 export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedChapter, setSelectedChapter] = useState('all');
-    const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedTab, setSelectedTab] = useState('quizzes');
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -206,40 +187,18 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
         }
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'active': return 'bg-green-100 text-green-800 border-green-200';
-            case 'draft': return 'bg-gray-100 text-gray-800 border-gray-200';
-            case 'archived': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            default: return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
-
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'active': return 'Đang hoạt động';
-            case 'draft': return 'Bản nháp';
-            case 'archived': return 'Đã lưu trữ';
-            default: return status;
-        }
-    };
-
     const filteredQuizzes = mockQuizzes.filter(quiz => {
         const matchesSearch = quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            quiz.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            quiz.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+            quiz.description.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesChapter = selectedChapter === 'all' || quiz.chapterIds.includes(selectedChapter);
-        const matchesStatus = selectedStatus === 'all' || quiz.status === selectedStatus;
-        return matchesSearch && matchesChapter && matchesStatus;
+        return matchesSearch && matchesChapter;
     });
 
     const filteredFlashcards = mockFlashcards.filter(flashcard => {
         const matchesSearch = flashcard.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            flashcard.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            flashcard.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+            flashcard.description.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesChapter = selectedChapter === 'all' || flashcard.chapterIds.includes(selectedChapter);
-        const matchesStatus = selectedStatus === 'all' || flashcard.status === selectedStatus;
-        return matchesSearch && matchesChapter && matchesStatus;
+        return matchesSearch && matchesChapter;
     });
 
     const handleShare = (item: any) => {
@@ -303,18 +262,6 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                                 ))}
                             </SelectContent>
                         </Select>
-
-                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                            <SelectTrigger className="w-[140px]">
-                                <SelectValue placeholder="Trạng thái" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tất cả</SelectItem>
-                                <SelectItem value="active">Hoạt động</SelectItem>
-                                <SelectItem value="draft">Bản nháp</SelectItem>
-                                <SelectItem value="archived">Lưu trữ</SelectItem>
-                            </SelectContent>
-                        </Select>
                     </div>
                 </div>
             </div>
@@ -364,22 +311,6 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                         </div>
                     </CardContent>
                 </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-orange-100 rounded-lg">
-                                <TrendingUp className="h-5 w-5 text-orange-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Điểm TB</p>
-                                <p className="text-xl font-semibold">
-                                    {(mockQuizzes.reduce((sum, quiz) => sum + quiz.avgScore, 0) / mockQuizzes.length).toFixed(1)}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             {/* Main Content */}
@@ -387,7 +318,6 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="quizzes">Quiz ({filteredQuizzes.length})</TabsTrigger>
                     <TabsTrigger value="flashcards">Flashcard ({filteredFlashcards.length})</TabsTrigger>
-                    <TabsTrigger value="activity">Hoạt động gần đây</TabsTrigger>
                 </TabsList>
 
                 {/* Quiz Tab */}
@@ -417,14 +347,6 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                                                             <Badge variant="outline" className={getDifficultyColor(quiz.difficulty)}>
                                                                 {quiz.difficulty}
                                                             </Badge>
-                                                            <Badge variant="outline" className={getStatusColor(quiz.status)}>
-                                                                {getStatusText(quiz.status)}
-                                                            </Badge>
-                                                            {quiz.isPublic ? (
-                                                                <Globe className="h-4 w-4 text-blue-500" title="Công khai" />
-                                                            ) : (
-                                                                <Lock className="h-4 w-4 text-gray-500" title="Riêng tư" />
-                                                            )}
                                                         </div>
                                                         <p className="text-sm text-muted-foreground">{quiz.description}</p>
                                                     </div>
@@ -461,15 +383,6 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                                                         <Calendar className="h-4 w-4 text-muted-foreground" />
                                                         <span>{new Date(quiz.createdDate).toLocaleDateString('vi-VN')}</span>
                                                     </div>
-                                                </div>
-
-                                                {/* Tags */}
-                                                <div className="flex flex-wrap gap-1">
-                                                    {quiz.tags.map((tag, index) => (
-                                                        <Badge key={index} variant="outline" className="text-xs">
-                                                            #{tag}
-                                                        </Badge>
-                                                    ))}
                                                 </div>
                                             </div>
 
@@ -526,14 +439,6 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                                                             <Badge variant="outline" className={getDifficultyColor(flashcard.difficulty)}>
                                                                 {flashcard.difficulty}
                                                             </Badge>
-                                                            <Badge variant="outline" className={getStatusColor(flashcard.status)}>
-                                                                {getStatusText(flashcard.status)}
-                                                            </Badge>
-                                                            {flashcard.isPublic ? (
-                                                                <Globe className="h-4 w-4 text-blue-500" title="Công khai" />
-                                                            ) : (
-                                                                <Lock className="h-4 w-4 text-gray-500" title="Riêng tư" />
-                                                            )}
                                                         </div>
                                                         <p className="text-sm text-muted-foreground">{flashcard.description}</p>
                                                     </div>
@@ -559,23 +464,11 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                                                         <span>{flashcard.reviews} lượt học</span>
                                                     </div>
                                                     <div className="flex items-center gap-1">
-                                                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                                        <span>Ghi nhớ: {flashcard.avgRetention.toFixed(1)}%</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
                                                         <Calendar className="h-4 w-4 text-muted-foreground" />
                                                         <span>{new Date(flashcard.createdDate).toLocaleDateString('vi-VN')}</span>
                                                     </div>
                                                 </div>
 
-                                                {/* Tags */}
-                                                <div className="flex flex-wrap gap-1">
-                                                    {flashcard.tags.map((tag, index) => (
-                                                        <Badge key={index} variant="outline" className="text-xs">
-                                                            #{tag}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
                                             </div>
 
                                             {/* Actions */}
@@ -602,45 +495,6 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                             ))}
                         </div>
                     )}
-                </TabsContent>
-
-                {/* Activity Tab */}
-                <TabsContent value="activity" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Hoạt động gần đây</CardTitle>
-                            <CardDescription>
-                                Theo dõi hoạt động của học sinh với quiz và flashcard
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {mockRecentActivity.map((activity) => (
-                                    <div key={activity.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarFallback className="text-xs">
-                                                {activity.avatar}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <p className="text-sm">{activity.title}</p>
-                                            <p className="text-xs text-muted-foreground">{activity.time}</p>
-                                        </div>
-                                        {activity.type === 'quiz_attempt' && (
-                                            <Badge variant={activity.score >= 80 ? "default" : "secondary"}>
-                                                {activity.score} điểm
-                                            </Badge>
-                                        )}
-                                        {activity.type === 'flashcard_review' && (
-                                            <Badge variant={activity.retention >= 90 ? "default" : "secondary"}>
-                                                {activity.retention}% ghi nhớ
-                                            </Badge>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </TabsContent>
             </Tabs>
 

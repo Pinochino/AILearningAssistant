@@ -8,6 +8,7 @@ import { useNavigation } from '../../../hooks/useNavigation';
 import { MessagesService } from '../../../services/messages';
 import { useAuth } from '../../../hooks/useAuth';
 import { getSocket, ensureSocketConnected } from '../../../lib/socket';
+import { classApi } from '../../../services/api';
 
 interface StudentSidebarProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ const menuItems = [
     id: 'subjects',
     label: 'Môn học',
     icon: BookOpen,
-    badge: '5',
+    badge: null,
   },
   {
     id: 'subject-search',
@@ -55,12 +56,14 @@ const menuItems = [
 
 export function StudentSidebar({ isOpen }: StudentSidebarProps) {
   const { currentPage, navigateTo } = useNavigation();
-  const { isLoading: isAuthLoading } = useAuth();
+  const { isLoading: isAuthLoading, user } = useAuth();
   const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const handleItemClick = (itemId: string) => {
     navigateTo(itemId);
   };
+
+  // No need to fetch enrolled class count as we're not showing the badge anymore
 
   // Fetch unread conversations count and keep it updated on new messages
   useEffect(() => {
@@ -138,6 +141,7 @@ export function StudentSidebar({ isOpen }: StudentSidebarProps) {
               )}
               onClick={() => handleItemClick(item.id)}
 
+
             >
               <item.icon className={cn('h-5 w-5', !isOpen && 'mx-auto')} />
               {isOpen && (
@@ -154,6 +158,7 @@ export function StudentSidebar({ isOpen }: StudentSidebarProps) {
                 </>
               )}
             </Button>
+
 
           </div>
         ))}

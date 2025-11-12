@@ -11,8 +11,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = 'atiui_token';
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000';
+const TOKEN_KEY = 'accessToken';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:9000/api';
 
 /* ============================================================
    Giải mã JWT token để lấy thông tin user từ payload
@@ -80,7 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: payload.id,
             name: (payload as any).name || (payload as any).username || 'User',
             username: (payload as any).username || undefined,
-            email: (payload as any).email || '',
             role: toRole((payload as any).roles ?? (payload as any).role),
             createdAt: new Date(),
           };
@@ -152,14 +151,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const nextUser: User = payload?.id ? {
         id: payload.id,
         name: (payload as any).name || (profile?.name || profile?.username) || 'User',
-        email: (payload as any).email || (profile?.email || ''),
         role: toRole((payload as any).roles ?? (payload as any).role ?? (profile?.role ?? profile?.roles)),
         createdAt: new Date(),
       } : {
         // Fallback if JWT missing fields
         id: (profile as any)?.id || (profile as any)?._id,
         name: (profile as any)?.name || (profile as any)?.username || 'User',
-        email: (profile as any)?.email || '',
         role: toRole((profile as any)?.role ?? (profile as any)?.roles),
         createdAt: new Date(),
       };

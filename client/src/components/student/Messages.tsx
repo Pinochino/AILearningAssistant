@@ -287,7 +287,7 @@ export function Messages() {
         setMessages((prev: any[]) => prev.map(m => (!m.isOwn ? { ...m, hasMeRead: true } : m)));
         try {
           window.dispatchEvent(new CustomEvent('conversation_read', { detail: { conversationId: String(currentConv) } }));
-        } catch {}
+        } catch { }
       } catch { }
     })();
 

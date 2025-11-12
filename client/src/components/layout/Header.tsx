@@ -29,9 +29,9 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   const markAsRead = async (id: string) => {
     try {
       await NotificationsService.markAsRead(id);
-      setNotifications((prev) => prev.map((n:any)=> ((n._id||n.id)===id ? { ...n, isRead: true } : n)));
-      setUnread((u)=> Math.max(0, u-1));
-    } catch {}
+      setNotifications((prev) => prev.map((n: any) => ((n._id || n.id) === id ? { ...n, isRead: true } : n)));
+      setUnread((u) => Math.max(0, u - 1));
+    } catch { }
   };
 
   useEffect(() => {
@@ -46,10 +46,10 @@ export function Header({ onToggleSidebar }: HeaderProps) {
         if (!mounted) return;
         const raw = Array.isArray(list?.data) ? list.data : (list?.data?.items || []);
         // filter out message-related notifications
-        const filtered = raw.filter((n:any)=> n?.type !== 'message' && n?.category !== 'message');
+        const filtered = raw.filter((n: any) => n?.type !== 'message' && n?.category !== 'message');
         setNotifications(filtered);
         // recompute unread locally based on filtered list
-        const unreadCount = filtered.reduce((acc:number, n:any)=> acc + ((n.isRead===true || n.read===true || n.status==='read' || n.unread===false) ? 0 : 1), 0);
+        const unreadCount = filtered.reduce((acc: number, n: any) => acc + ((n.isRead === true || n.read === true || n.status === 'read' || n.unread === false) ? 0 : 1), 0);
         setUnread(unreadCount);
       } catch (e) {
         // silently ignore in header
@@ -101,75 +101,75 @@ export function Header({ onToggleSidebar }: HeaderProps) {
 
         <div className="flex items-center gap-3">
           {user.role !== 'admin' && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                {(unread > 0) && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {unread}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {(unread > 0) && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                      {unread}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
 
-
-            <DropdownMenuContent
-              align="end"
-              className="w-80"
-              forceMount   // ép render dropdown
-            >
-              <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-64 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <p className="text-sm text-muted-foreground p-3">Không có thông báo nào</p>
-                ) : (
-                  notifications.slice(0, 10).map((n) => {
-                    const id = n._id || n.id;
-                    const isRead = (n.isRead === true) || (n.read === true) || (n.status === 'read') || (n.unread === false);
-                    const title = n.title || n.type || 'Thông báo';
-                    const link = n.link || n.url || n.href || n.target || n.path || n.destination;
-                    const page = n.page || n.route || n.routeName; // preferred in-app destination
-                    const params = n.params || n.query || n.meta || (n.payload && n.payload.params) || undefined;
-                    return (
-                      <div
-                        key={id}
-                        className={`px-2 py-2 border-b last:border-b-0 ${isRead ? '' : 'bg-accent/50'}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="text-left flex-1 font-medium truncate hover:underline"
-                            onClick={() => {
-                              if (page) {
-                                navigateTo(page, params);
-                              } else if (typeof link === 'string' && link.length > 0) {
-                                window.location.assign(link);
-                              }
-                              if (!isRead) markAsRead(String(id));
-                            }}
-                            title={title}
-                          >
-                            {title}
-                          </button>
-                          {!isRead && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => { markAsRead(String(id)); }}
-                              title={'Đánh dấu đã đọc'}
+              <DropdownMenuContent
+                align="end"
+                className="w-80 bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-200 dark:border-gray-700"
+                sideOffset={8}
+                collisionPadding={16}
+              >
+                <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="max-h-64 overflow-y-auto p-2">
+                  {notifications.length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-3">Không có thông báo nào</p>
+                  ) : (
+                    notifications.slice(0, 10).map((n) => {
+                      const id = n._id || n.id;
+                      const isRead = (n.isRead === true) || (n.read === true) || (n.status === 'read') || (n.unread === false);
+                      const title = n.title || n.type || 'Thông báo';
+                      const link = n.link || n.url || n.href || n.target || n.path || n.destination;
+                      const page = n.page || n.route || n.routeName; // preferred in-app destination
+                      const params = n.params || n.query || n.meta || (n.payload && n.payload.params) || undefined;
+                      return (
+                        <div
+                          key={id}
+                          className={`px-3 py-2 rounded-md ${isRead ? 'hover:bg-gray-100 dark:hover:bg-gray-700' : 'bg-blue-50 dark:bg-blue-900/30'}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="text-left flex-1 font-medium truncate hover:underline"
+                              onClick={() => {
+                                if (page) {
+                                  navigateTo(page, params);
+                                } else if (typeof link === 'string' && link.length > 0) {
+                                  window.location.assign(link);
+                                }
+                                if (!isRead) markAsRead(String(id));
+                              }}
+                              title={title}
                             >
-                              <Circle className={`h-3 w-3 text-primary fill-primary`} />
-                            </Button>
-                          )}
+                              {title}
+                            </button>
+                            {!isRead && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => { markAsRead(String(id)); }}
+                                title={'Đánh dấu đã đọc'}
+                              >
+                                <Circle className={`h-3 w-3 text-primary fill-primary`} />
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                      );
+                    })
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-3 p-2 rounded-md hover:bg-accent hover:text-accent-foreground">

@@ -1,8 +1,8 @@
 // Simple fetch-based API client for ATIUI
 // Reads base URL from Vite env and attaches Authorization header from localStorage
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-const TOKEN_KEY = "atiui_token";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000/api";
+const TOKEN_KEY = "accessToken";
 
 // Deduplicate identical concurrent requests and apply simple 429 backoff
 const inflight = new Map<string, Promise<any>>();
@@ -30,7 +30,7 @@ function keyOf(url: string, opts: RequestOptions): string {
   let bodyStr = '';
   try {
     bodyStr = opts.body ? String(opts.body) : (opts.json !== undefined ? JSON.stringify(opts.json) : '');
-  } catch {}
+  } catch { }
   return `${method} ${url} ${bodyStr}`;
 }
 
@@ -74,7 +74,7 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
 
     if (!resp.ok) {
       let details: any = undefined;
-      try { details = await resp.json(); } catch {}
+      try { details = await resp.json(); } catch { }
       const error = new Error(details?.error || `HTTP ${resp.status}`) as any;
       error.status = resp.status;
       error.details = details;
@@ -111,7 +111,7 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
               return await with429Retry<T>(doFetch);
             }
           }
-        } catch {}
+        } catch { }
       }
       throw err;
     }

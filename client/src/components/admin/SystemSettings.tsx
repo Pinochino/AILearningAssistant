@@ -32,33 +32,11 @@ export function SystemSettings() {
       timezone: 'Asia/Ho_Chi_Minh',
       maintenanceMode: false,
     },
-    email: {
-      smtpHost: 'smtp.gmail.com',
-      smtpPort: '587',
-      smtpUsername: '',
-      smtpPassword: '',
-      fromEmail: 'noreply@ailearning.edu.vn',
-      fromName: 'AI Learning Assistant',
-    },
-    security: {
-      enableTwoFactor: true,
-      sessionTimeout: '24',
-      passwordMinLength: '8',
-      requireUppercase: true,
-      requireNumbers: true,
-      requireSpecialChars: false,
-    },
-    notifications: {
-      emailNotifications: true,
-      systemAlerts: true,
-      weeklyReports: true,
-      marketingEmails: false,
-    },
     ai: {
       geminiApiKey: '',
       maxOutputTokens: '2000',
       temperature: '0.7',
-      model: 'gemini-1.5-pro',
+      model: 'gemini-2.5-pro',
     },
   });
 
@@ -97,18 +75,6 @@ export function SystemSettings() {
             <Settings className="h-4 w-4" />
             Chung
           </TabsTrigger>
-          <TabsTrigger value="email" className="gap-2">
-            <Mail className="h-4 w-4" />
-            Email
-          </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="h-4 w-4" />
-            Bảo mật
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="h-4 w-4" />
-            Thông báo
-          </TabsTrigger>
           <TabsTrigger value="ai" className="gap-2">
             <Database className="h-4 w-4" />
             AI
@@ -133,6 +99,7 @@ export function SystemSettings() {
                 <div className="space-y-2">
                   <Label htmlFor="siteName">Tên website</Label>
                   <Input
+                    disabled
                     id="siteName"
                     value={settings.general.siteName}
                     onChange={(e) => updateSetting('general', 'siteName', e.target.value)}
@@ -141,6 +108,7 @@ export function SystemSettings() {
                 <div className="space-y-2">
                   <Label htmlFor="language">Ngôn ngữ</Label>
                   <Select
+                    disabled
                     value={settings.general.language}
                     onValueChange={(value) => updateSetting('general', 'language', value)}
                   >
@@ -158,200 +126,11 @@ export function SystemSettings() {
               <div className="space-y-2">
                 <Label htmlFor="siteDescription">Mô tả website</Label>
                 <Textarea
+                  disabled
                   id="siteDescription"
                   value={settings.general.siteDescription}
                   onChange={(e) => updateSetting('general', 'siteDescription', e.target.value)}
                 />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Chế độ bảo trì</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Kích hoạt để ngăn người dùng truy cập hệ thống
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.general.maintenanceMode}
-                  onCheckedChange={(checked) => updateSetting('general', 'maintenanceMode', checked)}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={() => handleSave('general')} disabled={isLoading}>
-                  {isLoading && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                  <Save className="mr-2 h-4 w-4" />
-                  Lưu thay đổi
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Email Settings */}
-        <TabsContent value="email" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cài đặt Email</CardTitle>
-              <CardDescription>
-                Cấu hình SMTP để gửi email
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="smtpHost">SMTP Host</Label>
-                  <Input
-                    id="smtpHost"
-                    value={settings.email.smtpHost}
-                    onChange={(e) => updateSetting('email', 'smtpHost', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtpPort">SMTP Port</Label>
-                  <Input
-                    id="smtpPort"
-                    value={settings.email.smtpPort}
-                    onChange={(e) => updateSetting('email', 'smtpPort', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="smtpUsername">Username</Label>
-                  <Input
-                    id="smtpUsername"
-                    type="email"
-                    value={settings.email.smtpUsername}
-                    onChange={(e) => updateSetting('email', 'smtpUsername', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtpPassword">Password</Label>
-                  <Input
-                    id="smtpPassword"
-                    type="password"
-                    value={settings.email.smtpPassword}
-                    onChange={(e) => updateSetting('email', 'smtpPassword', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fromEmail">Email gửi</Label>
-                  <Input
-                    id="fromEmail"
-                    type="email"
-                    value={settings.email.fromEmail}
-                    onChange={(e) => updateSetting('email', 'fromEmail', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fromName">Tên người gửi</Label>
-                  <Input
-                    id="fromName"
-                    value={settings.email.fromName}
-                    onChange={(e) => updateSetting('email', 'fromName', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-between">
-                <Button variant="outline">
-                  Gửi email test
-                </Button>
-                <Button onClick={() => handleSave('email')} disabled={isLoading}>
-                  {isLoading && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                  <Save className="mr-2 h-4 w-4" />
-                  Lưu thay đổi
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Security Settings */}
-        <TabsContent value="security" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cài đặt bảo mật</CardTitle>
-              <CardDescription>
-                Cấu hình các chính sách bảo mật
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Xác thực 2 bước</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Yêu cầu xác thực 2 bước cho tất cả người dùng
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.security.enableTwoFactor}
-                  onCheckedChange={(checked) => updateSetting('security', 'enableTwoFactor', checked)}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="sessionTimeout">Thời gian session (giờ)</Label>
-                  <Input
-                    id="sessionTimeout"
-                    type="number"
-                    value={settings.security.sessionTimeout}
-                    onChange={(e) => updateSetting('security', 'sessionTimeout', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="passwordMinLength">Độ dài mật khẩu tối thiểu</Label>
-                  <Input
-                    id="passwordMinLength"
-                    type="number"
-                    value={settings.security.passwordMinLength}
-                    onChange={(e) => updateSetting('security', 'passwordMinLength', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label>Yêu cầu mật khẩu</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="requireUppercase">Chữ hoa</Label>
-                    <Switch
-                      id="requireUppercase"
-                      checked={settings.security.requireUppercase}
-                      onCheckedChange={(checked) => updateSetting('security', 'requireUppercase', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="requireNumbers">Số</Label>
-                    <Switch
-                      id="requireNumbers"
-                      checked={settings.security.requireNumbers}
-                      onCheckedChange={(checked) => updateSetting('security', 'requireNumbers', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="requireSpecialChars">Ký tự đặc biệt</Label>
-                    <Switch
-                      id="requireSpecialChars"
-                      checked={settings.security.requireSpecialChars}
-                      onCheckedChange={(checked) => updateSetting('security', 'requireSpecialChars', checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={() => handleSave('security')} disabled={isLoading}>
-                  {isLoading && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                  <Save className="mr-2 h-4 w-4" />
-                  Lưu thay đổi
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -359,13 +138,6 @@ export function SystemSettings() {
 
         {/* AI Settings */}
         <TabsContent value="ai" className="space-y-4">
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Cài đặt AI sẽ ảnh hưởng đến tất cả tính năng AI trong hệ thống. Hãy cẩn thận khi thay đổi.
-            </AlertDescription>
-          </Alert>
-
           <Card>
             <CardHeader>
               <CardTitle>Cài đặt AI (Gemini)</CardTitle>
@@ -377,6 +149,7 @@ export function SystemSettings() {
               <div className="space-y-2">
                 <Label htmlFor="geminiApiKey">Gemini API Key</Label>
                 <Input
+                  disabled
                   id="geminiApiKey"
                   type="password"
                   placeholder="AIza-..."
@@ -396,9 +169,9 @@ export function SystemSettings() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
-                      <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
-                      <SelectItem value="gemini-1.0-pro">Gemini 1.0 Pro</SelectItem>
+                      <SelectItem disabled value="gemini-1.5-pro">Gemini 2.5 Pro</SelectItem>
+                      <SelectItem disabled value="gemini-1.5-flash">Gemini 2.5 Flash</SelectItem>
+                      <SelectItem disabled value="gemini-1.0-pro">Gemini 2.0 Pro</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -425,16 +198,6 @@ export function SystemSettings() {
                 </div>
               </div>
 
-              <div className="flex justify-between">
-                <Button variant="outline">
-                  Test kết nối Gemini
-                </Button>
-                <Button onClick={() => handleSave("ai")} disabled={isLoading}>
-                  {isLoading && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                  <Save className="mr-2 h-4 w-4" />
-                  Lưu thay đổi
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

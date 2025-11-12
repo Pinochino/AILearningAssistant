@@ -1,10 +1,11 @@
 import { Application } from 'express'
-import authRouter from './authRouter.js'
-import userRouter from './userRouter.js'
-import fileRouter from './fileRouter.js'
-import emailRouter from './emailRouter.js'
-import xlsxRouter from './xlsxRouter.js'
-import roleRouter from './roleRouter.js'
+import authRouter from './authRouter'
+import userRouter from './userRouter'
+import fileRouter from './fileRouter'
+import emailRouter from './emailRouter'
+import xlsxRouter from './xlsxRouter'
+import roleRouter from './roleRouter'
+import classRouter from '../routes/class.routes'
 
 const routers = (app: Application) => {
   app.use('/api/auth', authRouter)
@@ -13,6 +14,7 @@ const routers = (app: Application) => {
   app.use('/api/email', emailRouter)
   app.use('/api/excel', xlsxRouter)
   app.use('/api/roles', roleRouter)
+  app.use('/api', classRouter)
 }
 
 export default routers

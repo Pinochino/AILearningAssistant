@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -24,8 +24,7 @@ import {
     Clock,
     Star,
     Globe,
-    Lock,
-    Share2
+    Lock
 } from 'lucide-react';
 import { EditQuizDialog } from './EditQuizDialog';
 import { EditFlashcardDialog } from './EditFlashcardDialog';
@@ -74,8 +73,6 @@ const mockPublicQuizzes = [
         avgScore: 85.2,
         createdDate: '2024-09-15',
         difficulty: 'Trung bình',
-        tags: ['Hàm số', 'Đồ thị', 'Toán học'],
-        isPublic: true,
     },
     {
         id: '2',
@@ -90,8 +87,6 @@ const mockPublicQuizzes = [
         avgScore: 78.9,
         createdDate: '2024-09-13',
         difficulty: 'Khó',
-        tags: ['Đạo hàm', 'Toán học'],
-        isPublic: true,
     },
 ];
 
@@ -109,8 +104,6 @@ const mockPublicFlashcards = [
         avgRetention: 89.5,
         createdDate: '2024-09-14',
         difficulty: 'Trung bình',
-        tags: ['Đạo hàm', 'Công thức', 'Toán học'],
-        isPublic: true,
     },
     {
         id: '2',
@@ -125,8 +118,6 @@ const mockPublicFlashcards = [
         avgRetention: 85.2,
         createdDate: '2024-09-12',
         difficulty: 'Khó',
-        tags: ['Lượng giác', 'Hàm số', 'Toán học'],
-        isPublic: true,
     },
 ];
 
@@ -144,8 +135,6 @@ const mockPrivateQuizzes = [
         avgScore: 90.0,
         createdDate: '2024-09-16',
         difficulty: 'Trung bình',
-        tags: ['Tích phân', 'Toán học'],
-        isPublic: false,
     },
 ];
 
@@ -163,8 +152,6 @@ const mockPrivateFlashcards = [
         avgRetention: 92.0,
         createdDate: '2024-09-17',
         difficulty: 'Dễ',
-        tags: ['Vật lý', 'Cơ bản'],
-        isPublic: false,
     },
 ];
 
@@ -604,41 +591,6 @@ export function StudentQuizFlashcard() {
                                                 </Card>
                                             ))}
                                         </div>
-                                        <div className="space-y-4">
-                                            <Label>Chế độ hiển thị</Label>
-                                            <RadioGroup
-                                                value={visibility}
-                                                onValueChange={setVisibility}
-                                                className="flex flex-row gap-6"
-                                            >
-                                                <div className="flex items-center space-x-2 cursor-pointer">
-                                                    <RadioGroupItem
-                                                        value="private"
-                                                        id="private"
-                                                        className="w-4 h-4 border border-gray-400"
-                                                    />
-                                                    <Label
-                                                        htmlFor="private"
-                                                        className="font-normal text-gray-700 cursor-pointer"
-                                                    >
-                                                        Chỉ mình tôi
-                                                    </Label>
-                                                </div>
-                                                <div className="flex items-center space-x-2 cursor-pointer">
-                                                    <RadioGroupItem
-                                                        value="public"
-                                                        id="public"
-                                                        className="w-4 h-4 border border-gray-400"
-                                                    />
-                                                    <Label
-                                                        htmlFor="public"
-                                                        className="font-normal text-gray-700 cursor-pointer"
-                                                    >
-                                                        Công khai
-                                                    </Label>
-                                                </div>
-                                            </RadioGroup>
-                                        </div>
                                     </div>
                                 )}
 
@@ -833,42 +785,6 @@ export function StudentQuizFlashcard() {
                                                 </Card>
 
                                             ))}
-                                            <div className="space-y-4">
-                                                <Label>Chế độ hiển thị</Label>
-                                                <RadioGroup
-                                                    value={visibility}
-                                                    onValueChange={setVisibility}
-                                                    className="flex flex-row gap-6"
-                                                >
-                                                    <div className="flex items-center space-x-2 cursor-pointer">
-                                                        <RadioGroupItem
-                                                            value="private"
-                                                            id="private"
-                                                            className="w-4 h-4 border border-gray-400"
-                                                        />
-                                                        <Label
-                                                            htmlFor="private"
-                                                            className="font-normal text-gray-700 cursor-pointer"
-                                                        >
-                                                            Chỉ mình tôi
-                                                        </Label>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2 cursor-pointer">
-                                                        <RadioGroupItem
-                                                            value="public"
-                                                            id="public"
-                                                            className="w-4 h-4 border border-gray-400"
-                                                        />
-                                                        <Label
-                                                            htmlFor="public"
-                                                            className="font-normal text-gray-700 cursor-pointer"
-                                                        >
-                                                            Công khai
-                                                        </Label>
-                                                    </div>
-                                                </RadioGroup>
-
-                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -888,330 +804,121 @@ export function StudentQuizFlashcard() {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="public" className="space-y-4">
+            <Tabs defaultValue="quizzes" className="space-y-4">
                 <TabsList>
-                    <TabsTrigger value="public">Công cộng</TabsTrigger>
-                    <TabsTrigger value="private">Của tôi</TabsTrigger>
+                    <TabsTrigger value="quizzes">Quiz</TabsTrigger>
+                    <TabsTrigger value="flashcards">Flashcard</TabsTrigger>
                 </TabsList>
 
-                {/* Public Tab */}
-                <TabsContent value="public" className="space-y-4">
-                    <Tabs defaultValue="quizzes" className="space-y-4">
-                        <TabsList>
-                            <TabsTrigger value="quizzes">Quiz công cộng ({mockPublicQuizzes.length})</TabsTrigger>
-                            <TabsTrigger value="flashcards">Flashcard công cộng ({mockPublicFlashcards.length})</TabsTrigger>
-                        </TabsList>
-
-                        {/* Public Quizzes */}
-                        <TabsContent value="quizzes" className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
-                                {mockPublicQuizzes.map((quiz) => (
-                                    <Card key={quiz.id}>
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-2 bg-blue-100 rounded-lg">
-                                                        <Target className="h-5 w-5 text-blue-600" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="font-medium">{quiz.title}</h3>
-                                                            <Badge className={getDifficultyColor(quiz.difficulty)}>
-                                                                {quiz.difficulty}
-                                                            </Badge>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                <Globe className="h-3 w-3 mr-1" />
-                                                                Công cộng
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground">{quiz.description}</p>
-
-                                                        {/* Chapters */}
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {quiz.chapterNames.map((chapter, index) => (
-                                                                <Badge key={index} variant="secondary" className="text-xs">
-                                                                    {chapter}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-
-                                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                            <span>Tạo bởi: {quiz.creator}</span>
-                                                            <span>•</span>
-                                                            <span>{quiz.subject}</span>
-                                                            <span>•</span>
-                                                            <span>{quiz.questions} câu hỏi</span>
-                                                            <span>•</span>
-                                                            <span>{quiz.attempts} lượt làm</span>
-                                                            <span>•</span>
-                                                            <span>Điểm TB: {quiz.avgScore}%</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            {quiz.tags.map((tag, index) => (
-                                                                <Badge key={index} variant="outline" className="text-xs">
-                                                                    #{tag}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
+                {/* Quizzes Tab */}
+                <TabsContent value="quizzes" className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                        {[...mockPublicQuizzes, ...mockPrivateQuizzes].map((quiz) => (
+                            <Card key={quiz.id}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2 bg-purple-100 rounded-lg">
+                                                <Target className="h-5 w-5 text-purple-600" />
+                                            </div>
+                                            <div className="space-y-1">
                                                 <div className="flex items-center gap-2">
-                                                    <Button variant="outline" size="sm">
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm">
-                                                        <Play className="h-4 w-4 mr-2" />
-                                                        Làm quiz
-                                                    </Button>
+                                                    <h3 className="font-medium">{quiz.title}</h3>
+                                                    <Badge className={getDifficultyColor(quiz.difficulty)}>
+                                                        {quiz.difficulty}
+                                                    </Badge>
+
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">{quiz.description}</p>
+
+                                                {/* Chapters */}
+                                                <div className="flex flex-wrap gap-1">
+                                                    {quiz.chapterNames.map((chapter, index) => (
+                                                        <Badge key={index} variant="secondary" className="text-xs">
+                                                            {chapter}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+
+                                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                    <span>{quiz.questions} câu hỏi</span>
                                                 </div>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
+                                        </div>
+                                        <div className="flex items-center gap-2">
 
-                        {/* Public Flashcards */}
-                        <TabsContent value="flashcards" className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
-                                {mockPublicFlashcards.map((flashcard) => (
-                                    <Card key={flashcard.id}>
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-2 bg-green-100 rounded-lg">
-                                                        <BookOpen className="h-5 w-5 text-green-600" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="font-medium">{flashcard.title}</h3>
-                                                            <Badge className={getDifficultyColor(flashcard.difficulty)}>
-                                                                {flashcard.difficulty}
-                                                            </Badge>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                <Globe className="h-3 w-3 mr-1" />
-                                                                Công cộng
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground">{flashcard.description}</p>
-
-                                                        {/* Chapters */}
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {flashcard.chapterNames.map((chapter, index) => (
-                                                                <Badge key={index} variant="secondary" className="text-xs">
-                                                                    {chapter}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-
-                                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                            <span>Tạo bởi: {flashcard.creator}</span>
-                                                            <span>•</span>
-                                                            <span>{flashcard.subject}</span>
-                                                            <span>•</span>
-                                                            <span>{flashcard.cards} thẻ</span>
-                                                            <span>•</span>
-                                                            <span>{flashcard.reviews} lượt ôn tập</span>
-                                                            <span>•</span>
-                                                            <span>Tỷ lệ ghi nhớ: {flashcard.avgRetention}%</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            {flashcard.tags.map((tag, index) => (
-                                                                <Badge key={index} variant="outline" className="text-xs">
-                                                                    #{tag}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Button variant="outline" size="sm">
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm">
-                                                        <Play className="h-4 w-4 mr-2" />
-                                                        Ôn tập
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
-                    </Tabs>
+                                            <Button size="sm">
+                                                <Play className="h-4 w-4 mr-2" />
+                                                Làm quiz
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </TabsContent>
 
-                {/* Private Tab */}
-                <TabsContent value="private" className="space-y-4">
-                    <Tabs defaultValue="quizzes" className="space-y-4">
-                        <TabsList>
-                            <TabsTrigger value="quizzes">Quiz của tôi ({mockPrivateQuizzes.length})</TabsTrigger>
-                            <TabsTrigger value="flashcards">Flashcard của tôi ({mockPrivateFlashcards.length})</TabsTrigger>
-                        </TabsList>
-
-                        {/* Private Quizzes */}
-                        <TabsContent value="quizzes" className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
-                                {privateQuizzes.map((quiz) => (
-                                    <Card key={quiz.id}>
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-2 bg-purple-100 rounded-lg">
-                                                        <Target className="h-5 w-5 text-purple-600" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="font-medium">{quiz.title}</h3>
-                                                            <Badge className={getDifficultyColor(quiz.difficulty)}>
-                                                                {quiz.difficulty}
-                                                            </Badge>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                <Lock className="h-3 w-3 mr-1" />
-                                                                Riêng tư
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground">{quiz.description}</p>
-
-                                                        {/* Chapters */}
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {quiz.chapterNames.map((chapter, index) => (
-                                                                <Badge key={index} variant="secondary" className="text-xs">
-                                                                    {chapter}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-
-                                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                            <span>{quiz.subject}</span>
-                                                            <span>•</span>
-                                                            <span>{quiz.questions} câu hỏi</span>
-                                                            <span>•</span>
-                                                            <span>{quiz.attempts} lượt làm</span>
-                                                            <span>•</span>
-                                                            <span>Điểm TB: {quiz.avgScore}%</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            {quiz.tags.map((tag, index) => (
-                                                                <Badge key={index} variant="secondary" className="text-xs">
-                                                                    {tag}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
+                {/* Flashcards Tab */}
+                <TabsContent value="flashcards" className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                        {[...mockPublicFlashcards, ...mockPrivateFlashcards].map((flashcard) => (
+                            <Card key={flashcard.id}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2 bg-orange-100 rounded-lg">
+                                                <BookOpen className="h-5 w-5 text-orange-600" />
+                                            </div>
+                                            <div className="space-y-1">
                                                 <div className="flex items-center gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleEditQuiz(quiz)}
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="outline" size="sm">
-                                                        <Share2 className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleDeleteQuiz(quiz.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm">
-                                                        <Play className="h-4 w-4 mr-2" />
-                                                        Làm quiz
-                                                    </Button>
+                                                    <h3 className="font-medium">{flashcard.title}</h3>
+                                                    <Badge className={getDifficultyColor(flashcard.difficulty)}>
+                                                        {flashcard.difficulty}
+                                                    </Badge>
+
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">{flashcard.description}</p>
+
+                                                {/* Chapters */}
+                                                <div className="flex flex-wrap gap-1">
+                                                    {flashcard.chapterNames.map((chapter, index) => (
+                                                        <Badge key={index} variant="secondary" className="text-xs">
+                                                            {chapter}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+
+                                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                    <span>{flashcard.cards} thẻ</span>
                                                 </div>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
-
-                        {/* Private Flashcards */}
-                        <TabsContent value="flashcards" className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
-                                {privateFlashcards.map((flashcard) => (
-                                    <Card key={flashcard.id}>
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                                        <BookOpen className="h-5 w-5 text-orange-600" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="font-medium">{flashcard.title}</h3>
-                                                            <Badge className={getDifficultyColor(flashcard.difficulty)}>
-                                                                {flashcard.difficulty}
-                                                            </Badge>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                <Lock className="h-3 w-3 mr-1" />
-                                                                Riêng tư
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground">{flashcard.description}</p>
-
-                                                        {/* Chapters */}
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {flashcard.chapterNames.map((chapter, index) => (
-                                                                <Badge key={index} variant="secondary" className="text-xs">
-                                                                    {chapter}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-
-                                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                            <span>{flashcard.subject}</span>
-                                                            <span>•</span>
-                                                            <span>{flashcard.cards} thẻ</span>
-                                                            <span>•</span>
-                                                            <span>{flashcard.reviews} lượt ôn tập</span>
-                                                            <span>•</span>
-                                                            <span>Tỷ lệ ghi nhớ: {flashcard.avgRetention}%</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            {flashcard.tags.map((tag, index) => (
-                                                                <Badge key={index} variant="outline" className="text-xs">
-                                                                    #{tag}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleEditFlashcard(flashcard)}
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="outline" size="sm">
-                                                        <Share2 className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleDeleteFlashcard(flashcard.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm">
-                                                        <Play className="h-4 w-4 mr-2" />
-                                                        Ôn tập
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
-                    </Tabs>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleEditFlashcard(flashcard)}
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleDeleteFlashcard(flashcard.id)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                            <Button size="sm">
+                                                <Play className="h-4 w-4 mr-2" />
+                                                Ôn tập
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </TabsContent>
             </Tabs>
 

@@ -28,9 +28,9 @@ export function useFetchCountUserByUserRole() {
     isLoading: userCountLoading,
     error: userCountError
   } = useQuery({
-    queryKey: ['userCount'],
+    queryKey: ['studentCount'],
     queryFn: async () => {
-      const res = await handleApi({ url: `/users/count-by-role/USER`, method: 'GET' })
+      const res = await handleApi({ url: `/users/count-by-role/STUDENT`, method: 'GET' })
       return res.data
     }
   })
@@ -39,17 +39,15 @@ export function useFetchCountUserByUserRole() {
 }
 
 export function useFetchCountUserByTeacherRole() {
-  const {
-    data: teacherCount,
-    isLoading: teacherCountLoading,
-    error: teacherCountError
-  } = useQuery({
-    queryKey: ['userCount'],
+  const { data } = useQuery({
+    queryKey: ['teacherCount'],
     queryFn: async () => {
       const res = await handleApi({ url: `/users/count-by-role/TEACHER`, method: 'GET' })
-      return res.data
+      const payload = res.data
+      const value = (payload?.data ?? payload?.count) as number | undefined
+      return typeof value === 'number' ? value : 0
     }
   })
 
-  return teacherCount
+  return data
 }

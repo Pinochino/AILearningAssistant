@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area@1.2.3";
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 import { cn } from "./utils";
 
@@ -13,7 +13,7 @@ function ScrollArea({
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn("relative", className)}
+      className={cn("relative overflow-hidden [&>div[data-slot=scroll-area-scrollbar]]:opacity-100", className)}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
@@ -40,16 +40,16 @@ function ScrollBar({
       className={cn(
         "flex touch-none p-px transition-colors select-none",
         orientation === "vertical" &&
-          "h-full w-2.5 border-l border-l-transparent",
+        "h-full w-4 border-l border-l-transparent opacity-100",
         orientation === "horizontal" &&
-          "h-2.5 flex-col border-t border-t-transparent",
+        "h-4 flex-col border-t border-t-transparent opacity-100",
         className,
       )}
       {...props}
     >
       <ScrollAreaPrimitive.ScrollAreaThumb
         data-slot="scroll-area-thumb"
-        className="bg-border relative flex-1 rounded-full"
+        className="bg-gray-400 hover:bg-gray-500 relative flex-1 rounded-full transition-colors"
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   );

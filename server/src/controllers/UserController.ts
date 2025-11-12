@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { User } from '~/models/User'
 import userService from '~/services/userService'
 import { responseUtils } from '~/utils/ResponseUtils'
 
@@ -47,9 +48,9 @@ const userController = {
       const { userId } = req.params
       console.log(`User ID: ${userId}`)
       const result = await userService.updateUser(userId, req.body)
-      console.log(`Request body: ${result}`)
       responseUtils({ req, res, code: 200, message: `Update user successfully`, data: result })
     } catch (error: any) {
+      console.log(error.message)
       responseUtils({ req, res, code: 400, message: error.message })
     }
   },
@@ -58,7 +59,7 @@ const userController = {
     try {
       const { userId } = req.params
       const result = await userService.softDeleteUser(userId)
-      responseUtils({ req, res, code: 400, message: `Soft delete user successfully`, data: result })
+      responseUtils({ req, res, code: 200, message: `Soft delete user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
@@ -68,7 +69,7 @@ const userController = {
     try {
       const { userId } = req.params
       const result = await userService.restoreUser(userId)
-      responseUtils({ req, res, code: 400, message: `Restore user successfully`, data: result })
+      responseUtils({ req, res, code: 200, message: `Restore user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
@@ -77,7 +78,7 @@ const userController = {
   findDeletedUsers: async (req: Request, res: Response) => {
     try {
       const result = await userService.findDeletedUser()
-      responseUtils({ req, res, code: 400, message: `Get all deleted user successfully`, data: result })
+      responseUtils({ req, res, code: 200, message: `Get all deleted user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
@@ -86,17 +87,27 @@ const userController = {
   countUserByRole: async (req: Request, res: Response) => {
     try {
       const { roleName } = req.params as { roleName: string }
-      const count = await userService.countUserByRole(roleName)
+      const count = await userService.countUsersByRole(roleName)
       responseUtils({ req, res, code: 200, message: `Get count by role successfully`, data: count })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
   },
 
-  countUserIsActive: async (req: Request, res: Response) => {
+  countUsesByActive: async (req: Request, res: Response) => {
     try {
-      const count = await userService.countUserIsActive()
-      responseUtils({ req, res, code: 200, message: `Get count of active users successfully`, data: count })
+      const userCount = await userService.countUsersByActive()
+      responseUtils({ req, res, code: 200, message: `Count users by isActive successfully`, data: { userCount } })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  filterUserByRoleId: async (req: Request, res: Response) => {
+    try {
+      const { roleId } = req.params
+      const users = await userService.getUsersByRoleId(roleId)
+      responseUtils({ req, res, code: 200, message: `Filter users by roleId successfully`, data: { users } })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

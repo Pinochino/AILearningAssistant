@@ -1,65 +1,27 @@
 import { ChangeEvent, useEffect, useState } from 'react'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
-import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX } from 'lucide-react'
+import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX, Check } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { useNavigation } from '../../hooks/useNavigation'
 import { handleApi } from '../../api/handleApi'
 import React from 'react'
-import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useFetchCountUserByTeacherRole, useFetchCountUserByUserRole, useGetUsers } from '../../services/UserService'
-import { Skeleton } from '../ui/skeleton'
 import { toast } from 'sonner'
 
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn Giáo',
-    email: 'teacher1@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý'],
-    joinDate: '2024-01-15',
-    lastLogin: '2024-09-18',
-  },
-  {
-    id: '2',
-    name: 'Trần Thị Hóa',
-    email: 'teacher2@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Hóa học', 'Sinh học'],
-    joinDate: '2024-02-10',
-    lastLogin: '2024-09-17',
-  },
-  {
-    id: '3',
-    name: 'Lê Minh Học',
-    email: 'student1@example.com',
-    role: 'student',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý', 'Hóa học'],
-    joinDate: '2024-03-01',
-    lastLogin: '2024-09-18',
-  },
-  {
-    id: '4',
-    name: 'Phạm Thị Thông',
-    email: 'student2@example.com',
-    role: 'student',
-    status: 'inactive',
-    subjects: ['Toán học', 'Sinh học'],
-    joinDate: '2024-03-05',
-    lastLogin: '2024-09-10'
-  }
-]
+import { keepPreviousData, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useGetUsers } from '../../services/UserService'
+import { useFetchCountUserByRole } from '../../hooks/getAllData'
+import GetRoleCountByName from '../../hooks/getRoleCount'
 
 const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser }) => {
+  console.log('User: ', users)
+
   return (
     <>
       {Array.from(users || []).map((user: any, index: number) => (
@@ -77,12 +39,12 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
 
             <div className='space-y-1'>
               <div className='flex items-center gap-2'>
-                <h3 className='font-medium'>{user?.name || user?.username || 'Người dùng'}</h3>
-                <Badge variant={getRoleBadgeVariant(user?.roles?.[0]?.name || 'user')}>
-                  {getRoleLabel(user?.roles?.[0]?.name || 'user')}
+                <h3 className='font-medium'>{user.name}</h3>
+                <Badge variant={getRoleBadgeVariant(user.roles[0]?.name || user.name)}>
+                  {getRoleLabel(user.roles[0]?.name) || user.name}
                 </Badge>
-                <Badge variant={user?.status === 'active' || user?.isActive === true ? 'secondary' : 'outline'}>
-                  {user?.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
+                <Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>
+                  {user.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
                 </Badge>
               </div>
               <p className='text-sm text-muted-foreground'>@{user?.username || ''}</p>
@@ -95,16 +57,13 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
           </div>
 
           <div className='flex items-center gap-2'>
-            <Button variant='outline' size='sm'>
+            <Button variant='outline' size='sm' onClick={() => navigateTo('user-detail', { userId: user._id })} >
               <Eye className='h-4 w-4' />
             </Button>
             <Button variant='outline' size='sm' onClick={() => navigateTo('edit-user', { userId: user?._id || user?.id })}>
               <Edit className='h-4 w-4' />
             </Button>
-            <Button variant='outline' size='sm'>
-              {user?.status === 'active' ? <UserX className='h-4 w-4' /> : <UserCheck className='h-4 w-4' />}
-            </Button>
-            <Button variant='outline' size='sm' value={user?._id || user?.id} onClick={() => handleDeleteUser(user?._id || user?.id)}>
+            <Button variant='outline' size='sm' value={user._id} onClick={() => handleDeleteUser(user._id)}>
               <Trash2 className='h-4 w-4 text-destructive' />
             </Button>
           </div>
@@ -123,13 +82,14 @@ export function UserManagement() {
   const [selectedRole, setSelectedRole] = useState<string | null>()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [value, setValue] = useState({
-    name: '',
     username: '',
+    name: '',
     password: '',
-    roles: [] as any[]
-  });
-  const [userByRoleId, setUserByRoleId] = useState([]);
-  const [loadingPage, setLoadingPage] = useState<boolean>(false);
+    roles: []
+  })
+  const [userByRoleId, setUserByRoleId] = useState([])
+  const [userCounts, setUserCounts] = useState<number>(0);
+  const [teacherCounts, setTeacherCounts] = useState<number>(0);
 
 
   const { mutate: handleDeleteUser } = useMutation({
@@ -152,13 +112,12 @@ export function UserManagement() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: ['count-role-USER'] })
+      queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] })
     }
   })
 
-  const fetchUsers = async () => {
-    const res = await handleApi({ url: '/users/list', method: 'GET', withCredentials: true })
-    return res.data?.data
-  }
+
 
   const fetchRoles = async () => {
     const res = await handleApi({ url: '/roles/list', method: 'GET' })
@@ -166,8 +125,19 @@ export function UserManagement() {
   }
 
   const users = useGetUsers(searchTerm)
-  const userCount = useFetchCountUserByUserRole()
-  const teacherCount = useFetchCountUserByTeacherRole()
+  const userCount = useFetchCountUserByRole("STUDENT")
+  const teacherCount = useFetchCountUserByRole("TEACHER")
+
+  useEffect(() => {
+    if (userCount) {
+      setUserCounts(userCount)
+    }
+    if (teacherCount) {
+      setTeacherCounts(teacherCount)
+    }
+  }, [userCount, teacherCount])
+
+
 
   const {
     data: roles,
@@ -180,10 +150,14 @@ export function UserManagement() {
 
   const fetchCreateUser = async () => {
     const res = await handleApi({ url: '/auth/register', method: 'POST', data: value })
+    setValue({
+      username: '',
+      name: '',
+      password: '',
+      roles: []
+    })
     return res.data
   }
-
-
 
   const {
     mutate,
@@ -194,26 +168,10 @@ export function UserManagement() {
     onSuccess: () => {
       toast.success('Tạo tài khoản thành công')
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      queryClient.invalidateQueries({ queryKey: ['usersByRoleId'] })
-      setValue({ name: '', username: '', password: '', roles: [] })
-      setIsCreateDialogOpen(false)
-    },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Tạo tài khoản thất bại')
+      queryClient.invalidateQueries({ queryKey: ['count-role-USER'] })
+      queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] })
     }
   })
-
-  const handleCreateValidated = () => {
-    const name = String(value.name || '').trim()
-    const username = String(value.username || '').trim()
-    const password = String(value.password || '')
-    const rolesArr = Array.isArray(value.roles) ? value.roles : []
-    if (!name) return toast.error('Vui lòng nhập họ và tên')
-    if (!username) return toast.error('Vui lòng nhập username')
-    if (!password || password.length < 6) return toast.error('Mật khẩu phải tối thiểu 6 ký tự')
-    if (!rolesArr.length) return toast.error('Vui lòng chọn vai trò')
-    mutate()
-  }
 
   const handleChangeUserByRoleId = (roleId: string) => {
     console.log(roleId)
@@ -221,13 +179,10 @@ export function UserManagement() {
   }
 
   const fetchUsersByRoleId = async () => {
-    try {
-      if (!selectedRole) return { data: { users: [] } } as any;
-      const res = await handleApi({ url: `/roles/list-user/${selectedRole}`, method: 'POST' })
-      return res.data
-    } catch (e) {
-      return { data: { users: [] } } as any;
-    }
+    console.log(selectedRole)
+    const res = await handleApi({ url: `/users/list-user/${selectedRole}`, method: 'POST' })
+    console.log(res.data)
+    return res.data
   }
 
   const { data: usersByRoleId } = useQuery({
@@ -236,7 +191,9 @@ export function UserManagement() {
     enabled: !!selectedRole,
   })
 
-  const filteredUsers = mockUsers.filter((user) => {
+  console.log("usersByRoleId: ", usersByRoleId)
+
+  const filteredUsers = usersByRoleId?.filter((user: any) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -245,8 +202,8 @@ export function UserManagement() {
   })
 
   const filterUserIsActive = async () => {
-    const res = await handleApi({ url: `/users/count-by-active`, method: 'GET' })
-    return res.data
+    const res = await handleApi({ url: `/users/count-by-active`, method: 'POST' })
+    return await res.data
   }
 
   const {
@@ -257,6 +214,8 @@ export function UserManagement() {
     queryKey: ['userActiveCount'],
     queryFn: filterUserIsActive
   })
+
+  console.log('userActiveCount: ', userActiveCount)
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -295,29 +254,20 @@ export function UserManagement() {
   }
 
   useEffect(() => {
-    if (!usersByRoleId) {
-      setLoadingPage(true);
-    } else {
-      const timeout = setTimeout(() => {
-        setUserByRoleId(usersByRoleId?.data?.users);
-        setLoadingPage(false);
-      }, 300); // delay 300ms cho mượt hơn
-      return () => clearTimeout(timeout);
+    if (usersByRoleId) {
+      setUserByRoleId(usersByRoleId?.data?.users)
     }
-  }, [usersByRoleId]);
+  }, [usersByRoleId])
 
   useEffect(() => {
-    if (!users) {
-      setLoadingPage(true);
-    } else {
-      const timeout = setTimeout(() => {
-        setUserData(users);
-        setLoadingPage(false);
-      }, 300);
-      return () => clearTimeout(timeout);
+    if (users) {
+      setUserData(users)
     }
-  }, [users]);
+  }, [users])
 
+  console.log('Number: ', userActiveCount)
+
+  console.log('users:', users)
 
   return (
     <div className="space-y-6">
@@ -344,62 +294,68 @@ export function UserManagement() {
                 Thêm người dùng mới vào hệ thống
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Họ và tên</Label>
-                <Input
-                  id="name"
-                  placeholder="Nhập họ và tên"
-                  value={value.name}
-                  onChange={(e) => setValue((prev: any) => ({ ...prev, name: e.target.value }))}
-                />
+            <form onSubmit={handleCreateUser}>
+              <div className='space-y-4'>
+                <div className='space-y-2'>
+                  <Label htmlFor='name'>Họ và tên</Label>
+                  <Input
+                    id='name'
+                    type='text'
+                    placeholder='Nhập họ và tên'
+                    onChange={(value) => handleChangeInput(value)}
+                    name='name'
+                    value={value.name}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='name'>Tên đăng nhập</Label>
+                  <Input
+                    id='name'
+                    placeholder='Nhập tên đăng nhập'
+                    onChange={(value) => handleChangeInput(value)}
+                    name='username'
+                    value={value.username}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='Password'>Mật khẩu</Label>
+                  <Input
+                    id='password'
+                    placeholder='Nhập mật khẩu'
+                    onChange={(value) => handleChangeInput(value)}
+                    name='password'
+                    value={value.password}
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <Label htmlFor='role'>Vai trò</Label>
+                  <Select onValueChange={handleChangeRole}>
+                    <SelectTrigger>
+                      <SelectValue placeholder='Chọn vai trò' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {/* <SelectItem value='teacher'>Giáo viên</SelectItem>
+                      <SelectItem value='student'>Học sinh</SelectItem> */}
+                      {Array.from(roles?.data || []).map((role: any, index: number) => {
+                        return (
+                          <SelectItem value={role?._id} key={index}>
+                            {getRoleLabel(role?.name)}
+                          </SelectItem>
+                        )
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className='flex justify-end gap-2'>
+                  <Button variant='outline' onClick={() => setIsCreateDialogOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button onClick={() => setIsCreateDialogOpen(false)}>Tạo tài khoản</Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Nhập username"
-                  value={value.username}
-                  onChange={(e) => setValue((prev: any) => ({ ...prev, username: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Mật khẩu</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Nhập mật khẩu"
-                  value={value.password}
-                  onChange={(e) => setValue((prev: any) => ({ ...prev, password: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Vai trò</Label>
-                <Select onValueChange={(val) => setValue((prev: any) => ({ ...prev, roles: [val] }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn vai trò" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Array.isArray(roles?.data) ? roles?.data : Array.isArray(roles) ? roles : [])
-                      .filter((r: any) => r?.name !== 'admin' && r?.name !== 'ADMIN')
-                      .map((r: any) => (
-                        <SelectItem key={r?._id || r?.id} value={(r?._id || r?.id) as string}>
-                          {r?.name === 'teacher' ? 'Giáo viên' : r?.name === 'student' ? 'Học sinh' : (r?.name || 'Vai trò')}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Hủy
-                </Button>
-                <Button onClick={handleCreateValidated} disabled={isPending}>
-                  {isPending ? 'Đang tạo...' : 'Tạo tài khoản'}
-                </Button>
-              </div>
-            </div>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
@@ -417,6 +373,7 @@ export function UserManagement() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
                 />
+
               </div>
             </div>
             <Select value={selectedRole} onValueChange={setSelectedRole}>
@@ -424,9 +381,12 @@ export function UserManagement() {
                 <SelectValue placeholder="Lọc theo vai trò" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả vai trò</SelectItem>
-                <SelectItem value="teacher">Giáo viên</SelectItem>
-                <SelectItem value="student">Học sinh</SelectItem>
+                <SelectItem value='all'>Tất cả vai trò</SelectItem>
+                {Array.from(roles?.data || []).map((role: any, index) => (
+                  <SelectItem value={role?._id} key={index}>
+                    {getRoleLabel(role?.name)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -434,51 +394,47 @@ export function UserManagement() {
       </Card>
 
       {/* User List */}
-      {loadingPage ? (
-        <Skeleton>Loading</Skeleton>
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách người dùng ({users?.length})</CardTitle>
+          <CardDescription>Quản lý thông tin và quyền hạn của từng người dùng</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='space-y-4'>
+            {usersByRoleId
+              ? DisplayUsers({ users: userByRoleId, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })
+              : DisplayUsers({ users: userData, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })}
+          </div>
+        </CardContent>
+      </Card>
 
-      ) : (<>
+      {/* Stats */}
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
         <Card>
-          <CardHeader>
-            <CardTitle>Danh sách người dùng ({users?.length})</CardTitle>
-            <CardDescription>Quản lý thông tin và quyền hạn của từng người dùng</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className='space-y-4'>
-              {usersByRoleId
-                ? DisplayUsers({ users: userByRoleId, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })
-                : DisplayUsers({ users: userData, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })}
+          <CardContent className='p-4'>
+            <div className='text-center'>
+              <p className='text-2xl font-bold'>{teacherCounts || 0}</p>
+              <p className='text-sm text-muted-foreground'>Giáo viên</p>
             </div>
           </CardContent>
         </Card>
-
-        {/* Stats */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <Card>
-            <CardContent className='p-4'>
-              <div className='text-center'>
-                <p className='text-2xl font-bold'>{teacherCount?.data || 0}</p>
-                <p className='text-sm text-muted-foreground'>Giáo viên</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4'>
-              <div className='text-center'>
-                <p className='text-2xl font-bold'>{userCount?.data || 0}</p>
-                <p className='text-sm text-muted-foreground'>Học sinh</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4'>
-              <div className='text-center'>
-                <p className='text-2xl font-bold'>{userActiveCount?.data}</p>
-                <p className='text-sm text-muted-foreground'>Đang hoạt động</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div></>)}
+        <Card>
+          <CardContent className='p-4'>
+            <div className='text-center'>
+              <p className='text-2xl font-bold'>{userCounts || 0}</p>
+              <p className='text-sm text-muted-foreground'>Học sinh</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className='p-4'>
+            <div className='text-center'>
+              <p className='text-2xl font-bold'>{userActiveCount?.data?.userCount}</p>
+              <p className='text-sm text-muted-foreground'>Đang hoạt động</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -14,9 +14,12 @@ const persistedReducer = persistReducer(persistConfig, reducers)
 
 export const store = configureStore({
   reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
-    serializableCheck: false,
-  }).concat(new Tuple(logger))
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+      },
+    }).concat(new Tuple(logger))
 })
 
 export const persistor = persistStore(store)

@@ -138,7 +138,7 @@ export function Messages() {
           return [conversation, ...prev];
         });
         setSelectedConversation(cid);
-      } catch {}
+      } catch { }
     })();
   }, [currentParams, isAuthLoading]);
 

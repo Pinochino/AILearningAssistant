@@ -1,6 +1,5 @@
 import dotenv from 'dotenv'
 import cors from 'cors'
-import bodyParser from 'body-parser'
 import express from 'express'
 import mongoose from 'mongoose'
 import { Application, NextFunction, Request, Response } from 'express'
@@ -12,9 +11,6 @@ import { create } from 'express-handlebars'
 import morgan from 'morgan'
 import passport from '../configs/passport'
 dotenv.config()
-
-// ESM-compatible __filename/__dirname
-const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const hbs = create({
@@ -31,16 +27,75 @@ const webConfigs = (app: Application) => {
   app.use(
     cors({
       credentials: true,
-      origin: 'http://localhost:5173'
+      origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:5175',
+        'http://localhost:5176',
+        'http://localhost:5177',
+        'http://localhost:5178',
+        'http://localhost:5179',
+        'http://localhost:5180',
+        'http://localhost:5181',
+        'http://localhost:5182',
+        'http://localhost:5183',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'http://127.0.0.1:5175',
+        'http://127.0.0.1:5176',
+        'http://127.0.0.1:5177',
+        'http://127.0.0.1:5178',
+        'http://127.0.0.1:5179',
+        'http://127.0.0.1:5180',
+        'http://127.0.0.1:5181',
+        'http://127.0.0.1:5182',
+        'http://127.0.0.1:5183',
+        'http://127.0.0.1:3000'
+      ],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
     })
   )
-  app.use(morgan('dev'))
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
+  // Handle preflight requests
+  app.options('*', cors({
+    credentials: true,
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:5176',
+      'http://localhost:5177',
+      'http://localhost:5178',
+      'http://localhost:5179',
+      'http://localhost:5180',
+      'http://localhost:5181',
+      'http://localhost:5182',
+      'http://localhost:5183',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      'http://127.0.0.1:5175',
+      'http://127.0.0.1:5176',
+      'http://127.0.0.1:5177',
+      'http://127.0.0.1:5178',
+      'http://127.0.0.1:5179',
+      'http://127.0.0.1:5180',
+      'http://127.0.0.1:5181',
+      'http://127.0.0.1:5182',
+      'http://127.0.0.1:5183',
+      'http://127.0.0.1:3000'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  }))
+  // Body parsers: chỉ cấu hình một lần, dùng built-in của Express
+  app.use(express.json())
+  app.use(express.urlencoded({ extended: true }))
   app.use(express.static(path.join(__dirname, 'public')))
   app.use('/preview', express.static(path.join(__dirname, 'public', 'uploads')))
   app.use(cookieParser())
-  app.use(passport.initialize())
+  // app.use(passport.initialize())
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
       return next(err)
@@ -50,19 +105,7 @@ const webConfigs = (app: Application) => {
   })
 }
 
-// Create seed
-async function main() {
-  try {
-    // process.env.MONGO_URL as string
-    // `mongodb://localhost:27017/test`
-    await mongoose.connect(process.env.MONGO_URL as string)
-    console.log(`Connect database success`)
-    await runSeed()
-  } catch (error: any) {
-    console.log(`Error in db: `, error.message)
-    process.exit(1)
-  }
-}
-main()
+// NOTE: Tắt auto-connect và auto-seed khi import webConfigs để tránh crash
+// Hãy chạy seed thủ công bằng script: `npm run seed`
 
 export default webConfigs

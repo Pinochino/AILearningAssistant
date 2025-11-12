@@ -32,8 +32,8 @@ const menuItems = [
     badge: null,
   },
   {
-    id: "subjects",
-    label: "Quản lý môn học",
+    id: "classes",
+    label: "Quản lý lớp học",
     icon: BookOpen,
     badge: null,
   },

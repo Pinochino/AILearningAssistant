@@ -7,17 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { ArrowLeft, Save, X, UserCheck, UserX, Users } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from '../ui/alert-dialog'
 import { toast } from 'sonner'
 import { useNavigation } from '../../hooks/useNavigation'
 import { GetUserInfor } from '../../hooks/getUserInfor'
@@ -25,63 +14,6 @@ import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleApi } from '../../api/handleApi'
 import { GetAllData } from '../../hooks/getAllData'
 
-// Mock data - trong thực tế sẽ fetch từ API
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn Giáo',
-    email: 'teacher1@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý'],
-    joinDate: '2024-01-15',
-    lastLogin: '2024-09-18',
-    phone: '0123456789',
-    address: 'Hà Nội',
-    bio: 'Giáo viên có kinh nghiệm 5 năm trong lĩnh vực giáo dục'
-  },
-  {
-    id: '2',
-    name: 'Trần Thị Hóa',
-    email: 'teacher2@example.com',
-    role: 'teacher',
-    status: 'active',
-    subjects: ['Hóa học', 'Sinh học'],
-    joinDate: '2024-02-10',
-    lastLogin: '2024-09-17',
-    phone: '0987654321',
-    address: 'TP.HCM',
-    bio: 'Chuyên gia hóa học với nhiều năm kinh nghiệm'
-  },
-  {
-    id: '3',
-    name: 'Lê Minh Học',
-    email: 'student1@example.com',
-    role: 'student',
-    status: 'active',
-    subjects: ['Toán học', 'Vật lý', 'Hóa học'],
-    joinDate: '2024-03-01',
-    lastLogin: '2024-09-18',
-    phone: '0369852147',
-    address: 'Đà Nẵng',
-    bio: 'Học sinh chăm chỉ, có tiềm năng trong các môn khoa học',
-    studentId: 'SV2024001'
-  },
-  {
-    id: '4',
-    name: 'Phạm Thị Thông',
-    email: 'student2@example.com',
-    role: 'student',
-    status: 'inactive',
-    subjects: ['Toán học', 'Sinh học'],
-    joinDate: '2024-03-05',
-    lastLogin: '2024-09-10',
-    phone: '0741258963',
-    address: 'Cần Thơ',
-    bio: 'Học sinh có năng khiếu về toán học',
-    studentId: 'SV2024002'
-  }
-]
 
 interface IRole {
   id: string;
@@ -91,18 +23,18 @@ interface IRole {
 export function EditUser() {
   const { navigateTo, currentParams } = useNavigation()
   const userId = currentParams.userId
-  console.log("userID: ", userId)
 
-  const quertClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   const [user, setUser] = useState<any>(null)
+  // const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
   // Form data
   const [formData, setFormData] = useState({
+    name: '',
     username: '',
-    email: '',
     removeRoleId: '',
     addRoleId: '',
     status: '',
@@ -112,11 +44,7 @@ export function EditUser() {
     studentId: ''
   })
 
-  const { isLoading, data: userDetail, error } = GetUserInfor(userId);
-
-
-  console.log('form data: ', formData)
-
+  const { isLoading, data, error } = GetUserInfor(userId);
 
   const [roles, setRoles] = useState<IRole[]>([{
     id: '',
@@ -125,16 +53,15 @@ export function EditUser() {
 
   const { data: roleList, isLoading: rolesListLoading } = GetAllData({ url: '/roles/list', name: 'RoleList' })
 
+
   useEffect(() => {
-    if (userDetail) {
-      setUser(userDetail?.data);
+    if (data?.data) {
+      setUser(data?.data);
     }
-
-  }, [userDetail])
-
+  }, [data]);
 
 
-
+  formData.removeRoleId = user?.roles[0]._id
 
 
   const handleInputChange = (field: string, value: string) => {
@@ -154,8 +81,7 @@ export function EditUser() {
 
   }, [roleList?.data, roles]);
 
-
-  formData.removeRoleId = user?.roles[0]?._id
+  console.log('id: ', userId)
 
   const { isLoading: editUserLoading, mutate: updateUser, error: editUserError } = useMutation({
     mutationFn: async () => {
@@ -170,45 +96,32 @@ export function EditUser() {
       return result;
     },
     onSuccess: () => {
-      quertClient.invalidateQueries({
-        queryKey: [`detail-infor-${userId}`, userId]
-      })
-      quertClient.invalidateQueries({
-        queryKey: ['users']
-      })
-      quertClient.invalidateQueries({
-        queryKey: ['count-role-STUDENT']
-      })
-      quertClient.invalidateQueries({
-        queryKey: ['count-role-ADMIN']
-      })
-      quertClient.invalidateQueries({
-        queryKey: ['count-role-TEACHER']
-      })
-
-    }
+      queryClient.invalidateQueries({ queryKey: [`detail-infor-${userId}`, userId] });
+      queryClient.invalidateQueries({ queryKey: [`users`] });
+      toast.success('Cập nhật người dùng thành công!');
+    },
+    onError: (err: any) => {
+      console.error('Update failed', err);
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật');
+    },
   })
 
   const handleEditUser = () => {
-    updateUser()
-    // setFormData({
-    //   username: '',
-    //   email: '',
-    //   removeRoleId: '',
-    //   addRoleId: '',
-    //   status: '',
-    //   phone: '',
-    //   address: '',
-    //   bio: '',
-    //   studentId: ''
-    // })
+    if (!formData.username || !formData.name) {
+      toast.error('Họ tên và Username là bắt buộc');
+      return;
+    }
+    console.log('Sending update: ', formData);
+    updateUser();
   }
+
 
   const handleToggleStatus = async () => {
     const newStatus = formData.status === 'active' ? 'inactive' : 'active'
     handleInputChange('status', newStatus)
 
     try {
+      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500))
       toast.success(`Đã ${newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hóa'} tài khoản`)
     } catch (error) {
@@ -230,12 +143,6 @@ export function EditUser() {
         return role
     }
   }
-
-  useEffect(() => {
-    if (user) {
-      setUser(user)
-    }
-  }, [user])
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -292,23 +199,7 @@ export function EditUser() {
         </div>
 
         <div className='flex items-center gap-2'>
-          <Button
-            variant='outline'
-            onClick={handleToggleStatus}
-            className={formData.status === 'active' ? 'text-orange-600' : 'text-green-600'}
-          >
-            {formData.status === 'active' ? (
-              <>
-                <UserX className='h-4 w-4 mr-2' />
-                Vô hiệu hóa
-              </>
-            ) : (
-              <>
-                <UserCheck className='h-4 w-4 mr-2' />
-                Kích hoạt
-              </>
-            )}
-          </Button>
+
 
           <Button onClick={handleEditUser} disabled={!hasChanges || isSaving} className='gap-2'>
             <Save className='h-4 w-4' />
@@ -328,16 +219,16 @@ export function EditUser() {
             <CardContent className='space-y-4'>
               <div className='flex flex-col items-center text-center'>
                 <Avatar className='h-20 w-20 mb-4'>
-                  <AvatarFallback className='text-lg'>
-                    {user?.username
+                  <AvatarFallback className='text-lg '>
+                    {user?.name
                       .split(' ')
                       .map((n) => n[0])
                       .join('')
                       .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <h3 className='font-semibold text-lg'>{user.username}</h3>
-                <p className='text-sm text-muted-foreground'>{user.email}</p>
+                <h3 className='font-semibold text-lg'>{user.name}</h3>
+                <p className='text-sm text-muted-foreground mb-3'>{user.username}</p>
                 {/* {formData.role === 'student' && formData.studentId && (
                   <p className='text-sm text-muted-foreground font-medium'>Mã sinh viên: {formData._id}</p>
                 )} */}
@@ -356,7 +247,7 @@ export function EditUser() {
                 </div>
                 <div className='flex justify-between'>
                   <span className='text-muted-foreground'>Đăng nhập cuối:</span>
-                  <span>{new Date(user.lastLogin).toLocaleDateString('vi-VN')}</span>
+                  <span>{user?.lastLogin ? new Date(user.lastLogin).toLocaleDateString('vi-VN') : "8/11/2025"}</span>
                 </div>
               </div>
             </CardContent>
@@ -373,37 +264,28 @@ export function EditUser() {
             <CardContent className='space-y-6'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Họ và tên *</Label>
+                  <Label htmlFor='name'>Tên đăng nhập *</Label>
                   <Input
                     id='name'
                     value={formData.username}
                     onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder='Nhập họ và tên'
+                    placeholder='Nhập tên đăng nhập'
                     autoComplete='new-name'
                   />
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='email'>Email *</Label>
+                  <Label htmlFor='name'>Họ và tên *</Label>
                   <Input
-                    id='email'
-                    type='email'
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder='Nhập email'
-                    autoComplete='new-email'
+                    id='name'
+                    type='text'
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder='Nhập họ và tên'
+                    autoComplete='additional-name'
                   />
                 </div>
 
-                <div className='space-y-2'>
-                  <Label htmlFor='phone'>Số điện thoại</Label>
-                  <Input
-                    id='phone'
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder='Nhập số điện thoại'
-                  />
-                </div>
 
                 <div className='space-y-2'>
                   <Label htmlFor='role'>Vai trò *</Label>
@@ -414,46 +296,32 @@ export function EditUser() {
                     <SelectContent>
 
                       {roles.map((r, index) => {
-                        console.log(r?._id);
+                        console.log("e: ", r)
                         return (
-                          <SelectItem value={r?._id || `hi`} key={index}>{r.name || "hi"}</SelectItem>
+                          (
+                            <SelectItem value={r?._id} key={index}>{getRoleLabel(r.name.toUpperCase())}</SelectItem>
+                          )
                         )
                       })}
                     </SelectContent>
                   </Select>
                 </div>
+
+
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='address'>Địa chỉ</Label>
-                <Input
-                  id='address'
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder='Nhập địa chỉ'
-                />
-              </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='bio'>Giới thiệu</Label>
-                <textarea
-                  id='bio'
-                  className='w-full min-h-[100px] px-3 py-2 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring'
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder='Nhập giới thiệu về người dùng'
-                />
-              </div>
+
             </CardContent>
           </Card>
 
           {/* Subjects Card (for teachers and students) */}
-          {(formData.role === 'teacher' || formData.role === 'student') && (
+          {((user?.roles?.[0]?.name || '').toLowerCase() === 'teacher' || (user?.roles?.[0]?.name || '').toLowerCase() === 'student') && (
             <Card className='mt-6'>
               <CardHeader>
                 <CardTitle>Môn học</CardTitle>
                 <CardDescription>
-                  {formData.role === 'teacher'
+                  {(user?.roles?.[0]?.name || '').toLowerCase() === 'teacher'
                     ? 'Các môn học mà giáo viên này giảng dạy'
                     : 'Các môn học mà học sinh này đang theo học'}
                 </CardDescription>
@@ -475,43 +343,7 @@ export function EditUser() {
         </div>
       </div>
 
-      {/* Danger Zone */}
-      <Card className='border-destructive'>
-        <CardHeader>
-          <CardTitle className='text-destructive'>Vùng nguy hiểm</CardTitle>
-          <CardDescription>Các hành động này không thể hoàn tác. Hãy cẩn thận!</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant='destructive' className='gap-2'>
-                <X className='h-4 w-4' />
-                Xóa tài khoản
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Bạn có chắc chắn muốn xóa tài khoản này?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Hành động này sẽ xóa vĩnh viễn tài khoản của <strong>{user.name}</strong> và tất cả dữ liệu liên quan.
-                  Điều này không thể hoàn tác.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Hủy</AlertDialogCancel>
-                <AlertDialogAction
-                  className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                  onClick={() => {
-                    toast.error('Tính năng xóa tài khoản chưa được triển khai')
-                  }}
-                >
-                  Xóa tài khoản
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </Card>
+
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { io, Socket } from "socket.io-client";
 
 // Test script for Socket.IO functionality
 const testSocketConnection = () => {
-    const socket: Socket = io("http://localhost:4000", {
+    const socket: Socket = io("http://localhost:9000", {
         auth: {
             token: "your-jwt-token-here" // Replace with actual JWT token
         }
