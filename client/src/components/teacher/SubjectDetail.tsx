@@ -235,6 +235,7 @@ export function SubjectDetail() {
   const [chapterId, setChapterId] = useState<string>('') // Lưu trữ chapterId
   const [chapterTitle, setChapterTitle] = useState<string>('') // Lưu title của chapter
   const [title, setTitle] = useState<string>('') // Lưu trữ tiêu đề tài liệu
+  const [chapterDocuments, setChapterDocuments] = useState<any[]>([]) // Lưu tài liệu của chương
 
   // Hàm tạo chương mới
   const handleCreateChapter = async () => {
@@ -481,8 +482,32 @@ export function SubjectDetail() {
   }
 
   // Đóng mở phần xem tài liệu
-  const handleToggleDocuments = (chapterId: string) => {
-    setExpandedChapter(expandedChapter === chapterId ? null : chapterId)
+  const handleToggleDocuments = async (chapterId: string) => {
+    // Nếu chương đã mở, chúng ta sẽ đóng lại
+    if (expandedChapter === chapterId) {
+      setExpandedChapter(null)
+    } else {
+      // Nếu chưa mở, gửi yêu cầu API để lấy tài liệu cho chapterId và classId
+      try {
+        const response = await axios.get(
+          `http://localhost:9000/api/materials/class/${currentSubjectId}/chapter/${chapterId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}` // Đảm bảo có token
+            }
+          }
+        )
+
+        // Cập nhật dữ liệu tài liệu cho chương
+        setChapterDocuments(response.data.data)
+
+        // Mở tài liệu của chương này
+        setExpandedChapter(chapterId)
+      } catch (error) {
+        console.error('Error fetching documents:', error)
+        toast.error('Lỗi khi tải tài liệu')
+      }
+    }
   }
 
   // Lấy tất cả các tài liệu thuộc chương tương ứng
@@ -1468,16 +1493,65 @@ export function SubjectDetail() {
                   </Dialog>
                 </div>
 
-                {/* Nút Xem tài liệu */}
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='gap-2'
-                  onClick={() => handleToggleDocuments(chapter._id)} // Dùng chapter._id để mở tài liệu
-                >
-                  <FileText className='h-4 w-4' />
-                  Xem tài liệu ({chapter.documents.length})
-                </Button>
+                <div className='flex gap-2'>
+                  {/* Nút Xem tài liệu */}
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='gap-2'
+                    onClick={() => handleToggleDocuments(chapter._id)} // Dùng chapter._id để mở tài liệu
+                  >
+                    <FileText className='h-4 w-4' />
+                    Xem tài liệu ({chapter.documents.length})
+                  </Button>
+                </div>
+
+                {/* Mở rộng tài liệu khi expandedChapter trùng với chapter._id */}
+                {expandedChapter === chapter._id && (
+                  <div className='mt-4 p-4 bg-muted/30 rounded-lg'>
+                    <h4 className='font-medium mb-3 flex items-center gap-2'>
+                      <FileText className='h-4 w-4' />
+                      Tài liệu chương
+                    </h4>
+
+                    {chapterDocuments.length > 0 ? (
+                      <div className='space-y-2'>
+                        {chapterDocuments.map((doc) => (
+                          <div
+                            key={doc._id}
+                            className='flex items-center justify-between p-3 bg-background rounded-lg border'
+                          >
+                            <div className='flex items-center gap-3'>
+                              {getFileIcon(doc.type)}
+                              <div>
+                                <h5 className='font-medium text-sm'>{doc.title}</h5>
+                                <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                                  <span>{getFileTypeLabel(doc.type)}</span>
+                                  <span>•</span>
+                                  <span>{doc.size}</span>
+                                  <span>•</span>
+                                  <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className='flex items-center gap-2'>
+                              <Button size='sm' variant='outline'>
+                                <Eye className='h-4 w-4' />
+                              </Button>
+                              <Button size='sm' variant='outline'>
+                                <Download className='h-4 w-4' />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className='text-sm text-muted-foreground text-center py-4'>
+                        Chưa có tài liệu nào cho chương này
+                      </p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

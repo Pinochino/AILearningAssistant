@@ -33,6 +33,12 @@ router.get(
   mat.listByClass
 )
 
+// Xem tài liệu của một chương thuộc lớp
+router.get(
+  '/class/:classId/chapter/:chapterId', // API mới
+  mat.getMaterialsForChapter
+) 
+
 // Xem chi tiết 1 material
 router.get('/:id', authenticationMiddleware, authorizationMiddleware, mat.getOne)
 

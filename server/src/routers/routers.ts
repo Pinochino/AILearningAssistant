@@ -1,3 +1,4 @@
+// AILearningAssistant\server\src\routers\routers.ts
 import { Application } from 'express'
 import authRouter from './authRouter'
 import userRouter from './userRouter'

@@ -29,11 +29,11 @@ export const uploadMaterial: RequestHandler = async (req, res) => {
     if (!title || !isId(classId) || !isId(chapterId)) {
       // Cleanup uploaded file nếu validation fail
       fs.unlinkSync(file.path)
-      return responseUtils({ 
-        req, 
-        res, 
-        code: 400, 
-        message: 'Missing required fields: title, classId, chapterId' 
+      return responseUtils({
+        req,
+        res,
+        code: 400,
+        message: 'Missing required fields: title, classId, chapterId'
       })
     }
 
@@ -52,11 +52,11 @@ export const uploadMaterial: RequestHandler = async (req, res) => {
 
     if (String(chapter.classId) !== String(classId)) {
       fs.unlinkSync(file.path)
-      return responseUtils({ 
-        req, 
-        res, 
-        code: 400, 
-        message: 'Chapter does not belong to specified class' 
+      return responseUtils({
+        req,
+        res,
+        code: 400,
+        message: 'Chapter does not belong to specified class'
       })
     }
 
@@ -68,10 +68,10 @@ export const uploadMaterial: RequestHandler = async (req, res) => {
     // 🔄 Convert .docx to .pdf automatically
     if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       console.log('🔄 Converting .docx to .pdf...')
-      
+
       try {
         const pdfPath = await docxConverter.convertToPdf(file.path, {
-          deleteOriginal: true  // Xóa .docx gốc sau khi convert
+          deleteOriginal: true // Xóa .docx gốc sau khi convert
         })
 
         finalFilePath = pdfPath
@@ -82,15 +82,14 @@ export const uploadMaterial: RequestHandler = async (req, res) => {
         console.log('✅ Conversion successful')
       } catch (conversionError: any) {
         console.error('❌ Conversion failed:', conversionError.message)
-        
+
         // Vẫn lưu file .docx gốc nếu conversion fail
         console.log('⚠️ Saving original .docx file')
       }
     }
 
     // Create relative URL for storage
-    const relativePath = finalFilePath.replace(path.join(process.cwd(), 'public'), '')
-      .replace(/\\/g, '/')  // Convert Windows backslashes to forward slashes
+    const relativePath = finalFilePath.replace(path.join(process.cwd(), 'public'), '').replace(/\\/g, '/') // Convert Windows backslashes to forward slashes
 
     // Create Material document
     const material = await Material.create({
@@ -108,11 +107,7 @@ export const uploadMaterial: RequestHandler = async (req, res) => {
     })
 
     // Add material to chapter's documents array
-    await Chapter.findByIdAndUpdate(
-      chapterId,
-      { $addToSet: { documents: material._id } },
-      { new: true }
-    )
+    await Chapter.findByIdAndUpdate(chapterId, { $addToSet: { documents: material._id } }, { new: true })
 
     console.log(`✅ Material uploaded: ${material.title}`)
 
@@ -125,7 +120,7 @@ export const uploadMaterial: RequestHandler = async (req, res) => {
     })
   } catch (error: any) {
     console.error('❌ Upload error:', error)
-    
+
     // Cleanup file if error occurs
     if (req.file?.path && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path)
@@ -169,10 +164,7 @@ export const listByClass: RequestHandler = async (req, res) => {
     }
     if (type) filter.type = type
     if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { fileName: { $regex: search, $options: 'i' } }
-      ]
+      filter.$or = [{ title: { $regex: search, $options: 'i' } }, { fileName: { $regex: search, $options: 'i' } }]
     }
 
     const p = Math.max(1, parseInt(page) || 1)
@@ -211,6 +203,35 @@ export const listByClass: RequestHandler = async (req, res) => {
       code: 500,
       message: error.message || 'Internal server error'
     })
+  }
+}
+
+/**
+ * GET /materials/class/:classId/chapter/:chapterId
+ * Lấy tài liệu của một chương thuộc lớp
+ */
+export const getMaterialsForChapter: RequestHandler = async (req, res) => {
+  try {
+    const { classId, chapterId } = req.params
+
+    // Kiểm tra tính hợp lệ của classId và chapterId
+    if (!Types.ObjectId.isValid(classId) || !Types.ObjectId.isValid(chapterId)) {
+      return res.status(400).json({ message: 'Invalid classId or chapterId' })
+    }
+
+    // Tìm tài liệu thuộc classId và chapterId
+    const materials = await Material.find({ classId, chapter: chapterId })
+      .populate('uploadedBy', 'username email')
+      .populate('chapter', 'title')
+      .lean()
+
+    if (!materials || materials.length === 0) {
+      return res.status(404).json({ message: 'No materials found for this chapter' })
+    }
+
+    return res.status(200).json({ success: true, data: materials })
+  } catch (error) {
+    return res.status(500).json({ message: error || 'Internal server error' })
   }
 }
 
@@ -267,10 +288,7 @@ export const remove: RequestHandler = async (req, res) => {
     await (Material as any).deleteById(id, { deletedBy: userId })
 
     // Remove from chapter's documents array
-    await Chapter.findByIdAndUpdate(
-      material.chapter,
-      { $pull: { documents: material._id } }
-    )
+    await Chapter.findByIdAndUpdate(material.chapter, { $pull: { documents: material._id } })
 
     // Optional: Delete physical file
     const absolutePath = path.join(process.cwd(), 'public', material.fileUrl)
