@@ -24,7 +24,7 @@ const generateAccessToken = (user: any) => {
     roles
   }
   const token = jwt.sign(authPayload, secretOrPublicKey, {
-    expiresIn: '5m'
+    expiresIn: '15m'
   })
   return token
 }

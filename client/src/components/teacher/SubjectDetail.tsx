@@ -981,16 +981,6 @@ export function SubjectDetail() {
                             className='w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400'
                           />
 
-                          {/* icon paperclip nằm BÊN TRONG khung (absolute, phía phải) */}
-                          {/* label sẽ trigger input[type=file] */}
-                          <label
-                            htmlFor='file-upload'
-                            className='absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-blue-600 hover:scale-105 transition cursor-pointer'
-                            title='Đính kèm tài liệu'
-                          >
-                            <Paperclip className='h-5 w-5' />
-                          </label>
-
                           {/* hidden file input */}
                           <input
                             id='file-upload'
@@ -1317,7 +1307,7 @@ export function SubjectDetail() {
               <Users className='h-5 w-5 text-primary' />
               <div>
                 <p className='text-sm text-muted-foreground'>Học sinh</p>
-                <p className='text-xl font-semibold'>{currentSubject.studentCount}</p>
+                <p className='text-xl font-semibold'>{mockStudents.length}</p>
               </div>
             </div>
           </CardContent>
@@ -1328,7 +1318,7 @@ export function SubjectDetail() {
               <BookOpen className='h-5 w-5 text-green-600' />
               <div>
                 <p className='text-sm text-muted-foreground'>Chương</p>
-                <p className='text-xl font-semibold'>{subjects.length}</p>
+                <p className='text-xl font-semibold'>{chapters.length}</p>
               </div>
             </div>
           </CardContent>
@@ -1339,7 +1329,7 @@ export function SubjectDetail() {
               <FileText className='h-5 w-5 text-blue-600' />
               <div>
                 <p className='text-sm text-muted-foreground'>Tài liệu</p>
-                <p className='text-xl font-semibold'>lấy sau</p>
+                <p className='text-xl font-semibold'>{(chapters ?? []).reduce((sum, c) => sum + (c.documents?.length ?? 0), 0)}</p>
               </div>
             </div>
           </CardContent>
@@ -1364,7 +1354,6 @@ export function SubjectDetail() {
           <TabsTrigger value='students'>Học sinh</TabsTrigger>
           <TabsTrigger value='documents'>Tài liệu</TabsTrigger>
           <TabsTrigger value='quiz-flashcard'>Quiz & Flashcard</TabsTrigger>
-          <TabsTrigger value='analytics'>Thống kê</TabsTrigger>
         </TabsList>
 
         {/* Chapters Tab */}
@@ -1375,6 +1364,7 @@ export function SubjectDetail() {
                 <div className='flex items-center justify-between'>
                   <div>
                     <CardTitle className='text-lg'>{chapter.title}</CardTitle>
+                    <CardDescription className='text-sm pt-2'>{chapter.documents.length} tài liệu</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -1599,55 +1589,6 @@ export function SubjectDetail() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value='analytics' className='space-y-4'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <Card>
-              <CardHeader>
-                <CardTitle>Thống kê học tập</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className='space-y-4'>
-                  <div className='flex justify-between'>
-                    <span>Điểm trung bình quiz</span>
-                    <span className='font-medium'>85.2</span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span>Tỷ lệ hoàn thành tài liệu</span>
-                    <span className='font-medium'>78%</span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span>Học sinh hoạt động</span>
-                    <span className='font-medium'>32/35</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Xu hướng</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className='space-y-4'>
-                  <div className='flex justify-between'>
-                    <span>Tăng trưởng điểm số</span>
-                    <span className='font-medium text-green-600'>+5.2%</span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span>Tham gia quiz</span>
-                    <span className='font-medium text-green-600'>+12%</span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span>Thời gian học trung bình</span>
-                    <span className='font-medium'>2.5h/ngày</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
     </div>
