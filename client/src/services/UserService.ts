@@ -8,12 +8,22 @@ export function useGetUsers(searchTerm: string) {
     isLoading: userLoading,
     error: errorUser
   } = useQuery({
-    queryKey: ['users', { searchTerm }],
+    queryKey: ['users'],
     queryFn: async () => {
-      const url = searchTerm ? `/users/list?search=${searchTerm}` : '/users/list'
-      const res = await handleApi({ url, method: 'GET', withCredentials: true })
-      console.log(res.data)
+      const res = await handleApi({ 
+        url: '/users/list', 
+        method: 'GET', 
+        withCredentials: true 
+      })
       return res?.data.data
+    },
+    select: (data) => {
+      if (!searchTerm) return data;
+      const searchLower = searchTerm.toLowerCase();
+      return data.filter((user: any) => 
+        (user.username?.toLowerCase().includes(searchLower) ||
+         user.name?.toLowerCase().includes(searchLower))
+      );
     },
     placeholderData: keepPreviousData
   })
