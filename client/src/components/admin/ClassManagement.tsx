@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { classApi, subjectApi, type Class, type Subject } from '../../services/api';
+import { handleApi } from '../../api/handleApi';
 import { toast } from 'sonner';
 import { ClassDetail } from './ClassDetail';
 
@@ -37,77 +38,36 @@ export function ClassManagement() {
 
   const loadTeachers = async () => {
     try {
-      console.log('🔍 Loading teachers for debugging...');
-      // Fetch users and filter for teachers
-      const API_URL = (import.meta as any)?.env?.VITE_API_URL || 'http://localhost:9000/api';
+      console.log('🔍 Loading teachers...');
 
-      // Try without authentication first for debugging
-      const response = await fetch(`${API_URL}/users/list`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      // Use the authenticated API service
+      const response = await handleApi({
+        url: '/users/list',
+        method: 'GET',
+        withCredentials: true
       });
-      const data = await response.json();
-      console.log('📋 Teachers API response (no auth):', data);
-      console.log('📋 Teachers data (no auth):', data?.data);
 
-      if (Array.isArray(data?.data)) {
-        // Debug: show all users first
-        console.log('🔍 All users in response:', data.data);
+      const users = response?.data?.data || [];
+      console.log('📋 Users loaded:', users.length);
 
-        // Try different role formats
-        const allUsers = data.data;
-        console.log('🔍 All users with roles:', allUsers.map((u: any) => ({
-          username: u.username || u.name,
-          roles: u.roles,
-          roleType: Array.isArray(u.roles) ? 'array' : typeof u.roles
-        })));
+      // Filter teachers based on role
+      const teacherUsers = users.filter((user: any) => {
+        // Check different possible role structures
+        const userRoles = user.roles || [];
+        return userRoles.some((role: any) => {
+          const roleName = typeof role === 'string' ? role : role?.name;
+          return roleName && roleName.toLowerCase() === 'teacher';
+        });
+      });
 
-        // Try different role filtering approaches
-        const teacherUsers1 = allUsers.filter((user: any) =>
-          user?.roles?.[0]?.name?.toLowerCase() === 'teacher'
-        );
-        const teacherUsers2 = allUsers.filter((user: any) =>
-          user?.roles?.[0]?.toLowerCase() === 'teacher'
-        );
-        const teacherUsers3 = allUsers.filter((user: any) =>
-          user?.role?.toLowerCase() === 'teacher'
-        );
-        const teacherUsers4 = allUsers.filter((user: any) =>
-          user?.roles === 'teacher'
-        );
+      console.log('👩‍🏫 Teachers found:', teacherUsers.length);
+      setTeachers(teacherUsers);
 
-        console.log('👩‍🏫 Teachers (roles[0].name):', teacherUsers1);
-        console.log('👩‍🏫 Teachers (roles[0]):', teacherUsers2);
-        console.log('👩‍🏫 Teachers (role):', teacherUsers3);
-        console.log('👩‍🏫 Teachers (roles string):', teacherUsers4);
-
-        // Use the first approach that finds teachers
-        const finalTeachers = teacherUsers1.length > 0 ? teacherUsers1 :
-          teacherUsers2.length > 0 ? teacherUsers2 :
-            teacherUsers3.length > 0 ? teacherUsers3 :
-              teacherUsers4.length > 0 ? teacherUsers4 : [];
-
-        console.log('👩‍🏫 Final teachers list:', finalTeachers);
-
-        // Fallback: if no teachers found, use some default teachers
-        if (finalTeachers.length === 0) {
-          console.warn('⚠️ No teachers found from API, using fallback teachers');
-          const fallbackTeachers = [
-            { username: 'teacher1', name: 'Nguyễn Văn A', _id: 'teacher1' },
-            { username: 'teacher2', name: 'Nguyễn Văn B', _id: 'teacher2' },
-            { username: 'admin', name: 'uyen', _id: 'admin' }
-          ];
-          setTeachers(fallbackTeachers);
-        } else {
-          setTeachers(finalTeachers);
-        }
-      } else {
-        console.warn('❌ Teachers API response format invalid:', data);
-        console.warn('❌ Expected data.data to be array, got:', typeof data?.data, data?.data);
-      }
     } catch (err: any) {
       console.error('❌ Error loading teachers:', err);
+      // Show error to user
+      toast.error('Không thể tải danh sách giáo viên');
+      setTeachers([]);
     }
   };
   const [loading, setLoading] = useState(true);
@@ -261,15 +221,18 @@ export function ClassManagement() {
 
   const handleEditClass = (cls: Class) => {
     setEditingClass(cls);
-    // Extract teacherId - handle both string and object formats
-    const teacherId = typeof cls.teacherId === 'string'
-      ? cls.teacherId
-      : (cls.teacherId as any)?._id || '';
+
+    // Handle teacher data - check if it's populated
+    let teacherUsername = '';
+    if (cls.teacherId && typeof cls.teacherId === 'object' && cls.teacherId !== null) {
+      // Teacher is populated, get the username
+      teacherUsername = (cls.teacherId as any).username || '';
+    }
 
     setEditFormData({
       subject: cls.subject,
       grade: cls.grade || '',
-      teacherId: teacherId,
+      teacherId: teacherUsername || String(cls.teacherId || ''), // Use username if available, otherwise fallback to ID
       maxStudents: cls.maxStudents,
       schedule: cls.schedule,
     });
@@ -610,7 +573,7 @@ export function ClassManagement() {
                 <Label htmlFor="edit-teacherId">Giáo viên</Label>
                 <Input
                   id="edit-teacherId"
-                  placeholder="Nhập tên đăng nhập giáo viên (VD: teacher1, admin, teacher2...)"
+                  placeholder="Nhập tên đăng nhập giáo viên (VD: teacher1, teacher2...)"
                   value={editFormData.teacherId}
                   onChange={(e) => setEditFormData({ ...editFormData, teacherId: e.target.value })}
                 />
