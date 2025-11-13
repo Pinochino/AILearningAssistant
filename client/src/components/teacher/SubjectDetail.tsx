@@ -769,63 +769,6 @@ export function SubjectDetail() {
       </div>
       <div className='flex items-center justify-center'>
         <div className='flex gap-2'>
-          {/* Add Student Button */}
-          <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
-            <DialogTrigger asChild>
-              <Button variant='outline' className='gap-2'>
-                <UserPlus className='h-4 w-4' />
-                Thêm sinh viên
-              </Button>
-            </DialogTrigger>
-            <DialogContent className='max-w-2xl'>
-              <DialogHeader>
-                <DialogTitle>Thêm sinh viên vào môn học</DialogTitle>
-                <DialogDescription>Tìm kiếm và thêm sinh viên vào môn học này</DialogDescription>
-              </DialogHeader>
-              <div className='space-y-4'>
-                <div className='space-y-2'>
-                  <Label>Tìm kiếm sinh viên</Label>
-                  <div className='relative'>
-                    <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-                    <Input
-                      placeholder='Tìm theo tên, mã sinh viên hoặc email...'
-                      value={studentSearchTerm}
-                      onChange={(e) => setStudentSearchTerm(e.target.value)}
-                      className='pl-9'
-                    />
-                  </div>
-                </div>
-
-                <div className='max-h-60 overflow-y-auto space-y-2'>
-                  {filteredAvailableStudents.map((student) => (
-                    <div key={student.id} className='flex items-center justify-between p-3 border rounded-lg'>
-                      <div className='flex items-center gap-3'>
-                        <Avatar className='h-8 w-8'>
-                          <AvatarFallback className='text-xs'>
-                            {student.name
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className='font-medium'>{student.name}</p>
-                          <p className='text-sm text-muted-foreground'>
-                            {student.studentId} • {student.email} • {student.class}
-                          </p>
-                        </div>
-                      </div>
-                      <Button size='sm' onClick={() => handleAddStudent(student.id)}>
-                        Thêm
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
           {/* Pending Students Button */}
           <Dialog open={isPendingStudentsOpen} onOpenChange={setIsPendingStudentsOpen}>
             <DialogTrigger asChild>
@@ -1438,6 +1381,7 @@ export function SubjectDetail() {
 
               <CardContent className='space-y-4'>
                 <div className='flex gap-2'>
+                <div className='flex gap-2'>
                   {/* Nút Thêm tài liệu */}
                   <Dialog open={isUploadDocOpen} onOpenChange={setIsUploadDocOpen}>
                     <DialogTrigger asChild>
@@ -1504,6 +1448,7 @@ export function SubjectDetail() {
                     <FileText className='h-4 w-4' />
                     Xem tài liệu ({chapter.documents.length})
                   </Button>
+                </div>
                 </div>
 
                 {/* Mở rộng tài liệu khi expandedChapter trùng với chapter._id */}

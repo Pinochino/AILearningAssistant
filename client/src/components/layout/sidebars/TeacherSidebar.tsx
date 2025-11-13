@@ -22,24 +22,6 @@ const menuItems = [
     badge: null,
   },
   {
-    id: 'students',
-    label: 'Học sinh',
-    icon: Users,
-    badge: null,
-  },
-  {
-    id: 'content',
-    label: 'Nội dung học tập',
-    icon: FileText,
-    badge: null,
-  },
-  {
-    id: 'schedule',
-    label: 'Lịch học',
-    icon: Calendar,
-    badge: null,
-  },
-  {
     id: 'messages',
     label: 'Tin nhắn',
     icon: MessageSquare,
