@@ -15,11 +15,7 @@ import { SystemSettings } from './admin/SystemSettings'
 import { ClassManagement } from './admin/ClassManagement'
 
 // Teacher pages
-import { StudentsManagement } from './teacher/StudentsManagement'
-import { ContentManagement as TeacherContentManagement } from './teacher/ContentManagement'
-import { Schedule as TeacherSchedule } from './teacher/Schedule'
 import { Messages as TeacherMessages } from './teacher/Messages'
-import { Analytics as TeacherAnalytics } from './teacher/Analytics'
 import { SubjectDetail } from './teacher/SubjectDetail'
 
 // Student pages
@@ -97,15 +93,6 @@ export function PageRouter() {
         return <TeacherDashboard />
       case 'subjects':
         return <SubjectDetail />
-      case 'students':
-        return <StudentsManagement />
-      case 'content':
-      case 'documents':
-      case 'quizzes':
-      case 'flashcards':
-        return <TeacherContentManagement />
-      case 'schedule':
-        return <TeacherSchedule />
       case 'messages':
         return <TeacherMessages />
       default:

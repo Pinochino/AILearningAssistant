@@ -923,7 +923,7 @@ export function SubjectDetail() {
 
                 <div className='space-y-2'>
                   <Label>Chọn chương học</Label>
-                  <div className='grid grid-cols-1 gap-2 border rounded p-3'>
+                  <div className='grid grid-cols-1 gap-2 border rounded-lg p-3'>
                     {mockChapters.map((chapter) => (
                       <div key={chapter.id} className='flex items-center space-x-2'>
                         <Checkbox
@@ -1035,7 +1035,7 @@ export function SubjectDetail() {
                       </Button>
                     </div>
 
-                    <div className='space-y-6'>
+                    <div className='space-y-4'>
                       {questions.map((question, qIndex) => (
                         <Card key={question.id}>
                           <CardHeader className='pb-3'>
@@ -1055,7 +1055,7 @@ export function SubjectDetail() {
                           </CardHeader>
                           <CardContent className='space-y-4'>
                             <div className='space-y-2'>
-                              <Label>Nội dung câu hỏi</Label>
+                              <Label className='pb-2'>Nội dung câu hỏi</Label>
                               <Textarea
                                 placeholder='Nhập câu hỏi...'
                                 value={question.question}
@@ -1086,7 +1086,7 @@ export function SubjectDetail() {
                                   />
                                 </div>
                               ))}
-                              <p className='text-xs text-muted-foreground'>
+                              <p className='p-2 text-xs text-muted-foreground'>
                                 * Chọn radio button để đánh dấu đáp án đúng
                               </p>
                             </div>
@@ -1473,9 +1473,7 @@ export function SubjectDetail() {
                                 <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                                   <span>{getFileTypeLabel(doc.type)}</span>
                                   <span>•</span>
-                                  <span>{doc.size}</span>
-                                  <span>•</span>
-                                  <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
+                                  <span>{(doc.size / (1024 * 1024)).toFixed(2)} MB</span>
                                 </div>
                               </div>
                             </div>
