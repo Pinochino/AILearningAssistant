@@ -1095,25 +1095,37 @@ export function SubjectDetail() {
               ) : (
                 <>
                   {pendingEnrollments.map((enrollment: any) => {
-                    const student = enrollment.studentId;
+                    const student = enrollment.studentId || {};
+                    const studentName = student?.name || student?.fullName || student?.username || 'Không tên';
+                    const username = student?.username || 'unknown';
+                    const email = student?.email || '';
+
                     return (
                       <div
                         key={enrollment._id}
                         className="p-4 border rounded-lg"
                       >
                         <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
+                          <div className="flex items-center gap-4 flex-1">
+                            <Avatar>
                               <AvatarFallback>
-                                {(student?.name?.charAt(0) || student?.username?.charAt(0) || 'U').toUpperCase()}
+                                {studentName
+                                  .split(' ')
+                                  .map(n => n[0])
+                                  .join('')
+                                  .toUpperCase()
+                                  .substring(0, 2)}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="space-y-0.5">
-                              <h3 className="font-medium">
-                                {student?.name || student?.username || 'Unknown'}
-                              </h3>
+                            <div className="space-y-1 flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium">
+                                  {studentName}
+                                </h3>
+                              </div>
                               <p className="text-sm text-muted-foreground">
-                                @{student?.username || 'unknown'}
+                                @{username}
+                                {email && ` • ${email}`}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Đăng ký: {new Date(enrollment.requestedAt).toLocaleDateString('vi-VN')}

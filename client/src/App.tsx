@@ -12,11 +12,8 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <div className="size-full flex items-center justify-center">
-        <div className="text-center space-y-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Đang tải...</p>
-        </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }

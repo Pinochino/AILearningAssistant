@@ -867,14 +867,14 @@ export function ClassManagement() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold">{classes.length}</p>
+              <p className="text-2xl font-bold">{totalClasses}</p>
               <p className="text-sm text-muted-foreground">Tổng lớp học</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">
-                {classes.length}
+                {totalClasses}
               </p>
               <p className="text-sm text-muted-foreground">Đang hoạt động</p>
             </CardContent>

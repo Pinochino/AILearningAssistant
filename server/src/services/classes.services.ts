@@ -266,12 +266,12 @@ export class ClassesService {
 
       // Convert studentId to ObjectId for comparison
       const studentObjectId = new mongoose.Types.ObjectId(studentId);
-      
+
       // Check if student is already in the class's students array
-      const isStudentInClass = classDoc.students?.some(id => 
+      const isStudentInClass = classDoc.students?.some(id =>
         id && id.toString() === studentObjectId.toString()
       );
-      
+
       if (isStudentInClass) {
         throw new Error("Bạn đã tham gia lớp học này");
       }
@@ -304,25 +304,25 @@ export class ClassesService {
         }
       }
 
-    // Create new enrollment request
-    const enrollmentRequest = new ClassEnrollment({
-      classId,
-      studentId,
-      message,
-      status: 'pending'
-    })
-    
-    const savedRequest = await enrollmentRequest.save()
-    await savedRequest.populate([
-      { path: 'classId', select: 'name subject teacherId maxStudents students' },
-      { path: 'studentId', select: 'username email' }
-    ])
+      // Create new enrollment request
+      const enrollmentRequest = new ClassEnrollment({
+        classId,
+        studentId,
+        message,
+        status: 'pending'
+      })
 
-    return savedRequest
-  } catch (error: any) {
-    throw new Error(`Failed to request enrollment: ${error.message}`)
+      const savedRequest = await enrollmentRequest.save()
+      await savedRequest.populate([
+        { path: 'classId', select: 'name subject teacherId maxStudents students' },
+        { path: 'studentId', select: 'username email' }
+      ])
+
+      return savedRequest
+    } catch (error: any) {
+      throw new Error(`Failed to request enrollment: ${error.message}`)
+    }
   }
-}
 
   // Get pending enrollment requests for a class (for teachers)
   static async getPendingEnrollments(classId: string): Promise<IClassEnrollment[]> {
@@ -331,7 +331,7 @@ export class ClassesService {
         classId,
         status: 'pending'
       })
-        .populate('studentId', 'username email')
+        .populate('studentId', 'username email name')
         .populate('classId', 'name subject maxStudents students')
         .sort({ requestedAt: -1 })
         .exec()

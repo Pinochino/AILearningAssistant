@@ -1,11 +1,10 @@
 import { ChangeEvent, useEffect, useState } from 'react'
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
-import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX, Check } from 'lucide-react'
+import { Search, Plus, Edit, Trash2, Eye, UserCheck, UserX, Check, AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
@@ -19,7 +18,7 @@ import { useGetUsers } from '../../services/UserService'
 import { useFetchCountUserByRole } from '../../hooks/getAllData'
 import GetRoleCountByName from '../../hooks/getRoleCount'
 
-const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser }) => {
+const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, onDeleteClick }) => {
   console.log('User: ', users)
 
   return (
@@ -63,7 +62,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, ha
             <Button variant='outline' size='sm' onClick={() => navigateTo('edit-user', { userId: user?._id || user?.id })}>
               <Edit className='h-4 w-4' />
             </Button>
-            <Button variant='outline' size='sm' value={user._id} onClick={() => handleDeleteUser(user._id)}>
+            <Button variant='outline' size='sm' value={user._id} onClick={() => onDeleteClick(user._id, user)}>
               <Trash2 className='h-4 w-4 text-destructive' />
             </Button>
           </div>
@@ -77,7 +76,7 @@ export function UserManagement() {
   const { navigateTo } = useNavigation()
   const queryClient = useQueryClient()
 
-  const [userData, setUserData] = useState([])
+  const [userData, setUserData] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState<string | null>()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -85,18 +84,38 @@ export function UserManagement() {
     username: '',
     name: '',
     password: '',
-    roles: []
+    roles: [] as string[]
   })
-  const [userByRoleId, setUserByRoleId] = useState([])
+  const [userByRoleId, setUserByRoleId] = useState<any[]>([])
   const [userCounts, setUserCounts] = useState<number>(0);
   const [teacherCounts, setTeacherCounts] = useState<number>(0);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [createErrors, setCreateErrors] = useState<Record<string, string>>({});
 
+  const handleDeleteClick = (userId: string, user: any) => {
+    setUserToDelete(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      handleDeleteUser(userToDelete._id);
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const cancelDeleteUser = () => {
+    setIsDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
 
   const { mutate: handleDeleteUser } = useMutation({
     mutationFn: async (userId: string) => {
       try {
-        const response = await handleApi({ 
-          url: `/users/delete/${userId}`, 
+        const response = await handleApi({
+          url: `/users/delete/${userId}`,
           method: 'DELETE',
           data: { userId }
         });
@@ -107,16 +126,13 @@ export function UserManagement() {
       }
     },
     onMutate: async (userId: string) => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['users'] });
       if (selectedRole) {
         await queryClient.cancelQueries({ queryKey: ['usersByRoleId', selectedRole] });
       }
 
-      // Snapshot the previous values with proper type checking
       const getUsersData = (key: string) => {
         const data = queryClient.getQueryData<any>(key);
-        // Handle different possible response structures
         if (Array.isArray(data)) return data;
         if (data?.data?.users) return data.data.users;
         if (data?.data) return data.data;
@@ -124,37 +140,33 @@ export function UserManagement() {
       };
 
       const previousUsers = getUsersData('users');
-      const previousFilteredUsers = selectedRole 
+      const previousFilteredUsers = selectedRole
         ? getUsersData(['usersByRoleId', selectedRole].join('-'))
         : null;
 
-      // Safely update the users list
       const updateQueryData = (key: string, userId: string) => {
         queryClient.setQueryData<any>(key, (old: any) => {
-          const data = Array.isArray(old) ? old : 
-                     old?.data?.users ? old.data.users : 
-                     old?.data ? old.data : [];
+          const data = Array.isArray(old) ? old :
+            old?.data?.users ? old.data.users :
+              old?.data ? old.data : [];
           return data.filter((user: any) => user?._id !== userId);
         });
       };
 
-      // Optimistically update the users list
       updateQueryData('users', userId);
 
-      // Optimistically update the filtered users list if it exists
       if (selectedRole) {
         updateQueryData(['usersByRoleId', selectedRole].join('-'), userId);
       }
 
-      return { 
-        previousUsers: { data: { users: previousUsers } }, 
-        previousFilteredUsers: previousFilteredUsers ? { data: { users: previousFilteredUsers } } : null 
+      return {
+        previousUsers: { data: { users: previousUsers } },
+        previousFilteredUsers: previousFilteredUsers ? { data: { users: previousFilteredUsers } } : null
       };
     },
     onError: (error: any, userId, context) => {
       console.error('Error deleting user:', error);
-      
-      // Rollback on error with proper type checking
+
       const rollbackQueryData = (key: string, data: any) => {
         if (!data) return;
         queryClient.setQueryData(key, data);
@@ -166,7 +178,7 @@ export function UserManagement() {
       if (selectedRole && context?.previousFilteredUsers) {
         rollbackQueryData(['usersByRoleId', selectedRole].join('-'), context.previousFilteredUsers);
       }
-      
+
       const errorMessage = error.response?.data?.message || 'Xóa người dùng thất bại';
       toast.error(errorMessage);
     },
@@ -174,7 +186,6 @@ export function UserManagement() {
       toast.success('Đã xóa người dùng thành công');
     },
     onSettled: () => {
-      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ['users'] });
       if (selectedRole) {
         queryClient.invalidateQueries({ queryKey: ['usersByRoleId', selectedRole] });
@@ -183,7 +194,6 @@ export function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] });
     }
   })
-
 
 
   const fetchRoles = async () => {
@@ -205,7 +215,6 @@ export function UserManagement() {
   }, [userCount, teacherCount])
 
 
-
   const {
     data: roles,
     isLoading: roleLoading,
@@ -215,30 +224,48 @@ export function UserManagement() {
     queryFn: fetchRoles
   })
 
-  const fetchCreateUser = async () => {
-    const res = await handleApi({ url: '/auth/register', method: 'POST', data: value })
-    setValue({
-      username: '',
-      name: '',
-      password: '',
-      roles: []
-    })
+  // Create user mutation: now accepts variable payload and controls dialog closing on success only
+  const createUserFn = async (newUser: any) => {
+    const res = await handleApi({ url: '/auth/register', method: 'POST', data: newUser })
     return res.data
   }
 
   const {
-    mutate,
+    mutate: createUser,
     error: createUserError,
-    isPending
+    isLoading: createUserLoading
   } = useMutation({
-    mutationFn: fetchCreateUser,
-    onSuccess: () => {
+    mutationFn: createUserFn,
+    onSuccess: (data) => {
       toast.success('Tạo tài khoản thành công')
       queryClient.invalidateQueries({ queryKey: ['users'] })
       queryClient.invalidateQueries({ queryKey: ['count-role-USER'] })
       queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] })
+      // Close only on success
+      setIsCreateDialogOpen(false)
+      // reset form
+      setValue({ username: '', name: '', password: '', roles: [] })
+      setCreateErrors({})
+    },
+    onError: (error: any) => {
+      console.error('Create user error:', error)
+      // Try to parse validation errors from server
+      const serverMsg = error?.response?.data;
+      if (serverMsg && typeof serverMsg === 'object') {
+        // If server returns field errors like { errors: { username: '...' } } or { message: '...' }
+        if (serverMsg.errors) {
+          setCreateErrors(serverMsg.errors);
+        } else if (serverMsg.message) {
+          setCreateErrors({ general: serverMsg.message });
+        } else {
+          setCreateErrors({ general: 'Tạo người dùng thất bại' });
+        }
+      } else {
+        setCreateErrors({ general: 'Tạo người dùng thất bại' });
+      }
+      // keep dialog open (do nothing else)
     }
-  })
+  });
 
   const handleChangeUserByRoleId = (roleId: string) => {
     console.log(roleId)
@@ -292,7 +319,25 @@ export function UserManagement() {
     queryFn: filterUserIsActive
   })
 
+  // Update local userData state whenever users (from hook) changes
+  useEffect(() => {
+    if (users) {
+      // users might be array or { data: { users: [...] } } depending on implementation of useGetUsers
+      if (Array.isArray(users)) setUserData(users)
+      else if (users?.data?.users) setUserData(users.data.users)
+      else if (users?.data) setUserData(users.data)
+      else setUserData([])
+    }
+  }, [users])
+
+  useEffect(() => {
+    if (usersByRoleId) {
+      setUserByRoleId(usersByRoleId?.data?.users)
+    }
+  }, [usersByRoleId])
+
   console.log('userActiveCount: ', userActiveCount)
+  console.log('users:', users)
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -318,36 +363,91 @@ export function UserManagement() {
       ...prev,
       [name]: value
     }))
+    // clear error for this field as user types
+    setCreateErrors(prev => ({ ...prev, [name]: '' }))
   }
 
   const handleChangeRole = (roleId: string) => {
     setValue({ ...value, roles: [roleId] })
+    setCreateErrors(prev => ({ ...prev, roles: '' }))
+  }
+
+  const validateCreateForm = () => {
+    const errs: Record<string, string> = {}
+    if (!value.name || value.name.trim() === '') errs.name = 'Họ và tên là bắt buộc'
+    if (!value.username || value.username.trim() === '') errs.username = 'Tên đăng nhập là bắt buộc'
+    if (!value.password || value.password.trim() === '') errs.password = 'Mật khẩu là bắt buộc'
+    if (!value.roles || value.roles.length === 0) errs.roles = 'Chọn vai trò là bắt buộc'
+
+    // check username uniqueness locally
+    const usernameExists = userData.some(u => (u.username || '').toLowerCase() === (value.username || '').toLowerCase())
+    if (usernameExists) errs.username = 'Tên đăng nhập đã tồn tại'
+
+    setCreateErrors(errs)
+    return Object.keys(errs).length === 0
   }
 
   const handleCreateUser = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    console.log(value)
-    mutate()
+    setCreateErrors({}) // reset first
+    // Validate client-side
+    const isValid = validateCreateForm()
+    if (!isValid) {
+      // don't call API, keep dialog open
+      return
+    }
+
+    // call mutation with payload (so mutationFn receives it)
+    createUser({
+      username: value.username,
+      name: value.name,
+      password: value.password,
+      roles: value.roles
+    })
   }
-
-  useEffect(() => {
-    if (usersByRoleId) {
-      setUserByRoleId(usersByRoleId?.data?.users)
-    }
-  }, [usersByRoleId])
-
-  useEffect(() => {
-    if (users) {
-      setUserData(users)
-    }
-  }, [users])
-
-  console.log('Number: ', userActiveCount)
-
-  console.log('users:', users)
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Xác nhận xóa người dùng
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>Bạn có chắc chắn muốn xóa người dùng này?</p>
+              {userToDelete && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="font-medium">{userToDelete.name || 'Không có tên'}</p>
+                  <p className="text-sm text-muted-foreground">@{userToDelete.username || 'Không có username'}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {userToDelete.roles?.[0]?.name ? `Vai trò: ${userToDelete.roles[0].name}` : 'Không có vai trò'}
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-destructive font-medium">
+                Hành động này không thể hoàn tác!
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={cancelDeleteUser}>
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteUser}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Xóa người dùng
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -379,42 +479,43 @@ export function UserManagement() {
                     id='name'
                     type='text'
                     placeholder='Nhập họ và tên'
-                    onChange={(value) => handleChangeInput(value)}
+                    onChange={handleChangeInput}
                     name='name'
                     value={value.name}
                   />
+                  {createErrors.name && <p className="text-sm text-destructive mt-1">{createErrors.name}</p>}
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Tên đăng nhập</Label>
+                  <Label htmlFor='username'>Tên đăng nhập</Label>
                   <Input
-                    id='name'
+                    id='username'
                     placeholder='Nhập tên đăng nhập'
-                    onChange={(value) => handleChangeInput(value)}
+                    onChange={handleChangeInput}
                     name='username'
                     value={value.username}
                   />
+                  {createErrors.username && <p className="text-sm text-destructive mt-1">{createErrors.username}</p>}
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='Password'>Mật khẩu</Label>
+                  <Label htmlFor='password'>Mật khẩu</Label>
                   <Input
                     id='password'
                     placeholder='Nhập mật khẩu'
-                    onChange={(value) => handleChangeInput(value)}
+                    onChange={handleChangeInput}
                     name='password'
                     value={value.password}
                   />
+                  {createErrors.password && <p className="text-sm text-destructive mt-1">{createErrors.password}</p>}
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor='role'>Vai trò</Label>
-                  <Select onValueChange={handleChangeRole}>
+                  <Select onValueChange={handleChangeRole} value={value.roles?.[0]}>
                     <SelectTrigger>
                       <SelectValue placeholder='Chọn vai trò' />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* <SelectItem value='teacher'>Giáo viên</SelectItem>
-                      <SelectItem value='student'>Học sinh</SelectItem> */}
                       {Array.from(roles?.data || []).map((role: any, index: number) => {
                         return (
                           <SelectItem value={role?._id} key={index}>
@@ -424,12 +525,18 @@ export function UserManagement() {
                       })}
                     </SelectContent>
                   </Select>
+                  {createErrors.roles && <p className="text-sm text-destructive mt-1">{createErrors.roles}</p>}
                 </div>
+
+                {createErrors.general && <p className="text-sm text-destructive">{createErrors.general}</p>}
+
                 <div className='flex justify-end gap-2'>
-                  <Button variant='outline' onClick={() => setIsCreateDialogOpen(false)}>
+                  <Button variant='outline' onClick={() => { setIsCreateDialogOpen(false); setCreateErrors({}); }}>
                     Hủy
                   </Button>
-                  <Button onClick={() => setIsCreateDialogOpen(false)}>Tạo tài khoản</Button>
+                  <Button type="submit" disabled={createUserLoading} className={createUserLoading ? 'opacity-70' : ''}>
+                    {createUserLoading ? 'Đang tạo...' : 'Tạo tài khoản'}
+                  </Button>
                 </div>
               </div>
             </form>
@@ -474,7 +581,7 @@ export function UserManagement() {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Danh sách người dùng ({users?.length || 0})</CardTitle>
+            <CardTitle>Danh sách người dùng ({userData?.length || 0})</CardTitle>
             {selectedRole && selectedRole !== 'all' && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
@@ -490,12 +597,24 @@ export function UserManagement() {
             {selectedRole && selectedRole !== 'all'
               ? (
                 filteredUsers.length > 0
-                  ? <DisplayUsers users={filteredUsers} navigateTo={navigateTo} getRoleBadgeVariant={getRoleBadgeVariant} getRoleLabel={getRoleLabel} handleDeleteUser={handleDeleteUser} />
+                  ? <DisplayUsers
+                    users={filteredUsers}
+                    navigateTo={navigateTo}
+                    getRoleBadgeVariant={getRoleBadgeVariant}
+                    getRoleLabel={getRoleLabel}
+                    onDeleteClick={handleDeleteClick}
+                  />
                   : <p className='text-center py-4 text-muted-foreground'>Không tìm thấy người dùng nào</p>
               )
               : (
                 userData.length > 0
-                  ? <DisplayUsers users={userData} navigateTo={navigateTo} getRoleBadgeVariant={getRoleBadgeVariant} getRoleLabel={getRoleLabel} handleDeleteUser={handleDeleteUser} />
+                  ? <DisplayUsers
+                    users={userData}
+                    navigateTo={navigateTo}
+                    getRoleBadgeVariant={getRoleBadgeVariant}
+                    getRoleLabel={getRoleLabel}
+                    onDeleteClick={handleDeleteClick}
+                  />
                   : <p className='text-center py-4 text-muted-foreground'>Không có người dùng nào</p>
               )}
           </div>
