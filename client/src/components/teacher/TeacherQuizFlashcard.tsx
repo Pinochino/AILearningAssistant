@@ -265,57 +265,9 @@ export function TeacherQuizFlashcard({ subjectId = "1" }: TeacherQuizFlashcardPr
                     </div>
                 </div>
             </div>
-
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-100 rounded-lg">
-                                <Target className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Tổng Quiz</p>
-                                <p className="text-xl font-semibold">{mockQuizzes.length}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-green-100 rounded-lg">
-                                <BookOpen className="h-5 w-5 text-green-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Tổng Flashcard</p>
-                                <p className="text-xl font-semibold">{mockFlashcards.length}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-100 rounded-lg">
-                                <Users className="h-5 w-5 text-purple-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Lượt thử</p>
-                                <p className="text-xl font-semibold">
-                                    {mockQuizzes.reduce((sum, quiz) => sum + quiz.attempts, 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
             {/* Main Content */}
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="quizzes">Quiz ({filteredQuizzes.length})</TabsTrigger>
                     <TabsTrigger value="flashcards">Flashcard ({filteredFlashcards.length})</TabsTrigger>
                 </TabsList>

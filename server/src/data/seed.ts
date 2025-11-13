@@ -108,8 +108,8 @@ export async function runSeed() {
   const aiConv = await Conversation.create({
     participants: [student1?._id].filter(Boolean),
     conversationType: 'ai',
-    aiTutorId: 'math-tutor',
-    name: 'AI Tutor - Math',
+    aiTutorId: 'default-tutor',
+    name: 'AI Tutor - default',
   })
 
   // Messages
@@ -137,7 +137,7 @@ export async function runSeed() {
   const aiMessage = await Message.create({
     conversation: aiConv._id,
     sender: null, // sender is null for AI messages
-    content: 'Xin chào! Tôi là AI Tutor chuyên về Toán học... Em có câu hỏi gì không?',
+    content: 'Xin chào! Tôi là AI Tutor... Em có câu hỏi gì không?',
     type: 'ai',
     aiTutorId: 'math-tutor',
   })

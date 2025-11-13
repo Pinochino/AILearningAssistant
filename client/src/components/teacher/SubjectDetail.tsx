@@ -10,7 +10,6 @@ import {
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { Progress } from "../ui/progress";
 import {
   Tabs,
   TabsContent,
@@ -39,6 +38,7 @@ import {
   BookPlus,
   Target,
   Loader2,
+  Eye,
 } from "lucide-react";
 import {
   Dialog,
@@ -69,21 +69,18 @@ const mockSubjects = [
     name: "Toán học 12A1",
     description: "Chương trình Toán học lớp 12A1 - Học kỳ 1",
     studentCount: 35,
-    progress: 78,
   },
   {
     id: "2",
     name: "Toán học 12A2",
     description: "Chương trình Toán học lớp 12A2 - Học kỳ 1",
     studentCount: 33,
-    progress: 82,
   },
   {
     id: "3",
     name: "Vật lý 11B1",
     description: "Chương trình Vật lý lớp 11B1 - Học kỳ 1",
     studentCount: 38,
-    progress: 65,
   },
 ];
 
@@ -95,7 +92,6 @@ const mockChapters = [
     documents: 5,
     quizzes: 3,
     flashcards: 15,
-    completion: 85,
   },
   {
     id: "2",
@@ -104,7 +100,6 @@ const mockChapters = [
     documents: 4,
     quizzes: 2,
     flashcards: 12,
-    completion: 70,
   },
   {
     id: "3",
@@ -113,69 +108,6 @@ const mockChapters = [
     documents: 3,
     quizzes: 1,
     flashcards: 8,
-    completion: 45,
-  },
-];
-
-const mockStudents = [
-  {
-    id: "1",
-    name: "Nguyễn Văn A",
-    email: "student1@example.com",
-    studentId: "SV001",
-    progress: 85,
-    quizScore: 92,
-    lastActive: "2024-09-18",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Trần Thị B",
-    email: "student2@example.com",
-    studentId: "SV002",
-    progress: 78,
-    quizScore: 88,
-    lastActive: "2024-09-17",
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Lê Minh C",
-    email: "student3@example.com",
-    studentId: "SV003",
-    progress: 65,
-    quizScore: 75,
-    lastActive: "2024-09-15",
-    status: "inactive",
-  },
-];
-
-const mockPendingStudents = [
-  {
-    id: "4",
-    name: "Phạm Thị D",
-    email: "student4@example.com",
-    studentId: "SV004",
-    requestDate: "2024-09-18",
-    message:
-      "Em muốn tham gia lớp học để nâng cao kiến thức toán học",
-  },
-  {
-    id: "5",
-    name: "Hoàng Văn E",
-    email: "student5@example.com",
-    studentId: "SV005",
-    requestDate: "2024-09-17",
-    message:
-      "Em đã học qua chương trình cơ bản và muốn học nâng cao",
-  },
-  {
-    id: "6",
-    name: "Nguyễn Thị F",
-    email: "student6@example.com",
-    studentId: "SV006",
-    requestDate: "2024-09-16",
-    message: "Em cần học lại để chuẩn bị cho kỳ thi cuối kỳ",
   },
 ];
 
@@ -211,7 +143,7 @@ const mockDocuments = [
     size: "2.5 MB",
     chapterId: "1",
     chapterName: "Chương 1: Hàm số và đồ thị",
-    uploadDate: "2024-09-15",
+    uploadDate: "2025-09-15",
     downloads: 32,
   },
   {
@@ -221,7 +153,7 @@ const mockDocuments = [
     size: "15.2 MB",
     chapterId: "1",
     chapterName: "Chương 1: Hàm số và đồ thị",
-    uploadDate: "2024-09-14",
+    uploadDate: "2025-09-14",
     downloads: 28,
   },
   {
@@ -231,7 +163,7 @@ const mockDocuments = [
     size: "1.8 MB",
     chapterId: "2",
     chapterName: "Chương 2: Đạo hàm",
-    uploadDate: "2024-09-13",
+    uploadDate: "2025-09-13",
     downloads: 45,
   },
   {
@@ -241,7 +173,7 @@ const mockDocuments = [
     size: "5.2 MB",
     chapterId: "3",
     chapterName: "Chương 3: Ứng dụng đạo hàm",
-    uploadDate: "2024-09-12",
+    uploadDate: "2025-09-12",
     downloads: 23,
   },
 ];
@@ -275,6 +207,7 @@ export function SubjectDetail() {
   const [isCreateFlashcardOpen, setIsCreateFlashcardOpen] =
     useState(false);
   const [isUploadDocOpen, setIsUploadDocOpen] = useState(false);
+  const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [isAddStudentOpen, setIsAddStudentOpen] =
     useState(false);
   const [isPendingStudentsOpen, setIsPendingStudentsOpen] =
@@ -377,7 +310,6 @@ export function SubjectDetail() {
               name: student.fullName || student.name || 'Không tên',
               username: student.username || '',
               studentId: student.studentId || 'N/A',
-              progress: Math.floor(Math.random() * 100),
               quizScore: Math.floor(Math.random() * 30) + 70,
               lastActive: new Date().toISOString().split('T')[0],
               status: 'active',
@@ -427,7 +359,6 @@ export function SubjectDetail() {
               name: userData.fullName || userData.name || 'Không tên',
               username: userData.username || '',
               studentId: userData.studentId || 'N/A',
-              progress: Math.floor(Math.random() * 100),
               quizScore: Math.floor(Math.random() * 30) + 70,
               lastActive: new Date().toISOString().split('T')[0],
               status: 'active',
@@ -499,8 +430,6 @@ export function SubjectDetail() {
               name: cls.name,
               description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''}`,
               studentCount: studentCount,
-              progress: 0,
-              // Make sure to include all other necessary fields
               ...cls
             };
           });
@@ -563,7 +492,6 @@ export function SubjectDetail() {
             name: student.fullName || student.name || 'Không tên',
             username: student.username,
             studentId: student.studentId || 'N/A',
-            progress: Math.floor(Math.random() * 100),
             quizScore: Math.floor(Math.random() * 30) + 70,
             lastActive: new Date().toISOString().split('T')[0],
             status: 'active'
@@ -663,7 +591,6 @@ export function SubjectDetail() {
           name: cls.name,
           description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''}`,
           studentCount: cls.students?.length || 0,
-          progress: 0,
         }));
 
         console.log('Mapped subjects:', mappedSubjects);
@@ -1802,9 +1729,9 @@ export function SubjectDetail() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
+      <div className="flex w-full gap-4">
+        <Card className="flex-1 min-w-0">
+          <CardContent className="p-4 h-full">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
               <div>
@@ -1815,15 +1742,15 @@ export function SubjectDetail() {
                   {loading ? (
                     <span className="animate-pulse">...</span>
                   ) : (
-                    currentSubject?.studentCount || 0
+                    enrolledStudents.length || 0
                   )}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
+        <Card className="flex-1 min-w-0">
+          <CardContent className="p-4 h-full">
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-green-600" />
               <div>
@@ -1837,8 +1764,8 @@ export function SubjectDetail() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
+        <Card className="flex-1 min-w-0">
+          <CardContent className="p-4 h-full">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600" />
               <div>
@@ -1852,31 +1779,31 @@ export function SubjectDetail() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
+        <Card className="flex-1 min-w-0">
+          <CardContent className="p-4 h-full">
             <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
+              <Target className="h-5 w-5 text-orange-500" />
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Tổng số Quiz
+                  Quiz
                 </p>
                 <p className="text-xl font-semibold">
-                  {mockDocuments.length}
+                  {mockChapters.reduce((total, chapter) => total + (chapter.quizzes || 0), 0)}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
+        <Card className="flex-1 min-w-0">
+          <CardContent className="p-4 h-full">
             <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
+              <BookOpen className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Tổng số Flashcard
+                  Flashcard
                 </p>
                 <p className="text-xl font-semibold">
-                  {mockDocuments.length}
+                  {mockChapters.reduce((total, chapter) => total + (chapter.flashcards || 0), 0)}
                 </p>
               </div>
             </div>
@@ -1900,29 +1827,15 @@ export function SubjectDetail() {
         <TabsContent value="chapters" className="space-y-4">
           {mockChapters.map((chapter) => (
             <Card key={chapter.id}>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">
-                      {chapter.title}
-                    </CardTitle>
+                    <CardTitle className="text-lg">{chapter.title}</CardTitle>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                       <span>{chapter.documents} tài liệu</span>
-                      <span>•</span>
-                      <span>{chapter.quizzes} quiz</span>
-                      <span>•</span>
-                      <span>
-                        {chapter.flashcards} flashcard
-                      </span>
                     </div>
                   </div>
-                  <Badge variant="secondary">
-                    {chapter.completion}%
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
+
                   <Dialog
                     open={isUploadDocOpen}
                     onOpenChange={setIsUploadDocOpen}
@@ -1982,6 +1895,61 @@ export function SubjectDetail() {
                     </DialogContent>
                   </Dialog>
                 </div>
+              </CardHeader>
+
+              {/* Documents Section */}
+              {expandedChapter === chapter.id && (
+                <CardContent className="pt-0">
+                  <div className="mt-2 p-4 bg-muted/30 rounded-lg">
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Tài liệu chương
+                    </h4>
+                    {mockDocuments.filter(doc => doc.chapterId === chapter.id).length > 0 ? (
+                      <div className="space-y-2">
+                        {mockDocuments
+                          .filter(doc => doc.chapterId === chapter.id)
+                          .map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                              <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-blue-500" />
+                                <div>
+                                  <p className="text-sm font-medium">{doc.title}</p>
+                                  <p className="text-xs text-muted-foreground">{doc.uploadDate} • {doc.size || '2.5 MB'}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">Xem</span>
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Download className="h-4 w-4" />
+                                  <span className="sr-only">Tải xuống</span>
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Chưa có tài liệu nào trong chương này</p>
+                    )}
+                  </div>
+                </CardContent>
+              )}
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)}
+                  >
+                    <FileText className="h-4 w-4" />
+                    {expandedChapter === chapter.id ? 'Ẩn tài liệu' : 'Xem tài liệu'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -1994,7 +1962,7 @@ export function SubjectDetail() {
 
         {/* Students Tab */}
         <TabsContent value="students" className="space-y-4">
-          <Card>
+          <Card className="flex-1 min-w-0">
             <CardHeader>
               <CardTitle>
                 Danh sách học sinh ({enrolledStudents.length})
@@ -2077,7 +2045,7 @@ export function SubjectDetail() {
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-4">
-          <Card>
+          <Card className="flex-1 min-w-0">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>

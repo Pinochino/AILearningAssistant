@@ -246,24 +246,6 @@ export function EditQuizDialog({ isOpen, onOpenChange, quiz, onSave }: EditQuizD
                                 </Card>
                             ))}
                         </div>
-
-                        <div className="space-y-4">
-                            <Label>Chế độ hiển thị</Label>
-                            <RadioGroup
-                                value={visibility}
-                                onValueChange={setVisibility}
-                                className="flex flex-row gap-6"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="private" id="edit-private" />
-                                    <Label htmlFor="edit-private">Chỉ mình tôi</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="public" id="edit-public" />
-                                    <Label htmlFor="edit-public">Công khai</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
                     </div>
 
                     <div className="flex justify-end gap-2 pt-4">

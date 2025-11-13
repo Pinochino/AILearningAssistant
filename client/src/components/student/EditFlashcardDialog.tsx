@@ -218,24 +218,6 @@ export function EditFlashcardDialog({ isOpen, onOpenChange, flashcard, onSave }:
                                 </Card>
                             ))}
                         </div>
-
-                        <div className="space-y-4">
-                            <Label>Chế độ hiển thị</Label>
-                            <RadioGroup
-                                value={visibility}
-                                onValueChange={setVisibility}
-                                className="flex flex-row gap-6"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="private" id="edit-fc-private" />
-                                    <Label htmlFor="edit-fc-private">Chỉ mình tôi</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="public" id="edit-fc-public" />
-                                    <Label htmlFor="edit-fc-public">Công khai</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
                     </div>
 
                     <div className="flex justify-end gap-2 pt-4">

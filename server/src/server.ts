@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import jwt from "jsonwebtoken";
 import { User } from "./models/User.js";
 import { runSeed } from "./data/seed.js";
+import { startAIServer } from "./ai-service/server.js";
 
 // Import cron jobs from server-1
 import "./crons/ValidatedTokenClean.js";
@@ -36,6 +37,15 @@ async function bootstrap() {
         // Connect to Redis
         const { pubClient, subClient } = await createRedisClients(process.env.REDIS_URL!);
         console.log("✅ Redis connected");
+
+        // Start AI Server
+        try {
+            const AI_PORT = process.env.AI_SERVICE_PORT || 3001;
+            await startAIServer(parseInt(AI_PORT as string));
+            console.log(`✅ AI Server started on port ${AI_PORT}`);
+        } catch (err: any) {
+            console.error("❌ Failed to start AI Server:", err.message);
+        }
 
         // Create HTTP server
         const server = http.createServer(expressApp);

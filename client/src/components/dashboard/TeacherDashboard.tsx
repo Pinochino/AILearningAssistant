@@ -32,6 +32,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useNavigation } from '../../hooks/useNavigation';
 import { AnnouncementService } from '../../services/announcements';
 import { useAuth } from '../../hooks/useAuth';
+import { classApi } from '../../services/api';
+import { teacherApi } from '../../services/api';
 
 const mySubjects = [
   {
@@ -203,6 +205,9 @@ export function TeacherDashboard() {
   const { navigateTo } = useNavigation();
   const { user } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState('all');
+  const [totalClasses, setTotalClasses] = useState(0);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [openCreate, setOpenCreate] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   // Announcements (from backend notifications)
@@ -212,6 +217,85 @@ export function TeacherDashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState('');
   const [formContent, setFormContent] = useState('');
+
+  // Fetch teacher's classes and calculate totals
+  useEffect(() => {
+    const fetchTeacherData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get user ID from localStorage as a fallback
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const userId = user?._id || currentUser?._id || currentUser?.id;
+        
+        if (!userId) {
+          console.error('No user ID found');
+          // Fallback to mock data
+          setTotalClasses(mySubjects.length);
+          setTotalStudents(mySubjects.reduce((sum, subj) => sum + (subj.students || 0), 0));
+          return;
+        }
+
+        console.log('Fetching classes for teacher ID:', userId);
+        
+        // Fetch all classes for the teacher using classApi with teacherId filter
+        const response = await classApi.getAll({ 
+          teacherId: userId,
+          limit: 100 // Get all classes
+        });
+
+        console.log('Classes API response:', response);
+
+        // Handle the API response format
+        let classes: any[] = [];
+        
+        if (response.success) {
+          if (Array.isArray(response.data?.items)) {
+            // Response is paginated
+            classes = response.data.items;
+          } else if (Array.isArray(response.data)) {
+            // Response is a direct array
+            classes = response.data;
+          }
+        } else if (Array.isArray(response)) {
+          // Response is already an array
+          classes = response;
+        }
+        
+        console.log('Processed classes:', classes);
+        setTotalClasses(classes.length);
+
+        // Calculate total students across all classes
+        const studentCount = classes.reduce((total: number, cls: any) => {
+          if (cls.students && Array.isArray(cls.students)) {
+            return total + cls.students.length;
+          } else if (cls.studentIds && Array.isArray(cls.studentIds)) {
+            return total + cls.studentIds.length;
+          } else if (cls.enrollments) {
+            // Count only approved enrollments if available
+            const approvedEnrollments = cls.enrollments.filter(
+              (e: any) => e.status === 'approved'
+            );
+            return total + approvedEnrollments.length;
+          }
+          return total;
+        }, 0);
+
+        console.log('Total students:', studentCount);
+        setTotalStudents(studentCount);
+        
+      } catch (error) {
+        console.error('Error fetching teacher data:', error);
+        // Fallback to mock data
+        setTotalClasses(mySubjects.length);
+        setTotalStudents(mySubjects.reduce((sum, subj) => sum + (subj.students || 0), 0));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTeacherData();
+  }, [user?._id]);
 
   const mapToAnnouncement = (n: any): Announcement => ({
     id: n._id || n.id,
@@ -442,8 +526,12 @@ export function TeacherDashboard() {
                 <Users className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Tổng sinh viên</p>
-                <p className="text-xl font-semibold">{mockOverallStats.totalStudents}</p>
+                <p className="text-sm text-muted-foreground">Tổng học sinh</p>
+                {isLoading ? (
+                  <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  <p className="text-xl font-semibold">{totalStudents}</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -456,8 +544,12 @@ export function TeacherDashboard() {
                 <BookOpen className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Môn học</p>
-                <p className="text-xl font-semibold">{mockOverallStats.totalSubjects}</p>
+                <p className="text-sm text-muted-foreground">Lớp học</p>
+                {isLoading ? (
+                  <div className="h-6 w-12 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  <p className="text-xl font-semibold">{totalClasses}</p>
+                )}
               </div>
             </div>
           </CardContent>

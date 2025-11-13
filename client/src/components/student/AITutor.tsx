@@ -421,7 +421,7 @@ export function AITutor() {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Cuộc trò chuyện AI</CardTitle>
+                <CardTitle className="text-lg">Cuộc trò chuyện</CardTitle>
                 <Button size="icon" onClick={handleCreateNewConversation}>
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -488,19 +488,6 @@ export function AITutor() {
                   </div>
                 </button>
               ))}
-            </CardContent>
-          </Card>
-
-          {/* Usage Stats (client-derived) */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Thống kê sử dụng</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm"><span>Câu hỏi hôm nay</span><span className="font-medium">{stats.questionsToday}</span></div>
-              <div className="flex justify-between text-sm"><span>Bài tập đã giải (approx.)</span><span className="font-medium">{stats.solvedExercises}</span></div>
-              <div className="flex justify-between text-sm"><span>Thời gian trò chuyện (ước)</span><span className="font-medium">{stats.approxMinutes} phút</span></div>
-              <div className="flex justify-between text-sm"><span>Môn hay dùng</span><span className="font-medium">{stats.subjectGuess}</span></div>
             </CardContent>
           </Card>
         </div>

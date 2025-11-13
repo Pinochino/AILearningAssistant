@@ -21,7 +21,6 @@ import { Messages as TeacherMessages } from './teacher/Messages'
 // Student pages
 import { SubjectView } from './student/SubjectView'
 import { SubjectSearch } from './student/SubjectSearch'
-import { Schedule } from './student/Schedule'
 import { AITutor } from './student/AITutor'
 import { DocumentsView } from './student/DocumentsView'
 import { Messages } from './student/Messages'
@@ -77,7 +76,7 @@ export function PageRouter() {
     switch (currentPage) {
       case "dashboard":
         return <TeacherDashboard />;
-      case "subjects":
+      case "classes":
         return <SubjectDetail />;
       case "content":
       case "documents":
@@ -97,12 +96,11 @@ export function PageRouter() {
     switch (currentPage) {
       case "dashboard":
         return <StudentDashboard />;
-      case "subjects":
+      case "classes":
         return <SubjectView />;
-      case "subject-search":
+      case "class-search":
         return <SubjectSearch />;
       case "schedule":
-        return <Schedule />;
       case "study":
       case "quizzes":
       case "flashcards":

@@ -15,8 +15,7 @@
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "prepare": "husky",
-    "seed": "tsx src/data/seed.ts",
-    "dev:ai-service": "tsx src/ai-service/server.ts"
+    "seed": "tsx src/data/seed.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

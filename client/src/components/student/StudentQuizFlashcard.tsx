@@ -381,9 +381,9 @@ export function StudentQuizFlashcard() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1>Quiz & Flashcard của học sinh</h1>
+                    <h1>Quiz & Flashcard</h1>
                     <p className="text-muted-foreground">
-                        Tạo và chia sẻ quiz, flashcard với bạn bè
+                        Tạo quiz, flashcard với bạn bè
                     </p>
                 </div>
 

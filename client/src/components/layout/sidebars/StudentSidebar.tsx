@@ -22,24 +22,17 @@ const menuItems = [
     badge: null,
   },
   {
-    id: 'subjects',
-    label: 'Môn học',
+    id: 'classes',
+    label: 'Lớp học',
     icon: BookOpen,
     badge: null,
   },
   {
-    id: 'subject-search',
-    label: 'Tìm kiếm môn học',
+    id: 'class-search',
+    label: 'Tìm kiếm lớp học',
     icon: SquareLibrary,
     badge: null,
   },
-  {
-    id: 'schedule',
-    label: 'Thời khóa biểu',
-    icon: Calendar,
-    badge: null,
-  },
-
   {
     id: 'ai-tutor',
     label: 'Gia sư AI',

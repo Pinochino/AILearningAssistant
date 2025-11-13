@@ -70,7 +70,7 @@ export function SystemSettings() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general" className="gap-2">
             <Settings className="h-4 w-4" />
             Chung
@@ -140,33 +140,33 @@ export function SystemSettings() {
         <TabsContent value="ai" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Cài đặt AI (Gemini)</CardTitle>
+              <CardTitle>Cài đặt AI</CardTitle>
               <CardDescription>
-                Cấu hình các tham số cho Gemini
+                Cấu hình các tham số cho AI
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="geminiApiKey">Gemini API Key</Label>
-                <Input
-                  disabled
-                  id="geminiApiKey"
-                  type="password"
-                  placeholder="AIza-..."
-                  value={settings.ai.geminiApiKey || ""}
-                  onChange={(e) => updateSetting("ai", "geminiApiKey", e.target.value)}
-                />
+                <Label htmlFor="geminiApiKey">API Key</Label>
+                <div className="relative">
+                  <Input
+                    disabled
+                    id="geminiApiKey"
+                    type="password"
+                    placeholder="••••••••••••••••••••••••••••••••••••••"
+                    value={settings.ai.geminiApiKey || ""}
+                    onChange={(e) => updateSetting("ai", "geminiApiKey", e.target.value)}
+                    className="font-mono tracking-wider"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="geminiModel">Model</Label>
-                  <Select
-                    value={settings.ai.model}
-                    onValueChange={(value) => updateSetting("ai", "model", value)}
-                  >
+                  <Select>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Gemini 2.5 Pro" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem disabled value="gemini-1.5-pro">Gemini 2.5 Pro</SelectItem>
@@ -178,6 +178,7 @@ export function SystemSettings() {
                 <div className="space-y-2">
                   <Label htmlFor="maxOutputTokens">Max Output Tokens</Label>
                   <Input
+                    disabled
                     id="maxOutputTokens"
                     type="number"
                     value={settings.ai.maxOutputTokens || ""}
@@ -187,6 +188,7 @@ export function SystemSettings() {
                 <div className="space-y-2">
                   <Label htmlFor="temperature">Temperature</Label>
                   <Input
+                    disabled
                     id="temperature"
                     type="number"
                     step="0.1"
@@ -219,7 +221,7 @@ export function SystemSettings() {
                     <div className="space-y-2">
                       <h3 className="font-medium">Sao lưu tự động</h3>
                       <p className="text-sm text-muted-foreground">
-                        Lần sao lưu cuối: 18/09/2024 02:00
+                        Lần sao lưu cuối: 18/09/2025 02:00
                       </p>
                       <Badge variant="secondary">Đang hoạt động</Badge>
                     </div>
@@ -237,17 +239,6 @@ export function SystemSettings() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-
-              <div className="flex gap-4">
-                <Button className="gap-2">
-                  <Database className="h-4 w-4" />
-                  Tạo bản sao lưu ngay
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  Phục hồi từ sao lưu
-                </Button>
               </div>
             </CardContent>
           </Card>

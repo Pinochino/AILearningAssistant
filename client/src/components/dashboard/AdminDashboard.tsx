@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   Card,
@@ -47,66 +48,7 @@ import { AnnouncementService } from "../../services/announcements";
 import { handleApi } from '../../api/handleApi'
 import GetRoleCountByName from '../../hooks/getRoleCount'
 import { Skeleton } from '../ui/skeleton'
-
-const userStats = [
-  {
-    role: "Học sinh",
-    count: 1245,
-    color: "#3b82f6",
-  },
-  {
-    role: "Giáo viên",
-    count: 89,
-    color: "#10b981",
-  },
-  { role: "Admin", count: 5, color: "#f59e0b" },
-];
-
-const subjectStats = [
-  {
-    name: "Toán học",
-    students: 342,
-    teachers: 12,
-    quizzes: 156,
-    completion: 78,
-  },
-  {
-    name: "Vật lý",
-    students: 298,
-    teachers: 8,
-    quizzes: 134,
-    completion: 82,
-  },
-  {
-    name: "Hóa học",
-    students: 276,
-    teachers: 10,
-    quizzes: 142,
-    completion: 75,
-  },
-  {
-    name: "Sinh học",
-    students: 234,
-    teachers: 7,
-    quizzes: 98,
-    completion: 88,
-  },
-  {
-    name: "Văn học",
-    students: 387,
-    teachers: 15,
-    quizzes: 178,
-    completion: 71,
-  },
-];
-
-const monthlyData = [
-  { month: "T1", users: 980, quizzes: 1200, flashcards: 2300 },
-  { month: "T2", users: 1050, quizzes: 1400, flashcards: 2800 },
-  { month: "T3", users: 1180, quizzes: 1650, flashcards: 3200 },
-  { month: "T4", users: 1250, quizzes: 1800, flashcards: 3600 },
-  { month: "T5", users: 1339, quizzes: 2100, flashcards: 4200 },
-];
+import { classApi } from "../../services/api";
 
 const COLORS = [
   "#3b82f6",
@@ -205,6 +147,52 @@ const mockLearningProgress = [
   },
 ];
 
+const subjectStats = [
+  {
+    name: "Toán học",
+    students: 342,
+    teachers: 12,
+    quizzes: 156,
+    completion: 78,
+  },
+  {
+    name: "Vật lý",
+    students: 298,
+    teachers: 8,
+    quizzes: 134,
+    completion: 82,
+  },
+  {
+    name: "Hóa học",
+    students: 276,
+    teachers: 10,
+    quizzes: 142,
+    completion: 75,
+  },
+  {
+    name: "Sinh học",
+    students: 234,
+    teachers: 7,
+    quizzes: 98,
+    completion: 88,
+  },
+  {
+    name: "Văn học",
+    students: 387,
+    teachers: 15,
+    quizzes: 178,
+    completion: 71,
+  },
+];
+
+const monthlyData = [
+  { month: "T1", users: 980, quizzes: 1200, flashcards: 2300 },
+  { month: "T2", users: 1050, quizzes: 1400, flashcards: 2800 },
+  { month: "T3", users: 1180, quizzes: 1650, flashcards: 3200 },
+  { month: "T4", users: 1250, quizzes: 1800, flashcards: 3600 },
+  { month: "T5", users: 1339, quizzes: 2100, flashcards: 4200 },
+];
+
 export function AdminDashboard() {
   const [openCreate, setOpenCreate] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -270,31 +258,50 @@ export function AdminDashboard() {
     }
   }
 
-  const [userStat, setUserStat] = useState(userStats)
-
   const { data: userCount } = GetRoleCountByName("STUDENT");
-  const { data: adminCount } = GetRoleCountByName("ADMIN")
-  const { data: teacherCount } = GetRoleCountByName("TEACHER")
+  const { data: adminCount } = GetRoleCountByName("ADMIN");
+  const { data: teacherCount } = GetRoleCountByName("TEACHER");
+  const [totalClasses, setTotalClasses] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [loadingPage, setLoadingPage] = useState<boolean>(false)
+  // Calculate total users
+  const totalUsers = (userCount?.data || 0) + (teacherCount?.data || 0) + (adminCount?.data || 0);
 
+  // User stats for the chart
+  const userStats = [
+    { role: 'Học sinh', count: userCount?.data || 0, color: '#3b82f6' },
+    { role: 'Giáo viên', count: teacherCount?.data || 0, color: '#10b981' },
+    { role: 'Admin', count: adminCount?.data || 0, color: '#f59e0b' }
+  ];
 
+  // Load total classes count
   useEffect(() => {
+    const loadClassesCount = async () => {
+      try {
+        const response = await classApi.getAll({
+          page: 1,
+          limit: 1, // We only need the count, so limit to 1
+        });
 
-    if (userCount?.data || adminCount?.data || teacherCount?.data) {
-      setUserStat([
-        { role: 'Học sinh', count: userCount?.data || 0, color: '#3b82f6' },
-        { role: 'Giáo viên', count: teacherCount?.data || 0, color: '#10b981' },
-        { role: 'Admin', count: adminCount?.data || 0, color: '#f59e0b' }
-      ]);
+        if (response?.data?.pagination?.totalItems !== undefined) {
+          setTotalClasses(response.data.pagination.totalItems);
+        } else if (response?.data && Array.isArray(response.data)) {
+          setTotalClasses(response.data.length);
+        } else if (Array.isArray(response)) {
+          setTotalClasses(response.length);
+        }
+      } catch (error) {
+        console.error('Error loading classes count:', error);
+        setTotalClasses(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      setLoadingPage(false)
-    } else {
-      setLoadingPage(true)
-    }
+    loadClassesCount();
+  }, []);
 
-  }, [userCount, adminCount, teacherCount])
-
+  const isDataLoading = !userCount || !adminCount || !teacherCount || isLoading;
 
   return (
     <div className="space-y-6">
@@ -412,17 +419,20 @@ export function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {loadingPage ? (<Skeleton></Skeleton>) : (<div className='text-2xl font-bold'>{stat.count}</div>)}
+              {isDataLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <div className='text-2xl font-bold'>{stat.count}</div>
+              )}
             </CardContent>
           </Card>
-        ))
-        }
-      </div >
+        ))}
+      </div>
 
       {/* Charts Row */}
-      < div className="grid grid-cols-1 lg:grid-cols-2 gap-6" >
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly Activity Chart */}
-        < Card >
+        <Card>
           <CardHeader>
             <CardTitle>Hoạt động theo tháng</CardTitle>
             <CardDescription>
@@ -454,10 +464,10 @@ export function AdminDashboard() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card >
+        </Card>
 
         {/* Subject Distribution */}
-        < Card >
+        <Card>
           <CardHeader>
             <CardTitle>Phân bố môn học</CardTitle>
             <CardDescription>
@@ -490,11 +500,11 @@ export function AdminDashboard() {
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card >
-      </div >
+        </Card>
+      </div>
 
       {/* Additional Analytics Stats */}
-      < div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -505,9 +515,13 @@ export function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">
                   Tổng người dùng
                 </p>
-                <p className="text-xl font-semibold">
-                  {mockOverallStats.totalUsers.toLocaleString()}
-                </p>
+                {isDataLoading ? (
+                  <Skeleton className="h-7 w-16 mt-1" />
+                ) : (
+                  <p className="text-xl font-semibold">
+                    {totalUsers.toLocaleString()}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -521,11 +535,15 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Môn học
+                  Lớp học
                 </p>
-                <p className="text-xl font-semibold">
-                  {mockOverallStats.totalCourses}
-                </p>
+                {isDataLoading ? (
+                  <Skeleton className="h-7 w-16 mt-1" />
+                ) : (
+                  <p className="text-xl font-semibold">
+                    {totalClasses.toLocaleString()}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

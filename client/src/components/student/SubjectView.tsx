@@ -420,7 +420,7 @@ export function SubjectView() {
           className="gap-2"
         >
           <ChevronLeft className="h-4 w-4" />
-          Môn trước
+          Lớp trước
         </Button>
 
         <div className="flex items-center gap-4">
@@ -440,7 +440,7 @@ export function SubjectView() {
           onClick={handleNextSubject}
           className="gap-2"
         >
-          Môn sau
+          Lớp sau
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

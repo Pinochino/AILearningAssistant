@@ -109,6 +109,16 @@ app.post("/ask", async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🤖 AI Service is running at http://localhost:${PORT}`);
-});
+export const startAIServer = (port = PORT) => {
+    return new Promise((resolve) => {
+        const server = app.listen(port, () => {
+            console.log(`🤖 AI Service running on http://localhost:${port}`);
+            resolve(server);
+        });
+    });
+};
+
+// Only start the server if this file is run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+    startAIServer();
+}

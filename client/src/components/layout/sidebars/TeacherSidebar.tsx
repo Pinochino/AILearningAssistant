@@ -21,8 +21,8 @@ const menuItems = [
     badge: null,
   },
   {
-    id: 'subjects',
-    label: 'Môn học của tôi',
+    id: 'classes',
+    label: 'Lớp học của tôi',
     icon: BookOpen,
     badge: null,
   },
