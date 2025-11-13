@@ -1,3 +1,4 @@
+// AILearningAssistant\server\src\models\Chapter.ts
 import { model, Schema, Types } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 

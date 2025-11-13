@@ -150,7 +150,7 @@ export const remove: RequestHandler = async (req, res) => {
 
     // Soft delete (mongoose-delete). Ghi deletedBy nếu có userId
     // Kiểu TS của plugin có thể không expose đầy đủ => ép any cho chắc.
-    const deleted = await (Chapter as any).deleteById(id, { deletedBy: userId })
+    const deleted = await (Chapter as any).deleteById(id, userId)
     if (!deleted) {
       return responseUtils({ req, res, code: 404, message: 'Chapter not found' })
     }
