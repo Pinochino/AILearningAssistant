@@ -41,7 +41,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppContent />
-        <Toaster position="top-right" richColors />
+        <Toaster position="bottom-right" richColors />
       </AuthProvider>
     </QueryClientProvider>
   );

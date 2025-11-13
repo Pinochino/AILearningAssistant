@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Megaphone, Pencil, Trash2 } from 'lucide-react';
 
 export type Announcement = {
     id: string;
@@ -28,7 +28,7 @@ export function AnnouncementSection({ announcements, canManage = false, onEdit, 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>📢 Thông báo chung</CardTitle>
+                <CardTitle className="flex items-center gap-2"> <Megaphone color="#de3f3f" className="h-4 w-4" /> Thông báo chung</CardTitle>
                 {announcements.length > 5 && (
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
@@ -100,7 +100,8 @@ export function AnnouncementSection({ announcements, canManage = false, onEdit, 
                                             <Button size="icon" variant="ghost" onClick={() => onEdit ? onEdit(a.id) : null}>
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
-                                            <Button size="icon" variant="ghost" onClick={() => onDelete ? onDelete(a.id) : null}>
+                                            <Button size="icon" variant="ghost"
+                                                className="text-destructive hover:text-destructive" onClick={() => onDelete ? onDelete(a.id) : null}>
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </>

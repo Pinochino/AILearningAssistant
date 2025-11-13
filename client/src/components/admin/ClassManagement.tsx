@@ -22,6 +22,7 @@ export function ClassManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [classes, setClasses] = useState<Class[]>([]);
+  const [totalClasses, setTotalClasses] = useState(0);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -136,14 +137,20 @@ export function ClassManagement() {
   useEffect(() => {
     loadClasses();
     loadSubjects();
-  }, [currentPage]);
+  }, [currentPage, searchTerm]);
 
   const loadClasses = async () => {
     try {
       setLoading(true);
       setError(null);
       console.log('🔍 Loading classes...');
-      const response = await classApi.getAll({ page: currentPage, limit: 10 });
+
+      const response = await classApi.getAll({
+        page: currentPage,
+        limit: 10,
+        subject: searchTerm || undefined,
+      });
+
       console.log('📦 Full response:', response);
       console.log('📦 Response data:', response.data);
       console.log('📦 Response data type:', typeof response.data);
@@ -153,27 +160,33 @@ export function ClassManagement() {
         // Format: { data: { items: [...], pagination: {...} } }
         setClasses(response.data.items);
         setTotalPages(response.data.pagination?.totalPages || 1);
+        setTotalClasses(response.data.pagination?.totalItems || response.data.items.length);
       } else if (response?.data && Array.isArray(response.data)) {
         // Format: { data: [...] }
         setClasses(response.data);
         setTotalPages(1);
+        setTotalClasses(response.data.length);
       } else if (Array.isArray(response)) {
         // Format: [...]
         setClasses(response);
         setTotalPages(1);
+        setTotalClasses(response.length);
       } else {
-        console.warn('Unexpected response format:', response);
+        console.warn('⚠️ Unexpected response format:', response);
         setClasses([]);
         setTotalPages(1);
+        setTotalClasses(0);
       }
     } catch (err: any) {
       setError(err.message || 'Không thể tải danh sách lớp học');
-      console.error('Error loading classes:', err);
+      console.error('❌ Error loading classes:', err);
       setClasses([]);
+      setTotalClasses(0);
     } finally {
       setLoading(false);
     }
   };
+
 
   const loadSubjects = async () => {
     try {
@@ -405,12 +418,15 @@ export function ClassManagement() {
     }
   };
 
-  const filteredClasses = classes.filter(cls => {
-    const searchLower = (searchTerm || '').toLowerCase();
-    const name = (cls.name || '').toLowerCase();
-    const subject = (cls.subject || '').toLowerCase();
-    return name.includes(searchLower) || subject.includes(searchLower);
-  });
+  // Handle search input change with debounce
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  // Use all classes as we're filtering on the server side
+  const filteredClasses = classes;
 
   return (
     <div className="space-y-6">
@@ -419,7 +435,7 @@ export function ClassManagement() {
         <div>
           <h1>Quản lý lớp học</h1>
           <p className="text-muted-foreground">
-            Tạo và quản lý các lớp học trong hệ thống
+            Danh sách lớp học ({totalClasses})
           </p>
         </div>
 
@@ -698,16 +714,19 @@ export function ClassManagement() {
       </div>
 
       {/* Search */}
-      <Card>
+      <Card className="border-0 shadow-sm">
         <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Tìm kiếm lớp học theo tên hoặc môn học..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+          <div className="relative max-w-2xl mx-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Tìm kiếm theo tên môn học..."
+                className="w-full h-10 pl-9 pr-4 rounded-lg bg-background border border-input border-gray-300 focus-visible:ring-1 focus-visible:ring-ring"
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -821,7 +840,7 @@ export function ClassManagement() {
       )}
 
       {/* Pagination */}
-      {!loading && !error && totalPages > 1 && (
+      {!loading && !error && totalPages > 1 && (!searchTerm || classes.length > 10) && (
         <div className="flex justify-center gap-2">
           <Button
             variant="outline"

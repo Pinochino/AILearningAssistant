@@ -22,7 +22,6 @@ import {
   Star,
   StarOff
 } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { MessagesService } from '../../services/messages';
 import { NotificationsService } from '../../services/notifications';
 import { UsersService } from '../../services/users';
@@ -703,30 +702,36 @@ export function Messages() {
                     if (!isGroup) {
                       return (
                         <>
-                          <Button variant="ghost" size="sm" onClick={() => setDeleteOpen(true)}>
+                          <Button variant="ghost" size="sm"
+                            className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </>
                       );
                     }
                     return (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => { setNewName(String(currentConversation?.name || '')); setRenameOpen(true); }}>
-                            <Reply className="mr-2 h-4 w-4" />
-                            Đổi tên
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteOpen(true)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Xóa cuộc trò chuyện
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setNewName(String(currentConversation?.name || ''));
+                            setRenameOpen(true);
+                          }}
+                          title="Đổi tên"
+                        >
+                          <Reply className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteOpen(true)}
+                          title="Xóa cuộc trò chuyện"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     );
                   })()}
                 </div>

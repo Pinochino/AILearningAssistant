@@ -94,26 +94,93 @@ export function UserManagement() {
 
   const { mutate: handleDeleteUser } = useMutation({
     mutationFn: async (userId: string) => {
-      return await handleApi({ url: `/users/delete/${userId}`, method: 'DELETE' })
-    },
-    onMutate: async (userId: string) => {
-      await queryClient.cancelQueries({ queryKey: ['users'] })
-
-      const previousUsers = queryClient.getQueryData<any[]>(['users'])
-
-      queryClient.setQueryData<any[]>(['users'], (old) => (old ? old.filter((user) => user._id !== userId) : []))
-
-      return { previousUsers }
-    },
-    onError: (_err, _userId, context) => {
-      if (context?.previousUsers) {
-        queryClient.setQueryData(['users'], context.previousUsers)
+      try {
+        const response = await handleApi({ 
+          url: `/users/delete/${userId}`, 
+          method: 'DELETE',
+          data: { userId }
+        });
+        return response;
+      } catch (error) {
+        console.error('Delete user error:', error);
+        throw error;
       }
     },
+    onMutate: async (userId: string) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['users'] });
+      if (selectedRole) {
+        await queryClient.cancelQueries({ queryKey: ['usersByRoleId', selectedRole] });
+      }
+
+      // Snapshot the previous values with proper type checking
+      const getUsersData = (key: string) => {
+        const data = queryClient.getQueryData<any>(key);
+        // Handle different possible response structures
+        if (Array.isArray(data)) return data;
+        if (data?.data?.users) return data.data.users;
+        if (data?.data) return data.data;
+        return [];
+      };
+
+      const previousUsers = getUsersData('users');
+      const previousFilteredUsers = selectedRole 
+        ? getUsersData(['usersByRoleId', selectedRole].join('-'))
+        : null;
+
+      // Safely update the users list
+      const updateQueryData = (key: string, userId: string) => {
+        queryClient.setQueryData<any>(key, (old: any) => {
+          const data = Array.isArray(old) ? old : 
+                     old?.data?.users ? old.data.users : 
+                     old?.data ? old.data : [];
+          return data.filter((user: any) => user?._id !== userId);
+        });
+      };
+
+      // Optimistically update the users list
+      updateQueryData('users', userId);
+
+      // Optimistically update the filtered users list if it exists
+      if (selectedRole) {
+        updateQueryData(['usersByRoleId', selectedRole].join('-'), userId);
+      }
+
+      return { 
+        previousUsers: { data: { users: previousUsers } }, 
+        previousFilteredUsers: previousFilteredUsers ? { data: { users: previousFilteredUsers } } : null 
+      };
+    },
+    onError: (error: any, userId, context) => {
+      console.error('Error deleting user:', error);
+      
+      // Rollback on error with proper type checking
+      const rollbackQueryData = (key: string, data: any) => {
+        if (!data) return;
+        queryClient.setQueryData(key, data);
+      };
+
+      if (context?.previousUsers) {
+        rollbackQueryData('users', context.previousUsers);
+      }
+      if (selectedRole && context?.previousFilteredUsers) {
+        rollbackQueryData(['usersByRoleId', selectedRole].join('-'), context.previousFilteredUsers);
+      }
+      
+      const errorMessage = error.response?.data?.message || 'Xóa người dùng thất bại';
+      toast.error(errorMessage);
+    },
+    onSuccess: () => {
+      toast.success('Đã xóa người dùng thành công');
+    },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
-      queryClient.invalidateQueries({ queryKey: ['count-role-USER'] })
-      queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] })
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      if (selectedRole) {
+        queryClient.invalidateQueries({ queryKey: ['usersByRoleId', selectedRole] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['count-role-USER'] });
+      queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] });
     }
   })
 
@@ -193,12 +260,22 @@ export function UserManagement() {
 
   console.log("usersByRoleId: ", usersByRoleId)
 
-  const filteredUsers = usersByRoleId?.filter((user: any) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole
-    return matchesSearch && matchesRole
+  // Get users from the response data structure
+  const usersFromResponse = usersByRoleId?.data?.users || [];
+
+  const filteredUsers = usersFromResponse.filter((user: any) => {
+    if (!user) return false;
+
+    const matchesSearch = searchTerm ? (
+      (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (user.username?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    ) : true;
+
+    const matchesRole = !selectedRole || selectedRole === 'all' ||
+      (user.roles && user.roles.some((role: any) => role._id === selectedRole));
+
+    return matchesSearch && matchesRole;
   })
 
   const filterUserIsActive = async () => {
@@ -396,14 +473,31 @@ export function UserManagement() {
       {/* User List */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách người dùng ({users?.length})</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Danh sách người dùng ({users?.length || 0})</CardTitle>
+            {selectedRole && selectedRole !== 'all' && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {roles?.data?.find((r: any) => r._id === selectedRole)?.name} ({filteredUsers.length})
+                </span>
+              </div>
+            )}
+          </div>
           <CardDescription>Quản lý thông tin và quyền hạn của từng người dùng</CardDescription>
         </CardHeader>
         <CardContent>
           <div className='space-y-4'>
-            {usersByRoleId
-              ? DisplayUsers({ users: userByRoleId, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })
-              : DisplayUsers({ users: userData, navigateTo, getRoleBadgeVariant, getRoleLabel, handleDeleteUser })}
+            {selectedRole && selectedRole !== 'all'
+              ? (
+                filteredUsers.length > 0
+                  ? <DisplayUsers users={filteredUsers} navigateTo={navigateTo} getRoleBadgeVariant={getRoleBadgeVariant} getRoleLabel={getRoleLabel} handleDeleteUser={handleDeleteUser} />
+                  : <p className='text-center py-4 text-muted-foreground'>Không tìm thấy người dùng nào</p>
+              )
+              : (
+                userData.length > 0
+                  ? <DisplayUsers users={userData} navigateTo={navigateTo} getRoleBadgeVariant={getRoleBadgeVariant} getRoleLabel={getRoleLabel} handleDeleteUser={handleDeleteUser} />
+                  : <p className='text-center py-4 text-muted-foreground'>Không có người dùng nào</p>
+              )}
           </div>
         </CardContent>
       </Card>
