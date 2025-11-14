@@ -13,8 +13,8 @@ export interface IQuizQuestion {
 export interface IQuiz extends SoftDeleteDocument {
   title: string
   description?: string
-  classId: Types.ObjectId           // 👈 đổi 'class' -> 'classId' cho thống nhất
-  chapters: Types.ObjectId[]        // có thể nhiều chương
+  classId: Types.ObjectId           
+  chapters: Types.ObjectId[]        
   createdBy?: Types.ObjectId
   durationMinutes?: number
   isPublic: boolean

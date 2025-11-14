@@ -30,7 +30,8 @@ import {
   Target,
   Loader2,
   Eye,
-  Play
+  Play,
+  BookText
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { Input } from '../ui/input'
@@ -242,6 +243,11 @@ export function SubjectDetail() {
   const [chapterDocuments, setChapterDocuments] = useState<any[]>([]) // Lưu tài liệu của chương
   const [chLoading, setChLoading] = useState(false)
   const [chError, setChError] = useState<string | null>(null)
+  const [aiQuestionCount, setAiQuestionCount] = useState('10')
+  const [quizzes, setQuizzes] = useState([])
+  const [quizLoading, setQuizLoading] = useState(false)
+  const [quizError, setQuizError] = useState<string | null>(null)
+  const [creatingQuiz, setCreatingQuiz] = useState(false)
 
   // Hàm tạo chương mới
   const handleCreateChapter = async () => {
@@ -302,20 +308,172 @@ export function SubjectDetail() {
     }
   }
 
-  async function getChaptersByClassId(classId: string, signal?: AbortSignal) {
-    const res = await axios.get('http://localhost:9000/api/chapters', {
-      params: { classId },
-      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-      withCredentials: true,
-      signal
-    })
-    const data = res.data
-    return (data?.data?.items ?? data?.data ?? []) as ChapterLite[]
+  // lấy tài liệu theo chương đã chọn để tạo quiz flashcard bằng ai
+  const getMaterialsBySelectedChapters = async (chapterIds: string[]) => {
+    let allMaterialIds: string[] = []
+
+    for (const chapterId of chapterIds) {
+      const res = await axios.get(
+        `http://localhost:9000/api/materials/class/${currentSubjectId}/chapter/${chapterId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        }
+      )
+
+      const docs = res.data.data || []
+
+      // Lấy ID của tất cả tài liệu
+      const ids = docs.map((d: any) => d._id)
+
+      allMaterialIds = [...allMaterialIds, ...ids]
+    }
+
+    return allMaterialIds
+  }
+
+  const createAIQuiz = async () => {
+    setCreatingQuiz(true)
+
+    try {
+      // 1. Lấy chương đã chọn
+      const chapterIds = selectedChapters
+      if (chapterIds.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương!')
+        return
+      }
+
+      // 2. Lấy tất cả tài liệu của các chương đã chọn
+      const materialIds = await getMaterialsBySelectedChapters(chapterIds)
+      if (materialIds.length === 0) {
+        toast.error('Các chương này chưa có tài liệu. Không thể tạo quiz AI.')
+        return
+      }
+
+      // 3. Build payload
+      const payload = {
+        title: quizTitle,
+        classId: currentSubjectId,
+        chapterIds,
+        materialIds,
+        count: Number(aiQuestionCount),
+        prompt: aiPrompt,
+        durationMinutes: Number(quizDuration)
+      }
+
+      // 4. CALL API
+      const res = await axios.post('http://localhost:9000/api/ai/generate-quiz', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      toast.success('Tạo quiz thành công!')
+
+      // 5. Đóng dialog + Refresh quiz list
+      setIsCreateQuizOpen(false)
+      resetQuizForm()
+      fetchQuizzes()
+    } catch (err: any) {
+      console.error('Create AI Quiz Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo quiz')
+    } finally {
+      setCreatingQuiz(false)
+    }
+  }
+
+  const createManualQuiz = async () => {
+    setCreatingQuiz(true)
+
+    try {
+      // Validate
+      if (!quizTitle.trim()) {
+        toast.error('Bạn phải nhập tiêu đề quiz')
+        return
+      }
+
+      if (selectedChapters.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương')
+        return
+      }
+
+      if (questions.length === 0) {
+        toast.error('Bạn phải có ít nhất 1 câu hỏi')
+        return
+      }
+
+      for (const q of questions) {
+        if (!q.question.trim()) {
+          toast.error('Một câu hỏi chưa có nội dung')
+          return
+        }
+        if (q.answers.some((a) => !a.trim())) {
+          toast.error('Một câu hỏi có đáp án bị trống')
+          return
+        }
+      }
+
+      const payload = {
+        title: quizTitle,
+        classId: currentSubjectId,
+        chapters: selectedChapters,
+        durationMinutes: Number(quizDuration),
+        isAIGenerated: false,
+        questions: questions.map((q) => ({
+          question: q.question.trim(),
+          answers: q.answers.map((a) => a.trim()),
+          correctAnswer: q.correctAnswer
+        }))
+      }
+
+      await axios.post('http://localhost:9000/api/quizzes', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      toast.success('Tạo quiz thủ công thành công!')
+
+      setIsCreateQuizOpen(false)
+      resetQuizForm()
+      fetchQuizzes()
+    } catch (err: any) {
+      console.error('Create Manual Quiz Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo quiz')
+    } finally {
+      setCreatingQuiz(false)
+    }
+  }
+
+  // lấy tất cả quiz theo lớp
+  const fetchQuizzes = async () => {
+    if (!currentSubjectId) return
+
+    setQuizLoading(true)
+    setQuizError(null)
+
+    try {
+      const res = await axios.get(`http://localhost:9000/api/quizzes/class/${currentSubjectId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
+
+      // res.data.data.items là array quiz BE trả về
+      setQuizzes(res.data.data.items || [])
+    } catch (err: any) {
+      console.error('Error loading quizzes:', err)
+      setQuizError(err?.response?.data?.message || 'Không thể tải danh sách quiz')
+    } finally {
+      setQuizLoading(false)
+    }
   }
 
   // Gọi API khi component mount
   useEffect(() => {
     fetchChapters()
+    fetchQuizzes()
   }, [currentSubjectId])
 
   // Quiz form states
@@ -516,11 +674,6 @@ export function SubjectDetail() {
         toast.error('Lỗi khi tải tài liệu')
       }
     }
-  }
-
-  // Lấy tất cả các tài liệu thuộc chương tương ứng
-  const getDocumentsForChapter = (chapterId: string) => {
-    return mockDocuments.filter((doc) => doc.chapterId === chapterId)
   }
 
   // Tải tài liệu lên
@@ -947,7 +1100,7 @@ export function SubjectDetail() {
                   <Label>Thời gian (phút)</Label>
                   <Input
                     type='number'
-                    placeholder='30'
+                    placeholder='Nhập thời gian làm quiz'
                     value={quizDuration}
                     onChange={(e) => setQuizDuration(e.target.value)}
                   />
@@ -967,13 +1120,19 @@ export function SubjectDetail() {
 
                 {quizMode === 'ai' ? (
                   <div className='space-y-2'>
-                    <div className='space-y-2'>
+                    <div className='space-y-2 pb-2'>
                       <Label>Số câu hỏi</Label>
-                      <Input type='number' placeholder='Nhập số lượng câu hỏi' />
+                      <Input
+                        type='number'
+                        placeholder='Nhập số lượng câu hỏi'
+                        value={aiQuestionCount}
+                        onChange={(e) => setAiQuestionCount(e.target.value)}
+                      />
                     </div>
-                    {/* UI prompt + paperclip */}
+
+                    {/* UI prompt */}
                     <div className='space-y-2'>
-                      <label className='block text-sm font-medium text-gray-700'>Prompt cho AI</label>
+                      <label className='block text-sm font-medium text-gray-700 pt-2'>Prompt cho AI</label>
 
                       {/* wrapper có viền: textarea + icon nằm bên trong viền */}
                       <div className='relative'>
@@ -1037,7 +1196,7 @@ export function SubjectDetail() {
                         <Card key={question.id}>
                           <CardHeader className='pb-3'>
                             <div className='flex items-center justify-between'>
-                              <CardTitle className='text-base'>Câu hỏi {qIndex + 1}</CardTitle>
+                              <CardTitle className='text-base font-semibold'>Câu hỏi {qIndex + 1}</CardTitle>
                               {questions.length > 1 && (
                                 <Button
                                   type='button'
@@ -1062,7 +1221,7 @@ export function SubjectDetail() {
                             </div>
 
                             <div className='space-y-3'>
-                              <Label>Các đáp án</Label>
+                              <Label className='pt-2'>Các đáp án</Label>
                               {question.answers.map((answer, ansIndex) => (
                                 <div key={ansIndex} className='flex items-center gap-3'>
                                   <div className='flex items-center gap-2'>
@@ -1105,7 +1264,10 @@ export function SubjectDetail() {
                   <Button variant='outline' onClick={() => setIsCreateQuizOpen(false)}>
                     Hủy
                   </Button>
-                  <Button onClick={() => setIsCreateQuizOpen(false)}>Tạo Quiz</Button>
+                  <Button disabled={creatingQuiz} onClick={quizMode === 'ai' ? createAIQuiz : createManualQuiz}>
+                    {creatingQuiz && <Spinner />}
+                    {creatingQuiz ? 'Đang tạo...' : 'Tạo Quiz'}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
@@ -1307,7 +1469,7 @@ export function SubjectDetail() {
       </div>
 
       {/* Quick Stats */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+      <div className='grid grid-cols-4 gap-2'>
         <Card>
           <CardContent className='p-4'>
             <div className='flex items-center gap-2'>
@@ -1322,7 +1484,7 @@ export function SubjectDetail() {
         <Card>
           <CardContent className='p-4'>
             <div className='flex items-center gap-2'>
-              <BookOpen className='h-5 w-5 text-green-600' />
+              <BookText className='h-5 w-5 text-green-600' />
               <div>
                 <p className='text-sm text-muted-foreground'>Chương</p>
                 <p className='text-xl font-semibold'>{chapters.length}</p>
@@ -1358,12 +1520,14 @@ export function SubjectDetail() {
 
       {/* Main Content */}
       <Tabs defaultValue='chapters' className='space-y-4'>
-        <TabsList>
-          <TabsTrigger value='chapters'>Chương học</TabsTrigger>
-          <TabsTrigger value='students'>Học sinh</TabsTrigger>
-          <TabsTrigger value='documents'>Tài liệu</TabsTrigger>
-          <TabsTrigger value='quiz-flashcard'>Quiz & Flashcard</TabsTrigger>
-        </TabsList>
+        <div className='flex justify-center'>
+          <TabsList>
+            <TabsTrigger value='chapters'>Chương học</TabsTrigger>
+            <TabsTrigger value='students'>Học sinh</TabsTrigger>
+            <TabsTrigger value='documents'>Tài liệu</TabsTrigger>
+            <TabsTrigger value='quiz-flashcard'>Quiz & Flashcard</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Chapters Tab */}
         <TabsContent value='chapters' className='space-y-4'>
@@ -1473,6 +1637,8 @@ export function SubjectDetail() {
                                   <span>{getFileTypeLabel(doc.type)}</span>
                                   <span>•</span>
                                   <span>{(doc.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                  <span>•</span>
+                                  <span>{doc.createdAt.slice(0, 10)}</span>
                                 </div>
                               </div>
                             </div>

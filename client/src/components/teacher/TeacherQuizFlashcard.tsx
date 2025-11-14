@@ -157,33 +157,6 @@ const mockFlashcards = [
   }
 ]
 
-const mockRecentActivity = [
-  {
-    id: '1',
-    type: 'quiz_attempt',
-    title: 'Nguyễn Văn A đã hoàn thành quiz "Hàm số bậc nhất"',
-    score: 85,
-    time: '2 giờ trước',
-    avatar: 'NVA'
-  },
-  {
-    id: '2',
-    type: 'flashcard_review',
-    title: 'Trần Thị B đã học 15 thẻ flashcard "Công thức đạo hàm"',
-    retention: 92,
-    time: '3 giờ trước',
-    avatar: 'TTB'
-  },
-  {
-    id: '3',
-    type: 'quiz_attempt',
-    title: 'Lê Minh C đã hoàn thành quiz "Đạo hàm cơ bản"',
-    score: 78,
-    time: '5 giờ trước',
-    avatar: 'LMC'
-  }
-]
-
 interface TeacherQuizFlashcardProps {
   subjectId?: string
 }
