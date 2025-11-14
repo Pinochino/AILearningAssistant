@@ -41,6 +41,8 @@ import { Checkbox } from '../ui/checkbox'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
 import { TeacherQuizFlashcard } from './TeacherQuizFlashcard'
 import { teacherApi, type Class } from '../../services/api'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import Spinner from '../layout/spinner/Spinner'
 
 const mockSubjects = [
   {
@@ -209,6 +211,8 @@ interface FlashcardItem {
   back: string
 }
 
+type ChapterLite = { _id: string; title: string }
+
 export function SubjectDetail() {
   const [currentSubjectId, setCurrentSubjectId] = useState('1')
   const [subjects, setSubjects] = useState(mockSubjects)
@@ -236,6 +240,8 @@ export function SubjectDetail() {
   const [chapterTitle, setChapterTitle] = useState<string>('') // Lưu title của chapter
   const [title, setTitle] = useState<string>('') // Lưu trữ tiêu đề tài liệu
   const [chapterDocuments, setChapterDocuments] = useState<any[]>([]) // Lưu tài liệu của chương
+  const [chLoading, setChLoading] = useState(false)
+  const [chError, setChError] = useState<string | null>(null)
 
   // Hàm tạo chương mới
   const handleCreateChapter = async () => {
@@ -266,7 +272,7 @@ export function SubjectDetail() {
       toast.success('Tạo chương thành công!', { id: toastId })
 
       setIsCreateChapterOpen(false) // Đóng dialog sau khi tạo thành công
-      // Có thể cần cập nhật lại danh sách chương trong FE
+      fetchChapters() // Cập nhật tài liệu mới
     } catch (error: any) {
       console.error('Error creating chapter:', error)
 
@@ -279,30 +285,32 @@ export function SubjectDetail() {
   const fetchChapters = async () => {
     setLoading(true)
     try {
-      console.log(`Requesting API: http://localhost:9000/api/chapters/class/${currentSubjectId}`)
-
       const response = await axios.get(`http://localhost:9000/api/chapters/class/${currentSubjectId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       })
-
-      console.log(response)
-
-      // Kiểm tra nếu response có dữ liệu, chỉ lúc này mới cập nhật chapters và reset lỗi
-      if (response.data && response.data.data) {
-        setChapters(response.data.data) // Lưu danh sách chương vào state
-        setError(null) // Reset lỗi khi có dữ liệu thành công
+      if (response.data?.data) {
+        setChapters(response.data.data)
+        setError(null)
       } else {
         setError('Không có chương nào được tìm thấy')
       }
-
-      setLoading(false)
     } catch (error) {
       console.error('Error fetching chapters:', error)
-      setError('Lỗi khi tải dữ liệu chương') // Thiết lập lỗi khi có lỗi xảy ra
+      setError('Lỗi khi tải dữ liệu chương')
+    } finally {
       setLoading(false)
     }
+  }
+
+  async function getChaptersByClassId(classId: string, signal?: AbortSignal) {
+    const res = await axios.get('http://localhost:9000/api/chapters', {
+      params: { classId },
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+      withCredentials: true,
+      signal
+    })
+    const data = res.data
+    return (data?.data?.items ?? data?.data ?? []) as ChapterLite[]
   }
 
   // Gọi API khi component mount
@@ -546,6 +554,7 @@ export function SubjectDetail() {
       console.log('File uploaded successfully:', response.data)
       setIsUploadDocOpen(false) // Đóng dialog sau khi tải lên thành công
       toast.success('Tài liệu đã được tải lên thành công!')
+      fetchChapters() // Cập nhật tài liệu mới
     } catch (error) {
       console.error('Error uploading file:', error)
       toast.error('Lỗi khi tải lên tài liệu')
@@ -660,19 +669,6 @@ export function SubjectDetail() {
     setFlashcards([{ id: '1', front: '', back: '' }])
     setFlashcardMode('manual')
   }
-
-  const handleAddStudent = (studentId: string) => {
-    // Logic to add student to subject
-    console.log('Adding student:', studentId)
-    setIsAddStudentOpen(false)
-  }
-
-  const filteredAvailableStudents = mockAvailableStudents.filter(
-    (student) =>
-      student.name.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
-      student.studentId.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(studentSearchTerm.toLowerCase())
-  )
 
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -923,17 +919,28 @@ export function SubjectDetail() {
 
                 <div className='space-y-2'>
                   <Label>Chọn chương học</Label>
+                  {chLoading && (
+                    <div>
+                      <Spinner />
+                      <p className='text-sm text-muted-foreground'>Đang tải chương…</p>
+                    </div>
+                  )}
+                  {chError && <p className='text-sm text-red-600'>{chError}</p>}
+
                   <div className='grid grid-cols-1 gap-2 border rounded-lg p-3'>
-                    {mockChapters.map((chapter) => (
-                      <div key={chapter.id} className='flex items-center space-x-2'>
+                    {chapters.map((c) => (
+                      <div key={c._id} className='flex items-center space-x-2'>
                         <Checkbox
-                          id={`chapter-${chapter.id}`}
-                          checked={selectedChapters.includes(chapter.id)}
-                          onCheckedChange={(checked: boolean) => handleChapterSelect(chapter.id, checked as boolean)}
+                          id={`chapter-${c._id}`}
+                          checked={selectedChapters.includes(c._id)}
+                          onCheckedChange={(checked: boolean) => handleChapterSelect(c._id, !!checked)}
                         />
-                        <Label htmlFor={`chapter-${chapter.id}`}>{chapter.title}</Label>
+                        <Label htmlFor={`chapter-${c._id}`}>{c.title}</Label>
                       </div>
                     ))}
+                    {!chLoading && !chError && chapters.length === 0 && (
+                      <p className='text-sm text-muted-foreground'>Chưa có chương nào</p>
+                    )}
                   </div>
                 </div>
                 <div className='space-y-2'>
@@ -1329,7 +1336,9 @@ export function SubjectDetail() {
               <FileText className='h-5 w-5 text-blue-600' />
               <div>
                 <p className='text-sm text-muted-foreground'>Tài liệu</p>
-                <p className='text-xl font-semibold'>{(chapters ?? []).reduce((sum, c) => sum + (c.documents?.length ?? 0), 0)}</p>
+                <p className='text-xl font-semibold'>
+                  {(chapters ?? []).reduce((sum, c) => sum + (c.documents?.length ?? 0), 0)}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -1371,74 +1380,74 @@ export function SubjectDetail() {
 
               <CardContent className='space-y-4'>
                 <div className='flex gap-2'>
-                <div className='flex gap-2'>
-                  {/* Nút Thêm tài liệu */}
-                  <Dialog open={isUploadDocOpen} onOpenChange={setIsUploadDocOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        className='gap-2'
-                        onClick={() => handleOpenDialog(chapter)} // Truyền chapter vào
-                      >
-                        <Upload className='h-4 w-4' />
-                        Thêm tài liệu
-                      </Button>
-                    </DialogTrigger>
+                  <div className='flex gap-2'>
+                    {/* Nút Thêm tài liệu */}
+                    <Dialog open={isUploadDocOpen} onOpenChange={setIsUploadDocOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          className='gap-2'
+                          onClick={() => handleOpenDialog(chapter)} // Truyền chapter vào
+                        >
+                          <Upload className='h-4 w-4' />
+                          Thêm tài liệu
+                        </Button>
+                      </DialogTrigger>
 
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Thêm tài liệu mới</DialogTitle>
-                        <DialogDescription>Đăng tải tài liệu cho {chapterTitle}</DialogDescription>{' '}
-                        {/* Sử dụng chapterTitle */}
-                      </DialogHeader>
-                      <div className='space-y-4'>
-                        <div className='space-y-2'>
-                          <Label>Tiêu đề tài liệu</Label>
-                          <Input
-                            placeholder='Nhập tiêu đề tài liệu'
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                          />
-                        </div>
-                        <div className='space-y-2'>
-                          <Label>Tài liệu</Label>
-                          <Input type='file' onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} />
-                        </div>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Thêm tài liệu mới</DialogTitle>
+                          <DialogDescription>Đăng tải tài liệu cho {chapterTitle}</DialogDescription>{' '}
+                          {/* Sử dụng chapterTitle */}
+                        </DialogHeader>
+                        <div className='space-y-4'>
+                          <div className='space-y-2'>
+                            <Label>Tiêu đề tài liệu</Label>
+                            <Input
+                              placeholder='Nhập tiêu đề tài liệu'
+                              value={title}
+                              onChange={(e) => setTitle(e.target.value)}
+                            />
+                          </div>
+                          <div className='space-y-2'>
+                            <Label>Tài liệu</Label>
+                            <Input type='file' onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} />
+                          </div>
 
-                        {/* Ẩn trường Chapter ID */}
-                        <div className='hidden'>
-                          <Label>Chapter ID</Label>
-                          <Input
-                            placeholder='Nhập ID chương' // Trường này vẫn còn, nhưng ẩn đi
-                            value={chapterId}
-                            onChange={() => {}} // Không cần thay đổi giá trị của nó
-                          />
-                        </div>
+                          {/* Ẩn trường Chapter ID */}
+                          <div className='hidden'>
+                            <Label>Chapter ID</Label>
+                            <Input
+                              placeholder='Nhập ID chương' // Trường này vẫn còn, nhưng ẩn đi
+                              value={chapterId}
+                              onChange={() => {}} // Không cần thay đổi giá trị của nó
+                            />
+                          </div>
 
-                        <div className='flex justify-end gap-2'>
-                          <Button variant='outline' onClick={() => setIsUploadDocOpen(false)}>
-                            Hủy
-                          </Button>
-                          <Button onClick={handleUploadMaterial}>Đăng tải</Button>
+                          <div className='flex justify-end gap-2'>
+                            <Button variant='outline' onClick={() => setIsUploadDocOpen(false)}>
+                              Hủy
+                            </Button>
+                            <Button onClick={handleUploadMaterial}>Đăng tải</Button>
+                          </div>
                         </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
 
-                <div className='flex gap-2'>
-                  {/* Nút Xem tài liệu */}
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='gap-2'
-                    onClick={() => handleToggleDocuments(chapter._id)} // Dùng chapter._id để mở tài liệu
-                  >
-                    <FileText className='h-4 w-4' />
-                    Xem tài liệu ({chapter.documents.length})
-                  </Button>
-                </div>
+                  <div className='flex gap-2'>
+                    {/* Nút Xem tài liệu */}
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      className='gap-2'
+                      onClick={() => handleToggleDocuments(chapter._id)} // Dùng chapter._id để mở tài liệu
+                    >
+                      <FileText className='h-4 w-4' />
+                      Xem tài liệu ({chapter.documents.length})
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Mở rộng tài liệu khi expandedChapter trùng với chapter._id */}

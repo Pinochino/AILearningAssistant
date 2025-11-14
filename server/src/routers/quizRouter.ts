@@ -1,3 +1,4 @@
+// AILearningAssistant\server\src\routers\quizRouter.ts
 import { Router } from 'express'
 import * as qz from '../controllers/QuizController'
 

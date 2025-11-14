@@ -1,3 +1,4 @@
+// AILearningAssistant\server\src\models\Quiz.ts
 import { model, Schema, Types } from 'mongoose'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
