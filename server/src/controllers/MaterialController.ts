@@ -226,7 +226,7 @@ export const getMaterialsForChapter: RequestHandler = async (req, res) => {
       .lean()
 
     if (!materials || materials.length === 0) {
-      return res.status(404).json({ message: 'No materials found for this chapter' })
+      return res.status(404).json({ message: 'Không tìm thấy tài liệu nào cho chương này!' })
     }
 
     return res.status(200).json({ success: true, data: materials })
