@@ -39,11 +39,15 @@ import {
   Target,
   Loader2,
   Eye,
+  BookText,
+  Play,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -59,81 +63,74 @@ import {
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Checkbox } from "../ui/checkbox";
-import { TeacherQuizFlashcard } from "./TeacherQuizFlashcard";
+import TeacherQuizFlashcard from "./TeacherQuizFlashcard";
 import { teacherApi, enrollmentApi, classApi, type Class } from '../../services/api';
 import { UsersService } from '../../services/users';
+import axios from "axios";
+import Spinner from "../layout/spinner/Spinner";
 
 const mockSubjects = [
   {
-    id: "1",
-    name: "Toán học 12A1",
-    description: "Chương trình Toán học lớp 12A1 - Học kỳ 1",
+    id: '1',
+    name: 'Toán học 12A1',
+    description: 'Chương trình Toán học lớp 12A1 - Học kỳ 1',
     studentCount: 35,
   },
   {
-    id: "2",
-    name: "Toán học 12A2",
-    description: "Chương trình Toán học lớp 12A2 - Học kỳ 1",
+    id: '2',
+    name: 'Toán học 12A2',
+    description: 'Chương trình Toán học lớp 12A2 - Học kỳ 1',
     studentCount: 33,
   },
   {
-    id: "3",
-    name: "Vật lý 11B1",
-    description: "Chương trình Vật lý lớp 11B1 - Học kỳ 1",
+    id: '3',
+    name: 'Vật lý 11B1',
+    description: 'Chương trình Vật lý lớp 11B1 - Học kỳ 1',
     studentCount: 38,
   },
 ];
 
+// Mock data for when API fails
 const mockChapters = [
-  {
-    id: "1",
-    title: "Chương 1: Hàm số và đồ thị",
-    order: 1,
-    documents: 5,
-    quizzes: 3,
-    flashcards: 15,
-  },
-  {
-    id: "2",
-    title: "Chương 2: Đạo hàm",
-    order: 2,
-    documents: 4,
-    quizzes: 2,
-    flashcards: 12,
-  },
-  {
-    id: "3",
-    title: "Chương 3: Ứng dụng đạo hàm",
-    order: 3,
-    documents: 3,
-    quizzes: 1,
-    flashcards: 8,
-  },
+  { _id: 'ch1', title: 'Chương 1: Đạo hàm và vi phân', classId: '1', documents: [] },
+  { _id: 'ch2', title: 'Chương 2: Nguyên hàm', classId: '1', documents: [] },
+  { _id: 'ch3', title: 'Chương 3: Tích phân', classId: '1', documents: [] },
+];
+
+const mockQuizzes = [
+  { _id: 'q1', title: 'Kiểm tra giữa kỳ', classId: '1', duration: 60, questions: 10 },
+  { _id: 'q2', title: 'Kiểm tra cuối kỳ', classId: '1', duration: 90, questions: 15 },
+];
+
+const mockStudents = [
+  { id: 's1', name: 'Nguyễn Văn A', username: 'student1', studentId: 'SV001', quizScore: 85, lastActive: '2024-01-15', status: 'active' },
+  { id: 's2', name: 'Trần Thị B', username: 'student2', studentId: 'SV002', quizScore: 92, lastActive: '2024-01-14', status: 'active' },
+  { id: 's3', name: 'Lê Văn C', username: 'student3', studentId: 'SV003', quizScore: 78, lastActive: '2024-01-13', status: 'active' },
 ];
 
 const mockAvailableStudents = [
   {
-    id: "7",
-    name: "Trần Văn G",
-    email: "student7@example.com",
-    studentId: "SV007",
-    class: "12A3",
+    id: '7',
+    name: 'Trần Văn G',
+    email: 'student7@example.com',
+    studentId: 'SV007',
+    class: '12A3'
   },
   {
-    id: "8",
-    name: "Lê Thị H",
-    email: "student8@example.com",
-    studentId: "SV008",
-    class: "12A4",
+    id: '8',
+    name: 'Lê Thị H',
+    email: 'student8@example.com',
+    studentId: 'SV008',
+    class: '12A4'
   },
   {
-    id: "9",
-    name: "Phạm Văn I",
-    email: "student9@example.com",
-    studentId: "SV009",
-    class: "12A5",
-  },
-];
+    id: '9',
+    name: 'Phạm Văn I',
+    email: 'student9@example.com',
+    studentId: 'SV009',
+    class: '12A5'
+  }
+]
 
 const mockDocuments = [
   {
@@ -179,88 +176,356 @@ const mockDocuments = [
 ];
 
 interface QuizQuestion {
-  id: string;
-  question: string;
-  answers: string[];
-  correctAnswer: number;
+  id: string
+  question: string
+  answers: string[]
+  correctAnswer: number
 }
 
 interface FlashcardItem {
-  id: string;
-  front: string;
-  back: string;
+  id: string
+  front: string
+  back: string
 }
 
-export function SubjectDetail() {
-  const [currentSubjectId, setCurrentSubjectId] = useState<string | null>(null);
-  const [subjects, setSubjects] = useState(mockSubjects);
-  const [loading, setLoading] = useState(true);
-  const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([]);
-  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
-  const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
-  const [loadingStudents, setLoadingStudents] = useState(false);
-  const [quizDuration, setQuizDuration] = useState('');
-  const [isCreateChapterOpen, setIsCreateChapterOpen] =
-    useState(false);
-  const [isCreateQuizOpen, setIsCreateQuizOpen] =
-    useState(false);
-  const [isCreateFlashcardOpen, setIsCreateFlashcardOpen] =
-    useState(false);
-  const [isUploadDocOpen, setIsUploadDocOpen] = useState(false);
-  const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
-  const [isAddStudentOpen, setIsAddStudentOpen] =
-    useState(false);
-  const [isPendingStudentsOpen, setIsPendingStudentsOpen] =
-    useState(false);
-  const [quizMode, setQuizMode] = useState<"manual" | "ai">(
-    "manual",
-  );
-  const [flashcardMode, setFlashcardMode] = useState<
-    "manual" | "ai"
-  >("manual");
-  const [studentSearchTerm, setStudentSearchTerm] =
-    useState("");
-  const [aiPrompt, setAiPrompt] = useState<string>("");
-  const [aiFile, setAiFile] = useState<File | null>(null);
-  // Quiz form states
-  const [quizTitle, setQuizTitle] = useState("");
-  const [selectedChapters, setSelectedChapters] = useState<
-    string[]
-  >([]);
-  const [questions, setQuestions] = useState<QuizQuestion[]>([
-    {
-      id: "1",
-      question: "",
-      answers: ["", "", "", ""],
-      correctAnswer: 0,
-    },
-  ]);
+type ChapterLite = { _id: string; title: string }
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000/api';
-  // Flashcard form states
-  const [flashcardTitle, setFlashcardTitle] = useState("");
-  const [
-    selectedFlashcardChapters,
-    setSelectedFlashcardChapters,
-  ] = useState<string[]>([]);
-  const [flashcards, setFlashcards] = useState<FlashcardItem[]>(
-    [{ id: "1", front: "", back: "" }],
-  );
+export function SubjectDetail() {
+  const [currentSubjectId, setCurrentSubjectId] = useState('1')
+  const [materials, setMaterials] = useState<any[]>([])
+  const [materialsLoading, setMaterialsLoading] = useState(false)
+  const [subjects, setSubjects] = useState(mockSubjects)
+  const [loading, setLoading] = useState(true)
+  const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([])
+  const [enrolledStudents, setEnrolledStudents] = useState<any[]>([])
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false)
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [expandedChapter, setExpandedChapter] = useState<string | null>(null)
+  const [quizDuration, setQuizDuration] = useState('')
+  const [isCreateChapterOpen, setIsCreateChapterOpen] = useState(false)
+  const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false)
+  const [isCreateFlashcardOpen, setIsCreateFlashcardOpen] = useState(false)
+  const [isUploadDocOpen, setIsUploadDocOpen] = useState(false)
+  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false)
+  const [isPendingStudentsOpen, setIsPendingStudentsOpen] = useState(false)
+  const [quizMode, setQuizMode] = useState<'manual' | 'ai'>('manual')
+  const [flashcardMode, setFlashcardMode] = useState<'manual' | 'ai'>('manual')
+  const [flashcardLoading, setFlashcardLoading] = useState(false)
+  const [studentSearchTerm, setStudentSearchTerm] = useState('')
+  const [aiPrompt, setAiPrompt] = useState<string>('')
+  const [aiFile, setAiFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [chapters, setChapters] = useState<any[]>([])
+  const [file, setFile] = useState<File | null>(null) // Lưu trữ tệp tin tải lên
+  const [description, setDescription] = useState<string>('') // Lưu trữ mô tả tài liệu
+  const [chapterId, setChapterId] = useState<string>('') // Lưu trữ chapterId
+  const [chapterTitle, setChapterTitle] = useState<string>('') // Lưu title của chapter
+  const [title, setTitle] = useState<string>('') // Lưu trữ tiêu đề tài liệu
+  const [chapterDocuments, setChapterDocuments] = useState<any[]>([]) // Lưu tài liệu của chương
+  const [chLoading, setChLoading] = useState(false)
+  const [chError, setChError] = useState<string | null>(null)
+  const [aiQuestionCount, setAiQuestionCount] = useState('10')
+  const [quizzes, setQuizzes] = useState<any[]>([])
+  const [quizLoading, setQuizLoading] = useState(false)
+  const [quizError, setQuizError] = useState<string | null>(null)
+  const [creatingQuiz, setCreatingQuiz] = useState(false)
+
+  // Flashcard state variables
+  const [flashcardTitle, setFlashcardTitle] = useState('')
+  const [flashcardList, setFlashcardList] = useState<any[]>([])
+  const [selectedFlashcardChapters, setSelectedFlashcardChapters] = useState<string[]>([])
+  const [flashcards, setFlashcards] = useState<FlashcardItem[]>([{ id: '1', front: '', back: '' }])
+  const [aiFlashcardCount, setAiFlashcardCount] = useState('10')
+
+  // Quiz state variables
+  const [selectedChapters, setSelectedChapters] = useState<string[]>([])
+  const [quizTitle, setQuizTitle] = useState('')
+  const [questions, setQuestions] = useState<{ id: string; question: string; answers: string[]; correctAnswer: number }[]>([{ id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }])
+  const [editingMaterial, setEditingMaterial] = useState<any | null>(null)
+  const [editMaterialTitle, setEditMaterialTitle] = useState('')
+  const [isDeleteMaterialDialogOpen, setIsDeleteMaterialDialogOpen] = useState(false)
+  const [materialToDelete, setMaterialToDelete] = useState<any | null>(null)
+
+  // Hàm tạo chương mới
+  const handleCreateChapter = async () => {
+    // Bắt đầu thông báo loading
+    const toastId = toast.loading('Đang tạo chương...', {
+      duration: 0 // Duration set to 0 to keep the loading toast until it's done
+    })
+
+    try {
+      console.log('Sending request to create chapter...')
+
+      // Gửi yêu cầu tạo chương mới
+      const response = await axios.post(
+        'http://localhost:9000/api/chapters',
+        {
+          title,
+          classId: currentSubjectId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      )
+
+      // Xử lý thành công
+      console.log('Chapter created:', response.data)
+      toast.success('Tạo chương thành công!', { id: toastId })
+
+      setIsCreateChapterOpen(false) // Đóng dialog sau khi tạo thành công
+      fetchChapters() // Cập nhật tài liệu mới
+    } catch (error: any) {
+      console.error('Error creating chapter:', error)
+
+      // Xử lý lỗi
+      toast.error(`Lỗi: ${error.message}`, { id: toastId })
+    }
+  }
+
+  // Hàm gọi API để lấy các chương
+  const fetchChapters = async () => {
+    setLoading(true)
+    try {
+      // Check if we're using mock data (classId is '1', '2', or '3')
+      if (['1', '2', '3'].includes(currentSubjectId)) {
+        // Use mock chapters
+        const mockData = mockChapters.filter(ch => ch.classId === currentSubjectId);
+        setChapters(mockData);
+        setError(null);
+      } else {
+        // Fetch from API
+        const response = await axios.get(`http://localhost:9000/api/chapters/class/${currentSubjectId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        })
+        if (response.data?.data) {
+          setChapters(response.data.data)
+          setError(null)
+        } else {
+          setError('Không có chương nào được tìm thấy')
+        }
+      }
+    } catch (error: any) {
+      // If it's a 404, just set empty chapters (class might not have any chapters yet)
+      if (error.response?.status === 404) {
+        setChapters([]);
+        setError(null);
+      } else {
+        console.error('Error fetching chapters:', error)
+        // For other errors, fall back to mock data if using mock IDs
+        if (['1', '2', '3'].includes(currentSubjectId)) {
+          const mockData = mockChapters.filter(ch => ch.classId === currentSubjectId);
+          setChapters(mockData);
+          setError(null);
+        } else {
+          setError('Lỗi khi tải dữ liệu chương');
+        }
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // lấy tài liệu theo chương đã chọn để tạo quiz flashcard bằng ai
+  const getMaterialsBySelectedChapters = async (chapterIds: string[]) => {
+    let allMaterialIds: string[] = []
+
+    for (const chapterId of chapterIds) {
+      const res = await axios.get(
+        `http://localhost:9000/api/materials/class/${currentSubjectId}/chapter/${chapterId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+        }
+      )
+
+      const docs = res.data.data || []
+
+      // Lấy ID của tất cả tài liệu
+      const ids = docs.map((d: any) => d._id)
+
+      allMaterialIds = [...allMaterialIds, ...ids]
+    }
+
+    return allMaterialIds
+  }
+
+  const createAIQuiz = async () => {
+    setCreatingQuiz(true)
+
+    try {
+      // 1. Lấy chương đã chọn
+      const chapterIds = selectedChapters
+      if (chapterIds.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương!')
+        return
+      }
+
+      // 2. Lấy tất cả tài liệu của các chương đã chọn
+      const materialIds = await getMaterialsBySelectedChapters(chapterIds)
+      if (materialIds.length === 0) {
+        toast.error('Các chương này chưa có tài liệu. Không thể tạo quiz AI.')
+        return
+      }
+
+      // 3. Build payload
+      const payload = {
+        title: quizTitle,
+        classId: currentSubjectId,
+        chapterIds,
+        materialIds,
+        count: Number(aiQuestionCount),
+        prompt: aiPrompt,
+        durationMinutes: Number(quizDuration)
+      }
+
+      // 4. CALL API
+      const res = await axios.post('http://localhost:9000/api/ai/generate-quiz', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      toast.success('Tạo quiz thành công!')
+
+      // 5. Đóng dialog + Refresh quiz list
+      setIsCreateQuizOpen(false)
+      resetQuizForm()
+      fetchQuizzes()
+    } catch (err: any) {
+      console.error('Create AI Quiz Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo quiz')
+    } finally {
+      setCreatingQuiz(false)
+    }
+  }
+
+  const createManualQuiz = async () => {
+    setCreatingQuiz(true)
+
+    try {
+      // Validate
+      if (!quizTitle.trim()) {
+        toast.error('Bạn phải nhập tiêu đề quiz')
+        return
+      }
+
+      if (selectedChapters.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương')
+        return
+      }
+
+      if (questions.length === 0) {
+        toast.error('Bạn phải có ít nhất 1 câu hỏi')
+        return
+      }
+
+      for (const q of questions) {
+        if (!q.question.trim()) {
+          toast.error('Một câu hỏi chưa có nội dung')
+          return
+        }
+        if (q.answers.some((a) => !a.trim())) {
+          toast.error('Một câu hỏi có đáp án bị trống')
+          return
+        }
+      }
+
+      const payload = {
+        title: quizTitle,
+        classId: currentSubjectId,
+        chapters: selectedChapters,
+        durationMinutes: Number(quizDuration),
+        isAIGenerated: false,
+        questions: questions.map((q) => ({
+          question: q.question.trim(),
+          answers: q.answers.map((a) => a.trim()),
+          correctAnswer: q.correctAnswer
+        }))
+      }
+
+      await axios.post('http://localhost:9000/api/quizzes', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      toast.success('Tạo quiz thủ công thành công!')
+
+      setIsCreateQuizOpen(false)
+      resetQuizForm()
+      fetchQuizzes()
+    } catch (err: any) {
+      console.error('Create Manual Quiz Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo quiz')
+    } finally {
+      setCreatingQuiz(false)
+    }
+  }
+
+  // lấy tất cả quiz theo lớp
+  const fetchQuizzes = async () => {
+    if (!currentSubjectId) return
+
+    setQuizLoading(true)
+    setQuizError(null)
+
+    try {
+      // Check if we're using mock data (classId is '1', '2', or '3')
+      if (['1', '2', '3'].includes(currentSubjectId)) {
+        // Use mock quizzes
+        const mockData = mockQuizzes.filter(q => q.classId === currentSubjectId);
+        setQuizzes(mockData);
+      } else {
+        // Fetch from API
+        const res = await axios.get(`http://localhost:9000/api/quizzes/class/${currentSubjectId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        })
+
+        // res.data.data.items là array quiz BE trả về
+        setQuizzes(res.data.data.items || [])
+      }
+    } catch (err: any) {
+      // If it's a 404, just set empty quizzes (class might not have any quizzes yet)
+      if (err.response?.status === 404) {
+        setQuizzes([]);
+      } else {
+        console.error('Error loading quizzes:', err)
+        // For other errors, fall back to mock data if using mock IDs
+        if (['1', '2', '3'].includes(currentSubjectId)) {
+          const mockData = mockQuizzes.filter(q => q.classId === currentSubjectId);
+          setQuizzes(mockData);
+        } else {
+          setQuizError(err?.response?.data?.message || 'Không thể tải danh sách quiz')
+        }
+      }
+    } finally {
+      setQuizLoading(false)
+    }
+  }
+
+  // Add new flashcard set to state for real-time updates
+  const addFlashcardSet = (newSet: any) => {
+    setFlashcardList(prev => [newSet, ...prev])
+  }
 
   const getCurrentUserId = () => {
-    const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user');
+    const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user')
     if (userStr) {
       try {
-        const user = JSON.parse(userStr);
-        // Prefer username over name as it's more likely to be unique
-        return user.username || user.id || user._id;
+        const user = JSON.parse(userStr)
+        // Return ID first, then fallback to username
+        return user.id || user._id || user.username
       } catch (e) {
-        console.error('Error parsing user data:', e);
-        return null;
+        return null
       }
     }
-    return null;
-  };
+    return null
+  }
 
   // Function to load enrolled students for a class
   const loadEnrolledStudents = async (classId: string) => {
@@ -274,6 +539,13 @@ export function SubjectDetail() {
       setLoadingStudents(true);
       console.log(`Fetching students for class ${classId}...`);
       setEnrolledStudents([]);
+
+      // Check if we're using mock data (classId is '1', '2', or '3')
+      if (['1', '2', '3'].includes(classId)) {
+        // Use mock students
+        setEnrolledStudents(mockStudents);
+        return;
+      }
 
       // First try to get the class with populated students
       console.log('Fetching class data with populated students for ID:', classId);
@@ -385,8 +657,9 @@ export function SubjectDetail() {
       });
 
       if (error.message.includes('404') || error.response?.status === 404) {
-        console.error(`Class with ID ${classId} not found`);
-        toast.error(`Không tìm thấy lớp học với ID: ${classId}`);
+        console.error(`Class with ID ${classId} not found or no students enrolled`);
+        // For 404, just set empty students (class might not have any students yet)
+        setEnrolledStudents([]);
       } else if (error.message.includes('400') || error.response?.status === 400) {
         console.error('Validation error for class ID:', classId);
         toast.error('Lỗi dữ liệu: ID lớp học không hợp lệ');
@@ -441,29 +714,36 @@ export function SubjectDetail() {
           }
         } else {
           console.error('Unexpected API response format:', response);
-          setSubjects([]);
+          // Fall back to mock subjects when API response is unexpected
+          setSubjects(mockSubjects);
         }
       } catch (err) {
         console.error('Failed to load classes:', err);
-        setSubjects([]);
+        // Fall back to mock subjects when API fails
+        setSubjects(mockSubjects);
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    loadClasses();
-  }, []);
+    loadClasses()
+  }, [])
 
   // Load enrolled students when current subject changes
   useEffect(() => {
     if (currentSubjectId) {
       loadEnrolledStudents(currentSubjectId);
+      fetchChapters();
+      fetchQuizzes();
+      fetchFlashcards();
+      fetchMaterials();
     }
   }, [currentSubjectId]);
 
   const currentSubject =
     subjects.find((s) => s.id === currentSubjectId) ||
-    subjects[0];
+    subjects[0] ||
+    { id: '1', name: 'Loading...', description: '' };
   const currentSubjectIndex = subjects.findIndex(
     (s) => s.id === currentSubjectId,
   );
@@ -505,24 +785,18 @@ export function SubjectDetail() {
   };
 
   const handleSubjectChange = (subjectId: string) => {
-    setCurrentSubjectId(subjectId);
-  };
+    setCurrentSubjectId(subjectId)
+  }
 
   const handlePrevSubject = () => {
-    const prevIndex =
-      currentSubjectIndex > 0
-        ? currentSubjectIndex - 1
-        : subjects.length - 1;
-    setCurrentSubjectId(subjects[prevIndex].id);
-  };
+    const prevIndex = currentSubjectIndex > 0 ? currentSubjectIndex - 1 : subjects.length - 1
+    setCurrentSubjectId(subjects[prevIndex].id)
+  }
 
   const handleNextSubject = () => {
-    const nextIndex =
-      currentSubjectIndex < subjects.length - 1
-        ? currentSubjectIndex + 1
-        : 0;
-    setCurrentSubjectId(subjects[nextIndex].id);
-  };
+    const nextIndex = currentSubjectIndex < subjects.length - 1 ? currentSubjectIndex + 1 : 0
+    setCurrentSubjectId(subjects[nextIndex].id)
+  }
 
   // Update the loadPendingEnrollments function
   const loadPendingEnrollments = async (classId: string) => {
@@ -534,6 +808,13 @@ export function SubjectDetail() {
     try {
       setLoadingEnrollments(true);
       console.log('Loading enrollments for class:', classId);
+
+      // Check if we're using mock data (classId is '1', '2', or '3')
+      if (['1', '2', '3'].includes(classId)) {
+        // Use mock pending enrollments (empty for demo)
+        setPendingEnrollments([]);
+        return;
+      }
 
       // First verify the teacher has access to this class
       const teacherId = getCurrentUserId();
@@ -564,9 +845,9 @@ export function SubjectDetail() {
       toast.error('Có lỗi xảy ra khi tải danh sách đăng ký');
       setPendingEnrollments([]);
     } finally {
-      setLoadingEnrollments(false);
+      setLoadingEnrollments(false)
     }
-  };
+  }
 
   // Update the loadClasses function
   const loadClasses = async () => {
@@ -600,11 +881,13 @@ export function SubjectDetail() {
         }
       } else {
         console.error('Unexpected API response format:', response);
-        setSubjects([]);
+        // Fall back to mock subjects when API response is unexpected
+        setSubjects(mockSubjects);
       }
     } catch (err) {
       console.error('Failed to load classes:', err);
-      setSubjects([]);
+      // Fall back to mock subjects when API fails
+      setSubjects(mockSubjects);
     } finally {
       setLoading(false);
     }
@@ -635,7 +918,7 @@ export function SubjectDetail() {
         description: 'Vui lòng thử lại sau hoặc liên hệ quản trị viên nếu lỗi vẫn tiếp diễn'
       });
     }
-  };
+  }
 
   // Reject enrollment
   const handleRejectEnrollment = async (enrollmentId: string) => {
@@ -693,193 +976,516 @@ export function SubjectDetail() {
   }, [currentSubjectId]);
 
   const handleOpenPendingStudents = () => {
-    setIsPendingStudentsOpen(true);
-    loadPendingEnrollments(currentSubjectId);
-  };
+    setIsPendingStudentsOpen(true)
+    loadPendingEnrollments(currentSubjectId)
+  }
 
-  const handleChapterSelect = (
-    chapterId: string,
-    checked: boolean,
-  ) => {
-    if (checked) {
-      setSelectedChapters([...selectedChapters, chapterId]);
+  // Đóng mở phần xem tài liệu
+  const handleToggleDocuments = async (chapterId: string) => {
+    // Nếu chương đã mở, chúng ta sẽ đóng lại
+    if (expandedChapter === chapterId) {
+      setExpandedChapter(null)
     } else {
-      setSelectedChapters(
-        selectedChapters.filter((id) => id !== chapterId),
-      );
-    }
-  };
+      // Nếu chưa mở, gửi yêu cầu API để lấy tài liệu cho chapterId và classId
+      try {
+        const response = await axios.get(
+          `http://localhost:9000/api/materials/class/${currentSubjectId}/chapter/${chapterId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}` // Đảm bảo có token
+            }
+          }
+        )
 
-  const handleFlashcardChapterSelect = (
-    chapterId: string,
-    checked: boolean,
-  ) => {
-    if (checked) {
-      setSelectedFlashcardChapters([
-        ...selectedFlashcardChapters,
-        chapterId,
-      ]);
-    } else {
-      setSelectedFlashcardChapters(
-        selectedFlashcardChapters.filter(
-          (id) => id !== chapterId,
-        ),
-      );
+        // Cập nhật dữ liệu tài liệu cho chương
+        setChapterDocuments(response.data.data)
+
+        // Mở tài liệu của chương này
+        setExpandedChapter(chapterId)
+      } catch (error) {
+        console.error('Error fetching documents:', error)
+        toast.error('Lỗi khi tải tài liệu')
+      }
     }
-  };
+  }
+
+  // Tải tài liệu lên
+  const handleUploadMaterial = async () => {
+    // Kiểm tra các trường bắt buộc
+    if (!file || !title || !chapterId || !currentSubjectId) {
+      toast.error('Vui lòng nhập đầy đủ thông tin')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('title', title)
+    formData.append('description', description || '')
+    formData.append('classId', currentSubjectId) // Đảm bảo rằng classId là currentSubjectId
+    formData.append('chapterId', chapterId) // Đảm bảo rằng chapterId được truyền đúng
+    formData.append('file', file) // Tệp tin tài liệu
+
+    try {
+      // Gửi yêu cầu POST lên BE để tải tài liệu
+      const response = await axios.post(
+        'http://localhost:9000/api/materials', // Đảm bảo đường dẫn đúng
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      )
+
+      console.log('File uploaded successfully:', response.data)
+      setIsUploadDocOpen(false) // Đóng dialog sau khi tải lên thành công
+      toast.success('Tài liệu đã được tải lên thành công!')
+      fetchChapters() // Cập nhật tài liệu mới
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      toast.error('Lỗi khi tải lên tài liệu')
+    }
+  }
+
+  const handleOpenDialog = (chapter: any) => {
+    setChapterId(chapter._id) // Lưu chapterId
+    setChapterTitle(chapter.title) // Lưu chapter title
+    setIsUploadDocOpen(true) // Mở dialog
+  }
+
+  const handleChapterSelect = (chapterId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedChapters([...selectedChapters, chapterId])
+    } else {
+      setSelectedChapters(selectedChapters.filter((id) => id !== chapterId))
+    }
+  }
+
+  const handleFlashcardChapterSelect = (chapterId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedFlashcardChapters([...selectedFlashcardChapters, chapterId])
+    } else {
+      setSelectedFlashcardChapters(selectedFlashcardChapters.filter((id) => id !== chapterId))
+    }
+  }
 
   const addQuestion = () => {
     const newQuestion: QuizQuestion = {
       id: Date.now().toString(),
-      question: "",
-      answers: ["", "", "", ""],
-      correctAnswer: 0,
-    };
-    setQuestions([...questions, newQuestion]);
-  };
+      question: '',
+      answers: ['', '', '', ''],
+      correctAnswer: 0
+    }
+    setQuestions([...questions, newQuestion])
+  }
 
   const removeQuestion = (questionId: string) => {
     if (questions.length > 1) {
-      setQuestions(
-        questions.filter((q) => q.id !== questionId),
-      );
+      setQuestions(questions.filter((q) => q.id !== questionId))
     }
-  };
+  }
 
-  const updateQuestion = (
-    questionId: string,
-    field: keyof QuizQuestion,
-    value: any,
-  ) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId ? { ...q, [field]: value } : q,
-      ),
-    );
-  };
+  const updateQuestion = (questionId: string, field: keyof QuizQuestion, value: any) => {
+    setQuestions(questions.map((q) => (q.id === questionId ? { ...q, [field]: value } : q)))
+  }
 
-  const updateAnswer = (
-    questionId: string,
-    answerIndex: number,
-    value: string,
-  ) => {
+  const updateAnswer = (questionId: string, answerIndex: number, value: string) => {
     setQuestions(
       questions.map((q) =>
         q.id === questionId
           ? {
             ...q,
-            answers: q.answers.map((ans, idx) =>
-              idx === answerIndex ? value : ans,
-            ),
+            answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
           }
-          : q,
-      ),
-    );
-  };
+          : q
+      )
+    )
+  }
 
   const addFlashcard = () => {
     const newFlashcard: FlashcardItem = {
       id: Date.now().toString(),
-      front: "",
-      back: "",
-    };
-    setFlashcards([...flashcards, newFlashcard]);
-  };
+      front: '',
+      back: ''
+    }
+    setFlashcards([...flashcards, newFlashcard])
+  }
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0] ?? null;
-    if (file) setAiFile(file);
-  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0])
+      console.log('Selected file:', e.target.files[0]) // In ra tệp tin đã chọn
+    }
+  }
 
   const removeFile = () => {
-    setAiFile(null);
+    setAiFile(null)
     // reset input value (optional, nếu muốn cho phép upload cùng file lần nữa)
-    const inp = document.getElementById(
-      "file-upload",
-    ) as HTMLInputElement | null;
-    if (inp) inp.value = "";
-  };
+    const inp = document.getElementById('file-upload') as HTMLInputElement | null
+    if (inp) inp.value = ''
+  }
 
   const removeFlashcard = (flashcardId: string) => {
     if (flashcards.length > 1) {
-      setFlashcards(
-        flashcards.filter((f) => f.id !== flashcardId),
-      );
+      setFlashcards(flashcards.filter((f) => f.id !== flashcardId))
     }
-  };
+  }
 
-  const updateFlashcard = (
-    flashcardId: string,
-    field: keyof FlashcardItem,
-    value: string,
-  ) => {
-    setFlashcards(
-      flashcards.map((f) =>
-        f.id === flashcardId ? { ...f, [field]: value } : f,
-      ),
-    );
-  };
+  const updateFlashcard = (flashcardId: string, field: keyof FlashcardItem, value: string) => {
+    setFlashcards(flashcards.map((f) => (f.id === flashcardId ? { ...f, [field]: value } : f)))
+  }
 
   const resetQuizForm = () => {
-    setQuizTitle("");
-    setSelectedChapters([]);
+    setQuizTitle('')
+    setSelectedChapters([])
     setQuestions([
       {
-        id: "1",
-        question: "",
-        answers: ["", "", "", ""],
-        correctAnswer: 0,
-      },
-    ]);
-    setQuizMode("manual");
-  };
+        id: '1',
+        question: '',
+        answers: ['', '', '', ''],
+        correctAnswer: 0
+      }
+    ])
+    setQuizMode('manual')
+  }
 
   const resetFlashcardForm = () => {
-    setFlashcardTitle("");
-    setSelectedFlashcardChapters([]);
-    setFlashcards([{ id: "1", front: "", back: "" }]);
-    setFlashcardMode("manual");
-  };
+    setFlashcardTitle('')
+    setSelectedFlashcardChapters([])
+    setFlashcards([{ id: '1', front: '', back: '' }])
+    setFlashcardMode('manual')
+    setAiFlashcardCount('10')
+  }
 
-  const handleAddStudent = (studentId: string) => {
-    // Logic to add student to subject
-    console.log("Adding student:", studentId);
-    setIsAddStudentOpen(false);
-  };
+  const createFlashcardManual = async () => {
+    setFlashcardLoading(true)
 
+    try {
+      if (!flashcardTitle.trim()) {
+        toast.error('Tiêu đề flashcard không được để trống!')
+        return
+      }
 
-  const filteredAvailableStudents =
-    mockAvailableStudents.filter(
-      (student) =>
-        student.name
-          .toLowerCase()
-          .includes(studentSearchTerm.toLowerCase()) ||
-        student.studentId
-          .toLowerCase()
-          .includes(studentSearchTerm.toLowerCase()) ||
-        student.email
-          .toLowerCase()
-          .includes(studentSearchTerm.toLowerCase()),
-    );
+      if (selectedFlashcardChapters.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương!')
+        return
+      }
+
+      if (flashcards.length === 0) {
+        toast.error('Bạn phải tạo ít nhất 1 flashcard!')
+        return
+      }
+
+      for (const f of flashcards) {
+        if (!f.front.trim() || !f.back.trim()) {
+          toast.error('Tất cả các mặt của flashcard phải có nội dung!')
+          return
+        }
+      }
+
+      const payload = {
+        title: flashcardTitle,
+        classId: currentSubjectId,
+        chapters: selectedFlashcardChapters,
+        isAIGenerated: false,
+        flashcards: flashcards.map(f => ({
+          front: f.front.trim(),
+          back: f.back.trim(),
+          isAIGenerated: false
+        }))
+      }
+
+      const res = await axios.post('http://localhost:9000/api/flashcard-sets', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      toast.success('Tạo flashcard thủ công thành công!')
+      setIsCreateFlashcardOpen(false)
+      resetFlashcardForm()
+
+      // Add new flashcard set to state immediately for real-time update
+      if (res.data?.data) {
+        addFlashcardSet(res.data.data)
+      }
+
+      fetchFlashcards()
+    } catch (err: any) {
+      console.error('Create Flashcard Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo flashcard')
+    } finally {
+      setFlashcardLoading(false)
+    }
+  }
+
+  const createAIFlashcard = async () => {
+    setFlashcardLoading(true)
+
+    try {
+      const chapterIds = selectedFlashcardChapters
+
+      if (!flashcardTitle.trim()) {
+        toast.error('Tiêu đề flashcard không được để trống!')
+        return
+      }
+
+      if (chapterIds.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương!')
+        return
+      }
+
+      const materialIds = await getMaterialsBySelectedChapters(chapterIds)
+      if (materialIds.length === 0) {
+        toast.error('Các chương này chưa có tài liệu. Không thể tạo flashcard AI.')
+        return
+      }
+
+      const payload = {
+        title: flashcardTitle,
+        classId: currentSubjectId,
+        chapterIds,
+        materialIds,
+        count: Number(aiFlashcardCount),
+        prompt: aiPrompt
+      }
+
+      const res = await axios.post('http://localhost:9000/api/ai/generate-flashcards', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      toast.success('Tạo flashcard bằng AI thành công!')
+      setIsCreateFlashcardOpen(false)
+      resetFlashcardForm()
+
+      // Add new flashcard set to state immediately for real-time update
+      if (res.data?.data?.flashcardSet) {
+        addFlashcardSet(res.data.data.flashcardSet)
+      }
+
+      fetchFlashcards()
+    } catch (err: any) {
+      console.error('AI Flashcard Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo flashcard bằng AI')
+    } finally {
+      setFlashcardLoading(false)
+    }
+  }
+
+  // Fetch materials for the current subject
+  const fetchMaterials = async () => {
+    if (!currentSubjectId) return
+
+    try {
+      setMaterialsLoading(true)
+      // Check if we're using mock data (classId is '1', '2', or '3')
+      if (['1', '2', '3'].includes(currentSubjectId)) {
+        // Use mock documents
+        setMaterials(mockDocuments);
+      } else {
+        // Fetch from API
+        const response = await axios.get(`http://localhost:9000/api/materials/class/${currentSubjectId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        })
+
+        const materialsData = response.data?.data?.items || []
+        setMaterials(Array.isArray(materialsData) ? materialsData : [])
+      }
+    } catch (error) {
+      console.error('Error fetching materials:', error)
+      setMaterials([])
+    } finally {
+      setMaterialsLoading(false)
+    }
+  }
+
+  // Handler functions for material operations
+  const handleDownloadMaterial = async (material: any) => {
+    try {
+      if (material.fileUrl) {
+        // Create a temporary link to download the file
+        const link = document.createElement('a')
+        link.href = material.fileUrl
+        link.download = material.fileName || material.title
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        toast.success('Tải xuống tài liệu thành công')
+      } else {
+        toast.error('Không tìm thấy file để tải xuống')
+      }
+    } catch (error) {
+      toast.error('Lỗi khi tải xuống tài liệu')
+    }
+  }
+
+  const handleEditMaterial = (material: any) => {
+    setEditingMaterial(material)
+    setEditMaterialTitle(material.title || material.fileName || '')
+  }
+
+  const handleSaveEditMaterial = async () => {
+    if (!editingMaterial || !editMaterialTitle.trim()) {
+      toast.error('Tên tài liệu không được để trống')
+      return
+    }
+
+    try {
+      await axios.put(`http://localhost:9000/api/materials/${editingMaterial._id || editingMaterial.id}`,
+        { title: editMaterialTitle.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      )
+
+      toast.success('Cập nhật tài liệu thành công')
+      setEditingMaterial(null)
+      setEditMaterialTitle('')
+      fetchMaterials() // Refresh the materials list
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật tài liệu')
+    }
+  }
+
+  const handleCancelEditMaterial = () => {
+    setEditingMaterial(null)
+    setEditMaterialTitle('')
+  }
+
+  const handleDeleteMaterial = (material: any) => {
+    setMaterialToDelete(material)
+    setIsDeleteMaterialDialogOpen(true)
+  }
+
+  const confirmDeleteMaterial = async () => {
+    if (!materialToDelete) return
+
+    try {
+      await axios.delete(`http://localhost:9000/api/materials/${materialToDelete._id || materialToDelete.id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
+
+      toast.success('Xóa tài liệu thành công')
+      setIsDeleteMaterialDialogOpen(false)
+      setMaterialToDelete(null)
+      fetchMaterials() // Refresh the materials list
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Lỗi khi xóa tài liệu')
+    }
+  }
+
+  const cancelDeleteMaterial = () => {
+    setIsDeleteMaterialDialogOpen(false)
+    setMaterialToDelete(null)
+  }
+
+  const handleCreateFlashcard = () => {
+    if (flashcardMode === 'ai') {
+      createAIFlashcard()
+    } else {
+      createFlashcardManual()
+    }
+  }
+
+  // Fetch flashcards for the current subject
+  const fetchFlashcards = async () => {
+    if (!currentSubjectId) return
+
+    try {
+      // Check if we're using mock data (classId is '1', '2', or '3')
+      if (['1', '2', '3'].includes(currentSubjectId)) {
+        // Use mock flashcards - create some mock data if needed
+        const mockFlashcards: any[] = []
+        setFlashcardList(mockFlashcards);
+      } else {
+        // Fetch from API
+        const res = await axios.get(`http://localhost:9000/api/flashcard-sets/class/${currentSubjectId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        })
+
+        // Set flashcards from API response
+        setFlashcardList(res.data.data.items || [])
+      }
+    } catch (err: any) {
+      // If it's a 404, just set empty flashcards (class might not have any flashcards yet)
+      if (err.response?.status === 404) {
+        setFlashcardList([]);
+      } else {
+        console.error('Error loading flashcards:', err)
+        // For other errors, fall back to mock data if using mock IDs
+        if (['1', '2', '3'].includes(currentSubjectId)) {
+          const mockFlashcards: any[] = []
+          setFlashcardList(mockFlashcards);
+        } else {
+          toast.error('Lỗi khi tải flashcards')
+        }
+      }
+    } finally {
+      // No loading state for flashcards in this function
+    }
+  }
+
+  const getFileIcon = (type: string) => {
+    switch (type) {
+      case 'docx':
+        return <FileText className='h-4 w-4 text-blue-500' />
+      case 'doc':
+        return <FileText className='h-4 w-4 text-blue-500' />
+      case 'pdf':
+        return <FileText className='h-4 w-4 text-red-500' />
+      case 'video':
+        return <Play className='h-4 w-4 text-blue-500' />
+      case 'image':
+        return <FileText className='h-4 w-4 text-green-500' />
+      case 'powerpoint':
+        return <FileText className='h-4 w-4 text-orange-500' />
+      default:
+        return <FileText className='h-4 w-4 text-gray-500' />
+    }
+  }
+
+  const getFileTypeLabel = (type: string) => {
+    switch (type) {
+      case 'docx':
+        return 'DOCX'
+      case 'doc':
+        return 'DOC'
+      case 'pdf':
+        return 'PDF'
+      case 'video':
+        return 'Video'
+      case 'image':
+        return 'Hình ảnh'
+      case 'powerpoint':
+        return 'PowerPoint'
+      default:
+        return type.toUpperCase()
+    }
+  }
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Subject Navigation */}
-      <div className="flex items-center justify-between bg-muted/30 p-4 rounded-lg">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handlePrevSubject}
-          className="gap-2"
-        >
-          <ChevronLeft className="h-4 w-4" />
+      <div className='flex items-center justify-between bg-muted/30 p-4 rounded-lg'>
+        <Button variant='ghost' size='sm' onClick={handlePrevSubject} className='gap-2'>
+          <ChevronLeft className='h-4 w-4' />
           Môn trước
         </Button>
 
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
+        <div className='flex items-center gap-4'>
+          <span className='text-sm text-muted-foreground'>
             {currentSubjectIndex + 1} / {subjects.length}
           </span>
           <Button
@@ -891,197 +1497,82 @@ export function SubjectDetail() {
           </Button>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleNextSubject}
-          className="gap-2"
-        >
+        <Button variant='ghost' size='sm' onClick={handleNextSubject} className='gap-2'>
           Môn sau
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className='h-4 w-4' />
         </Button>
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1>{currentSubject.name}</h1>
-          <p className="text-muted-foreground">
-            {currentSubject.description}
-          </p>
-        </div>
-        <div className="flex gap-2">
-        </div>
+      <div>
+        <h1>{currentSubject.name}</h1>
+        <p className='text-muted-foreground'>{currentSubject.description}</p>
       </div>
 
-      <div className="flex items-center justify-between">
-
-        {/* Add Student Button */}
-        <Dialog
-          open={isAddStudentOpen}
-          onOpenChange={setIsAddStudentOpen}
-        >
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              Thêm sinh viên
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                Thêm sinh viên vào môn học
-              </DialogTitle>
-              <DialogDescription>
-                Tìm kiếm và thêm sinh viên vào môn học này
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Tìm kiếm sinh viên</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Tìm theo tên hoặc username"
-                    value={studentSearchTerm}
-                    onChange={(e) =>
-                      setStudentSearchTerm(e.target.value)
-                    }
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              <div className="max-h-60 overflow-y-auto space-y-2">
-                {filteredAvailableStudents.map((student) => (
-                  <div
-                    key={student.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">
-                          {student.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">
-                          {student.name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {student.studentId} •{" "}
-                          {student.username} • {student.class}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        handleAddStudent(student.id)
-                      }
-                    >
-                      Thêm
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
+      {/* Action Buttons Row */}
+      <div className='flex items-center justify-center gap-2 flex-wrap'>
         {/* Pending Students Button */}
-        <Dialog
-          open={isPendingStudentsOpen}
-          onOpenChange={setIsPendingStudentsOpen}
-        >
+        <Dialog open={isPendingStudentsOpen} onOpenChange={setIsPendingStudentsOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2" onClick={handleOpenPendingStudents}>
-              <Clock className="h-4 w-4" />
+            <Button variant='outline' className='gap-2' onClick={handleOpenPendingStudents}>
+              <Clock className='h-4 w-4' />
               Duyệt sinh viên ({pendingEnrollments.length})
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className='max-w-4xl'>
             <DialogHeader>
-              <DialogTitle>
-                Duyệt đăng ký tham gia lớp học
-              </DialogTitle>
-              <DialogDescription>
-                Xem xét và phê duyệt các yêu cầu tham gia lớp
-                học
-              </DialogDescription>
+              <DialogTitle>Duyệt đăng ký tham gia lớp học</DialogTitle>
+              <DialogDescription>Xem xét và phê duyệt các yêu cầu tham gia lớp học</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {loadingEnrollments ? (
-                <div className="text-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                <div className='text-center py-8'>
+                  <Loader2 className='h-8 w-8 animate-spin mx-auto' />
                 </div>
               ) : (
                 <>
                   {pendingEnrollments.map((enrollment: any) => {
-                    const student = enrollment.studentId || {};
-                    const studentName = student?.name || student?.fullName || student?.username || 'Không tên';
-                    const username = student?.username || 'unknown';
-                    const email = student?.email || '';
-
+                    const student = enrollment.studentId
                     return (
-                      <div
-                        key={enrollment._id}
-                        className="p-4 border rounded-lg"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-4 flex-1">
-                            <Avatar>
+                      <div key={enrollment._id} className='p-4 border rounded-lg'>
+                        <div className='flex items-start justify-between'>
+                          <div className='flex items-center gap-3'>
+                            <Avatar className='h-10 w-10'>
                               <AvatarFallback>
-                                {studentName
-                                  .split(' ')
-                                  .map(n => n[0])
-                                  .join('')
-                                  .toUpperCase()
-                                  .substring(0, 2)}
+                                {(student?.username || student?.email || 'U').substring(0, 2).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="space-y-1 flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-medium">
-                                  {studentName}
-                                </h3>
+                            <div className='space-y-1'>
+                              <div className='flex items-center gap-2'>
+                                <h3 className='font-medium'>{student?.username || 'Unknown'}</h3>
                               </div>
-                              <p className="text-sm text-muted-foreground">
-                                @{username}
-                                {email && ` • ${email}`}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className='text-sm text-muted-foreground'>{student?.email || 'No email'}</p>
+                              <p className='text-sm text-muted-foreground'>
                                 Đăng ký: {new Date(enrollment.requestedAt).toLocaleDateString('vi-VN')}
                               </p>
                               {enrollment.message && (
-                                <p className="text-xs mt-1 p-2 bg-muted/50 rounded">
-                                  {enrollment.message}
-                                </p>
+                                <p className='text-sm mt-2 p-2 bg-muted/50 rounded'>"{enrollment.message}"</p>
                               )}
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className='flex gap-2'>
                             <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleApproveEnrollment(enrollment._id);
+                              size='sm'
+                              onClick={(e: { stopPropagation: () => void }) => {
+                                e.stopPropagation()
+                                handleApproveEnrollment(enrollment._id)
                               }}
-                              className="gap-1"
+                              className='gap-1'
                             >
-                              <CheckCircle className="h-4 w-4" />
+                              <CheckCircle className='h-4 w-4' />
                               Duyệt
                             </Button>
                             <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRejectEnrollment(enrollment._id);
+                              size='sm'
+                              variant='outline'
+                              onClick={(e: { stopPropagation: () => void }) => {
+                                e.stopPropagation()
+                                handleRejectEnrollment(enrollment._id)
                               }}
                             >
                               Từ chối
@@ -1089,16 +1580,13 @@ export function SubjectDetail() {
                           </div>
                         </div>
                       </div>
-                    );
+                    )
                   })}
 
                   {pendingEnrollments.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>
-                        Không có yêu cầu đăng ký nào đang chờ
-                        duyệt
-                      </p>
+                    <div className='text-center py-8 text-muted-foreground'>
+                      <Clock className='h-12 w-12 mx-auto mb-4 opacity-50' />
+                      <p>Không có yêu cầu đăng ký nào đang chờ duyệt</p>
                     </div>
                   )}
                 </>
@@ -1106,218 +1594,171 @@ export function SubjectDetail() {
             </div>
           </DialogContent>
         </Dialog>
-        <Dialog
-          open={isCreateChapterOpen}
-          onOpenChange={setIsCreateChapterOpen}
-        >
+
+        {/* Tạo chương */}
+        <Dialog open={isCreateChapterOpen} onOpenChange={setIsCreateChapterOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <BookPlus className="h-4 w-4" />
+            <Button variant='outline' className='gap-2'>
+              <BookPlus className='h-4 w-4' />
               Tạo Chương
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Tạo Chương mới</DialogTitle>
-              <DialogDescription>
-                Thêm chương học cho môn học
-              </DialogDescription>
+              <DialogDescription>Thêm chương học cho môn học</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <div className='space-y-4'>
+              <div className='space-y-2'>
                 <Label>Tên chương</Label>
-                <Input placeholder="Nhập tên chương (VD: Chương 4: Tích phân)" />
+                <Input placeholder='Nhập tên chương' value={title} onChange={(e) => setTitle(e.target.value)} />
               </div>
+              <div className="space-y-4">
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setIsCreateChapterOpen(false)
-                  }
-                >
-                  Hủy
-                </Button>
-                <Button
-                  onClick={() =>
-                    setIsCreateChapterOpen(false)
-                  }
-                >
-                  Tạo Chương
-                </Button>
+                <div className='flex justify-end gap-2'>
+                  <Button variant='outline' onClick={() => setIsCreateChapterOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button onClick={handleCreateChapter}>Tạo Chương</Button>
+                </div>
               </div>
             </div>
           </DialogContent>
         </Dialog>
+
         {/* Global Quiz Button */}
         <Dialog
           open={isCreateQuizOpen}
-          onOpenChange={(open) => {
-            setIsCreateQuizOpen(open);
-            if (!open) resetQuizForm();
+          onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
+            setIsCreateQuizOpen(open)
+            if (!open) resetQuizForm()
           }}
         >
           <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
+            <Button className='gap-2'>
+              <Plus className='h-4 w-4' />
               Tạo Quiz
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
               <DialogTitle>Tạo Quiz mới</DialogTitle>
-              <DialogDescription>
-                Tạo quiz từ nhiều chương học
-              </DialogDescription>
+              <DialogDescription>Tạo quiz từ nhiều chương học</DialogDescription>
             </DialogHeader>
-            <div className="space-y-6">
-              <div className="space-y-2">
+            <div className='space-y-6'>
+              <div className='space-y-2'>
                 <Label>Tiêu đề quiz</Label>
                 <Input
-                  placeholder="Nhập tiêu đề quiz"
+                  placeholder='Nhập tiêu đề quiz'
                   value={quizTitle}
-                  onChange={(e) =>
-                    setQuizTitle(e.target.value)
-                  }
+                  onChange={(e) => setQuizTitle(e.target.value)}
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Chọn chương học</Label>
-                <div className="grid grid-cols-1 gap-2 border rounded p-3">
-                  {mockChapters.map((chapter) => (
-                    <div
-                      key={chapter.id}
-                      className="flex items-center space-x-2"
-                    >
+                {chLoading && (
+                  <div>
+                    <Spinner />
+                    <p className='text-sm text-muted-foreground'>Đang tải chương…</p>
+                  </div>
+                )}
+                {chError && <p className='text-sm text-red-600'>{chError}</p>}
+
+                <div className='grid grid-cols-1 gap-2 border rounded-lg p-3'>
+                  {chapters.map((c) => (
+                    <div key={c._id} className='flex items-center space-x-2'>
                       <Checkbox
-                        id={`chapter-${chapter.id}`}
-                        checked={selectedChapters.includes(
-                          chapter.id,
-                        )}
-                        onCheckedChange={(checked) =>
-                          handleChapterSelect(
-                            chapter.id,
-                            checked as boolean,
-                          )
-                        }
+                        id={`chapter-${c._id}`}
+                        checked={selectedChapters.includes(c._id)}
+                        onCheckedChange={(checked: boolean) => handleChapterSelect(c._id, !!checked)}
                       />
-                      <Label
-                        htmlFor={`chapter-${chapter.id}`}
-                      >
-                        {chapter.title}
-                      </Label>
+                      <Label htmlFor={`chapter-${c._id}`}>{c.title}</Label>
                     </div>
                   ))}
+                  {!chLoading && !chError && chapters.length === 0 && (
+                    <p className='text-sm text-muted-foreground'>Chưa có chương nào</p>
+                  )}
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Thời gian (phút)</Label>
                 <Input
-                  type="number"
-                  placeholder="30"
+                  type='number'
+                  placeholder='Nhập thời gian làm quiz'
                   value={quizDuration}
                   onChange={(e) => setQuizDuration(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Chế độ tạo</Label>
-                <Select
-                  value={quizMode}
-                  onValueChange={(value: "manual" | "ai") =>
-                    setQuizMode(value)
-                  }
-                >
+                <Select value={quizMode} onValueChange={(value: 'manual' | 'ai') => setQuizMode(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manual">
-                      Thủ công
-                    </SelectItem>
-                    <SelectItem value="ai">
-                      AI tự động
-                    </SelectItem>
+                    <SelectItem value='manual'>Thủ công</SelectItem>
+                    <SelectItem value='ai'>AI tự động</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {quizMode === "ai" ? (
-                <div className="space-y-2">
-                  <div className="space-y-2">
+              {quizMode === 'ai' ? (
+                <div className='space-y-2'>
+                  <div className='space-y-2 pb-2'>
                     <Label>Số câu hỏi</Label>
                     <Input
-                      type="number"
-                      placeholder="Nhập số lượng câu hỏi"
+                      type='number'
+                      placeholder='Nhập số lượng câu hỏi'
+                      value={aiQuestionCount}
+                      onChange={(e) => setAiQuestionCount(e.target.value)}
                     />
                   </div>
-                  {/* UI prompt + paperclip */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Prompt cho AI
-                    </label>
+
+                  {/* UI prompt */}
+                  <div className='space-y-2'>
+                    <label className='block text-sm font-medium text-gray-700 pt-2'>Prompt cho AI</label>
 
                     {/* wrapper có viền: textarea + icon nằm bên trong viền */}
-                    <div className="relative">
-                      <div className="relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400">
+                    <div className='relative'>
+                      <div className='relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400'>
                         {/* textarea thực sự nằm trong container (không có border riêng) */}
                         <textarea
                           value={aiPrompt}
-                          onChange={(e) =>
-                            setAiPrompt(e.target.value)
-                          }
+                          onChange={(e) => setAiPrompt(e.target.value)}
                           rows={4}
-                          placeholder="Mô tả nội dung quiz bạn muốn AI tạo..."
-                          aria-label="Prompt cho AI"
-                          className="w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400"
+                          placeholder='Mô tả nội dung quiz bạn muốn AI tạo...'
+                          aria-label='Prompt cho AI'
+                          className='w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400'
                         />
-
-                        {/* icon paperclip nằm BÊN TRONG khung (absolute, phía phải) */}
-                        {/* label sẽ trigger input[type=file] */}
-                        <label
-                          htmlFor="file-upload"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-blue-600 hover:scale-105 transition cursor-pointer"
-                          title="Đính kèm tài liệu"
-                        >
-                          <Paperclip className="h-5 w-5" />
-                        </label>
 
                         {/* hidden file input */}
                         <input
-                          id="file-upload"
-                          type="file"
-                          className="hidden"
+                          id='file-upload'
+                          type='file'
+                          className='hidden'
                           onChange={handleFileChange}
-                          aria-label="Upload document"
+                          aria-label='Upload document'
                         />
                       </div>
                     </div>
 
                     {/* file đã chọn (tách hẳn, không dính sát icon) */}
                     {aiFile && (
-                      <div className="mt-2 flex items-center gap-3">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm">
+                      <div className='mt-2 flex items-center gap-3'>
+                        <div className='inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm'>
                           <span>📄</span>
-                          <span className="max-w-[40ch] truncate font-medium text-gray-700">
-                            {aiFile.name}
-                          </span>
+                          <span className='max-w-[40ch] truncate font-medium text-gray-700'>{aiFile.name}</span>
                         </div>
 
-                        <div className="ml-auto flex items-center gap-2 text-sm">
-                          <span className="text-gray-500 text-xs">
-                            {(
-                              aiFile.size /
-                              1024 /
-                              1024
-                            ).toFixed(2)}{" "}
-                            MB
-                          </span>
+                        <div className='ml-auto flex items-center gap-2 text-sm'>
+                          <span className='text-gray-500 text-xs'>{(aiFile.size / 1024 / 1024).toFixed(2)} MB</span>
                           <button
-                            type="button"
+                            type='button'
                             onClick={removeFile}
-                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
+                            className='inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50'
                           >
-                            <X className="h-4 w-4" />
+                            <X className='h-4 w-4' />
                             Xóa
                           </button>
                         </div>
@@ -1326,129 +1767,91 @@ export function SubjectDetail() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between'>
                     <Label>Câu hỏi</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addQuestion}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
+                    <Button type='button' variant='outline' size='sm' onClick={addQuestion}>
+                      <Plus className='h-4 w-4 mr-1' />
                       Thêm câu hỏi
                     </Button>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className='space-y-4'>
                     {questions.map((question, qIndex) => (
                       <Card key={question.id}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-base">
-                              Câu hỏi {qIndex + 1}
-                            </CardTitle>
+                        <CardHeader className='pb-3'>
+                          <div className='flex items-center justify-between'>
+                            <CardTitle className='text-base font-semibold'>Câu hỏi {qIndex + 1}</CardTitle>
                             {questions.length > 1 && (
                               <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  removeQuestion(question.id)
-                                }
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => removeQuestion(question.id)}
                               >
-                                <X className="h-4 w-4" />
+                                <X className='h-4 w-4' />
                               </Button>
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Nội dung câu hỏi</Label>
+                        <CardContent className='space-y-4'>
+                          <div className='space-y-2'>
+                            <Label className='pb-2'>Nội dung câu hỏi</Label>
                             <Textarea
-                              placeholder="Nhập câu hỏi..."
+                              placeholder='Nhập câu hỏi...'
                               value={question.question}
-                              onChange={(e) =>
-                                updateQuestion(
-                                  question.id,
-                                  "question",
-                                  e.target.value,
-                                )
-                              }
+                              onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
                               rows={2}
                             />
                           </div>
 
-                          <div className="space-y-3">
-                            <Label>Các đáp án</Label>
-                            {question.answers.map(
-                              (answer, ansIndex) => (
-                                <div
-                                  key={ansIndex}
-                                  className="flex items-center gap-3"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      type="radio"
-                                      name={`correct-${question.id}`}
-                                      checked={
-                                        question.correctAnswer ===
-                                        ansIndex
-                                      }
-                                      onChange={() =>
-                                        updateQuestion(
-                                          question.id,
-                                          "correctAnswer",
-                                          ansIndex,
-                                        )
-                                      }
-                                      className="w-4 h-4"
-                                    />
-                                    <Label className="text-sm">
-                                      Đáp án{" "}
-                                      {String.fromCharCode(
-                                        65 + ansIndex,
-                                      )}
-                                    </Label>
-                                  </div>
-                                  <Input
-                                    placeholder={`Nhập đáp án ${String.fromCharCode(65 + ansIndex)}`}
-                                    value={answer}
-                                    onChange={(e) =>
-                                      updateAnswer(
-                                        question.id,
-                                        ansIndex,
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="flex-1"
+                          <div className='space-y-3'>
+                            <Label className='pt-2'>Các đáp án</Label>
+                            {question.answers.map((answer, ansIndex) => (
+                              <div key={ansIndex} className='flex items-center gap-3'>
+                                <div className='flex items-center gap-2'>
+                                  <input
+                                    type='radio'
+                                    name={`correct-${question.id}`}
+                                    checked={question.correctAnswer === ansIndex}
+                                    onChange={() => updateQuestion(question.id, 'correctAnswer', ansIndex)}
+                                    className='w-4 h-4'
                                   />
+                                  <Label className='text-sm'>Đáp án {String.fromCharCode(65 + ansIndex)}</Label>
                                 </div>
-                              ),
-                            )}
-                            <p className="text-xs text-muted-foreground">
-                              * Chọn radio button để đánh dấu
-                              đáp án đúng
+                                <Input
+                                  placeholder={`Nhập đáp án ${String.fromCharCode(65 + ansIndex)}`}
+                                  value={answer}
+                                  onChange={(e) => updateAnswer(question.id, ansIndex, e.target.value)}
+                                  className='flex-1'
+                                />
+                              </div>
+                            ))}
+                            <p className='p-2 text-xs text-muted-foreground'>
+                              * Chọn radio button để đánh dấu đáp án đúng
                             </p>
                           </div>
                         </CardContent>
                       </Card>
                     ))}
                   </div>
+
+                  <div className='flex items-center justify-between'>
+                    <Button type='button' variant='outline' size='sm' onClick={addQuestion} className='w-full'>
+                      <Plus className='h-4 w-4 mr-1' />
+                      Thêm câu hỏi
+                    </Button>
+                  </div>
                 </div>
               )}
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCreateQuizOpen(false)}
-                >
+              <div className='flex justify-end gap-2'>
+                <Button variant='outline' onClick={() => setIsCreateQuizOpen(false)}>
                   Hủy
                 </Button>
-                <Button
-                  onClick={() => setIsCreateQuizOpen(false)}
-                >
-                  Tạo Quiz
+                <Button disabled={creatingQuiz} onClick={quizMode === 'ai' ? createAIQuiz : createManualQuiz}>
+                  {creatingQuiz && <Spinner />}
+                  {creatingQuiz ? 'Đang tạo...' : 'Tạo Quiz'}
                 </Button>
               </div>
             </div>
@@ -1458,164 +1861,138 @@ export function SubjectDetail() {
         {/* Global Flashcard Button */}
         <Dialog
           open={isCreateFlashcardOpen}
-          onOpenChange={(open) => {
-            setIsCreateFlashcardOpen(open);
-            if (!open) resetFlashcardForm();
+          onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
+            setIsCreateFlashcardOpen(open)
+            if (!open) resetFlashcardForm()
           }}
         >
           <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Plus className="h-4 w-4" />
+            <Button variant='outline' className='gap-2'>
+              <Plus className='h-4 w-4' />
               Tạo Flashcard
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
               <DialogTitle>Tạo Flashcard mới</DialogTitle>
-              <DialogDescription>
-                Tạo bộ flashcard từ nhiều chương học
-              </DialogDescription>
+              <DialogDescription>Tạo bộ flashcard từ nhiều chương học</DialogDescription>
             </DialogHeader>
-            <div className="space-y-6">
-              <div className="space-y-2">
+            <div className='space-y-6'>
+              <div className='space-y-2'>
                 <Label>Tiêu đề bộ flashcard</Label>
                 <Input
-                  placeholder="Nhập tiêu đề bộ flashcard"
+                  placeholder='Nhập tiêu đề bộ flashcard'
                   value={flashcardTitle}
-                  onChange={(e) =>
-                    setFlashcardTitle(e.target.value)
-                  }
+                  onChange={(e) => setFlashcardTitle(e.target.value)}
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Chọn chương học</Label>
-                <div className="grid grid-cols-1 gap-2 border rounded p-3">
-                  {mockChapters.map((chapter) => (
-                    <div
-                      key={chapter.id}
-                      className="flex items-center space-x-2"
-                    >
+                {chLoading && (
+                  <div>
+                    <Spinner />
+                    <p className='text-sm text-muted-foreground'>Đang tải chương...</p>
+                  </div>
+                )}
+                {chError && <p className='text-sm text-red-600'>{chError}</p>}
+                <div className='grid grid-cols-1 gap-2 border rounded p-3'>
+                  {chapters.map((chapter) => (
+                    <div key={chapter._id} className='flex items-center space-x-2'>
                       <Checkbox
-                        id={`flashcard-chapter-${chapter.id}`}
-                        checked={selectedFlashcardChapters.includes(
-                          chapter.id,
-                        )}
-                        onCheckedChange={(checked) =>
-                          handleFlashcardChapterSelect(
-                            chapter.id,
-                            checked as boolean,
-                          )
+                        id={`flashcard-chapter-${chapter._id}`}
+                        checked={selectedFlashcardChapters.includes(chapter._id)}
+                        onCheckedChange={(checked: boolean) =>
+                          handleFlashcardChapterSelect(chapter._id, checked as boolean)
                         }
                       />
-                      <Label
-                        htmlFor={`flashcard-chapter-${chapter.id}`}
-                      >
-                        {chapter.title}
-                      </Label>
+                      <Label htmlFor={`flashcard-chapter-${chapter._id}`}>{chapter.title}</Label>
                     </div>
                   ))}
                 </div>
+                {!chLoading && !chError && chapters.length === 0 && (
+                  <p className='text-sm text-muted-foreground'>Chưa có chương nào trong lớp học này</p>
+                )}
               </div>
 
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Chế độ tạo</Label>
-                <Select
-                  value={flashcardMode}
-                  onValueChange={(value: "manual" | "ai") =>
-                    setFlashcardMode(value)
-                  }
-                >
+                <Select value={flashcardMode} onValueChange={(value: 'manual' | 'ai') => setFlashcardMode(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manual">
-                      Thủ công
-                    </SelectItem>
-                    <SelectItem value="ai">
-                      AI tự động
-                    </SelectItem>
+                    <SelectItem value='manual'>Thủ công</SelectItem>
+                    <SelectItem value='ai'>AI tự động</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {flashcardMode === "ai" ? (
-                <div className="space-y-2">
-                  <div className="space-y-2">
-                    <Label>Số cards</Label>
+              {flashcardMode === 'ai' ? (
+                <div className='space-y-2'>
+                  <div className='space-y-2'>
+                    <Label>Số thẻ</Label>
                     <Input
-                      type="number"
-                      placeholder="Nhập số lượng cards"
+                      type='number'
+                      placeholder='Nhập số lượng thẻ'
+                      value={aiFlashcardCount}
+                      onChange={(e) => setAiFlashcardCount(e.target.value)}
                     />
                   </div>
                   {/* UI prompt + paperclip */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Prompt cho AI
-                    </label>
+                  <div className='space-y-2'>
+                    <label className='block text-sm font-medium text-gray-700'>Prompt cho AI</label>
 
                     {/* wrapper có viền: textarea + icon nằm bên trong viền */}
-                    <div className="relative">
-                      <div className="relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400">
+                    <div className='relative'>
+                      <div className='relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400'>
                         {/* textarea thực sự nằm trong container (không có border riêng) */}
                         <textarea
                           value={aiPrompt}
-                          onChange={(e) =>
-                            setAiPrompt(e.target.value)
-                          }
+                          onChange={(e) => setAiPrompt(e.target.value)}
                           rows={4}
-                          placeholder="Mô tả nội dung quiz bạn muốn AI tạo..."
-                          aria-label="Prompt cho AI"
-                          className="w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400"
+                          placeholder='Mô tả nội dung quiz bạn muốn AI tạo...'
+                          aria-label='Prompt cho AI'
+                          className='w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400'
                         />
 
                         {/* icon paperclip nằm BÊN TRONG khung (absolute, phía phải) */}
                         {/* label sẽ trigger input[type=file] */}
                         <label
-                          htmlFor="file-upload"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-blue-600 hover:scale-105 transition cursor-pointer"
-                          title="Đính kèm tài liệu"
+                          htmlFor='file-upload'
+                          className='absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-blue-600 hover:scale-105 transition cursor-pointer'
+                          title='Đính kèm tài liệu'
                         >
-                          <Paperclip className="h-5 w-5" />
+                          <Paperclip className='h-5 w-5' />
                         </label>
 
                         {/* hidden file input */}
                         <input
-                          id="file-upload"
-                          type="file"
-                          className="hidden"
+                          id='file-upload'
+                          type='file'
+                          className='hidden'
                           onChange={handleFileChange}
-                          aria-label="Upload document"
+                          aria-label='Upload document'
                         />
                       </div>
                     </div>
 
                     {/* file đã chọn (tách hẳn, không dính sát icon) */}
                     {aiFile && (
-                      <div className="mt-2 flex items-center gap-3">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm">
+                      <div className='mt-2 flex items-center gap-3'>
+                        <div className='inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm'>
                           <span>📄</span>
-                          <span className="max-w-[40ch] truncate font-medium text-gray-700">
-                            {aiFile.name}
-                          </span>
+                          <span className='max-w-[40ch] truncate font-medium text-gray-700'>{aiFile.name}</span>
                         </div>
 
-                        <div className="ml-auto flex items-center gap-2 text-sm">
-                          <span className="text-gray-500 text-xs">
-                            {(
-                              aiFile.size /
-                              1024 /
-                              1024
-                            ).toFixed(2)}{" "}
-                            MB
-                          </span>
+                        <div className='ml-auto flex items-center gap-2 text-sm'>
+                          <span className='text-gray-500 text-xs'>{(aiFile.size / 1024 / 1024).toFixed(2)} MB</span>
                           <button
-                            type="button"
+                            type='button'
                             onClick={removeFile}
-                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
+                            className='inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50'
                           >
-                            <X className="h-4 w-4" />
+                            <X className='h-4 w-4' />
                             Xóa
                           </button>
                         </div>
@@ -1624,77 +2001,50 @@ export function SubjectDetail() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between'>
                     <Label>Flashcard</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addFlashcard}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
+                    <Button type='button' variant='outline' size='sm' onClick={addFlashcard}>
+                      <Plus className='h-4 w-4 mr-1' />
                       Thêm flashcard
                     </Button>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     {flashcards.map((flashcard, fIndex) => (
                       <Card key={flashcard.id}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-base">
-                              Flashcard {fIndex + 1}
-                            </CardTitle>
+                        <CardHeader className='pb-3'>
+                          <div className='flex items-center justify-between'>
+                            <CardTitle className='text-base'>Flashcard {fIndex + 1}</CardTitle>
                             {flashcards.length > 1 && (
                               <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  removeFlashcard(
-                                    flashcard.id,
-                                  )
-                                }
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => removeFlashcard(flashcard.id)}
                               >
-                                <X className="h-4 w-4" />
+                                <X className='h-4 w-4' />
                               </Button>
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>
-                                Mặt trước (Câu hỏi)
-                              </Label>
+                        <CardContent className='space-y-4'>
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <div className='space-y-2'>
+                              <Label>Mặt trước (Câu hỏi)</Label>
                               <Textarea
-                                placeholder="Nhập nội dung mặt trước..."
+                                placeholder='Nhập nội dung mặt trước...'
                                 value={flashcard.front}
-                                onChange={(e) =>
-                                  updateFlashcard(
-                                    flashcard.id,
-                                    "front",
-                                    e.target.value,
-                                  )
-                                }
+                                onChange={(e) => updateFlashcard(flashcard.id, 'front', e.target.value)}
                                 rows={3}
                               />
                             </div>
-                            <div className="space-y-2">
-                              <Label>
-                                Mặt sau (Câu trả lời)
-                              </Label>
+                            <div className='space-y-2'>
+                              <Label>Mặt sau (Câu trả lời)</Label>
                               <Textarea
-                                placeholder="Nhập nội dung mặt sau..."
+                                placeholder='Nhập nội dung mặt sau...'
                                 value={flashcard.back}
-                                onChange={(e) =>
-                                  updateFlashcard(
-                                    flashcard.id,
-                                    "back",
-                                    e.target.value,
-                                  )
-                                }
+                                onChange={(e) => updateFlashcard(flashcard.id, 'back', e.target.value)}
                                 rows={3}
                               />
                             </div>
@@ -1706,21 +2056,16 @@ export function SubjectDetail() {
                 </div>
               )}
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setIsCreateFlashcardOpen(false)
-                  }
-                >
+              <div className='flex justify-end gap-2'>
+                <Button variant='outline' onClick={() => setIsCreateFlashcardOpen(false)}>
                   Hủy
                 </Button>
                 <Button
-                  onClick={() =>
-                    setIsCreateFlashcardOpen(false)
-                  }
+                  disabled={flashcardLoading}
+                  onClick={handleCreateFlashcard}
                 >
-                  Tạo Flashcard
+                  {flashcardLoading && <Spinner />}
+                  {flashcardLoading ? 'Đang tạo...' : 'Tạo Flashcard'}
                 </Button>
               </div>
             </div>
@@ -1728,82 +2073,38 @@ export function SubjectDetail() {
         </Dialog>
       </div>
 
-      {/* Quick Stats */}
-      <div className="flex w-full gap-4">
-        <Card className="flex-1 min-w-0">
-          <CardContent className="p-4 h-full">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
+      {/* Statistics Overview Row */}
+      <div className='grid grid-cols-3 md:grid-cols-3 gap-2'>
+        <Card>
+          <CardContent className='p-4'>
+            <div className='flex items-center gap-2'>
+              <Users className='h-5 w-5 text-primary' />
               <div>
-                <p className="text-sm text-muted-foreground">
-                  Học sinh
-                </p>
-                <p className="text-xl font-semibold">
-                  {loading ? (
-                    <span className="animate-pulse">...</span>
-                  ) : (
-                    enrolledStudents.length || 0
-                  )}
-                </p>
+                <p className='text-sm text-muted-foreground'>Học sinh</p>
+                <p className='text-xl font-semibold'>{enrolledStudents.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-0">
-          <CardContent className="p-4 h-full">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-green-600" />
+        <Card>
+          <CardContent className='p-4'>
+            <div className='flex items-center gap-2'>
+              <BookText className='h-5 w-5 text-green-600' />
               <div>
-                <p className="text-sm text-muted-foreground">
-                  Chương
-                </p>
-                <p className="text-xl font-semibold">
-                  {mockChapters.length}
-                </p>
+                <p className='text-sm text-muted-foreground'>Chương</p>
+                <p className='text-xl font-semibold'>{chapters.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-0">
-          <CardContent className="p-4 h-full">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
+        <Card>
+          <CardContent className='p-4'>
+            <div className='flex items-center gap-2'>
+              <FileText className='h-5 w-5 text-blue-600' />
               <div>
-                <p className="text-sm text-muted-foreground">
-                  Tài liệu
-                </p>
-                <p className="text-xl font-semibold">
-                  {mockDocuments.length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="flex-1 min-w-0">
-          <CardContent className="p-4 h-full">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-orange-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Quiz
-                </p>
-                <p className="text-xl font-semibold">
-                  {mockChapters.reduce((total, chapter) => total + (chapter.quizzes || 0), 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="flex-1 min-w-0">
-          <CardContent className="p-4 h-full">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-purple-600" />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Flashcard
-                </p>
-                <p className="text-xl font-semibold">
-                  {mockChapters.reduce((total, chapter) => total + (chapter.flashcards || 0), 0)}
+                <p className='text-sm text-muted-foreground'>Tài liệu</p>
+                <p className='text-xl font-semibold'>
+                  {(chapters ?? []).reduce((sum, c) => sum + (c.documents?.length ?? 0), 0)}
                 </p>
               </div>
             </div>
@@ -1812,152 +2113,165 @@ export function SubjectDetail() {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue="chapters" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="chapters">Chương học</TabsTrigger>
-          <TabsTrigger value="students">Học sinh</TabsTrigger>
-          <TabsTrigger value="documents">Tài liệu</TabsTrigger>
-          <TabsTrigger value="quiz-flashcard">
-            <Target className="h-4 w-4 mr-1" />
-            Quiz & Flashcard
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue='chapters' className='space-y-4'>
+        <div className='flex justify-center'>
+          <TabsList>
+            <TabsTrigger value='chapters'>Chương học</TabsTrigger>
+            <TabsTrigger value='students'>Học sinh</TabsTrigger>
+            <TabsTrigger value='documents'>Tài liệu</TabsTrigger>
+            <TabsTrigger value='quiz-flashcard'>Quiz & Flashcard</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Chapters Tab */}
-        <TabsContent value="chapters" className="space-y-4">
-          {mockChapters.map((chapter) => (
-            <Card key={chapter.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{chapter.title}</CardTitle>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                      <span>{chapter.documents} tài liệu</span>
+        <TabsContent value='chapters' className='space-y-4'>
+          {chapters.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium">Chưa có chương học nào trong lớp</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Chương học sẽ xuất hiện ở đây sau khi giáo viên tạo
+              </p>
+            </div>
+          ) : (
+            chapters.map((chapter) => (
+              <Card key={chapter._id}>
+                <CardHeader>
+                  <div className='flex items-center justify-between'>
+                    <div>
+                      <CardTitle className='text-lg'>{chapter.title}</CardTitle>
+                      <CardDescription className='text-sm pt-2'>{chapter.documents?.length || 0} tài liệu</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className='space-y-4'>
+                  <div className='flex gap-2'>
+                    <div className='flex gap-2'>
+                      {/* Nút Thêm tài liệu */}
+                      <Dialog open={isUploadDocOpen} onOpenChange={setIsUploadDocOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            className='gap-2'
+                            onClick={() => handleOpenDialog(chapter)} // Truyền chapter vào
+                          >
+                            <Upload className='h-4 w-4' />
+                            Thêm tài liệu
+                          </Button>
+                        </DialogTrigger>
+
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Thêm tài liệu mới</DialogTitle>
+                            <DialogDescription>Đăng tải tài liệu cho {chapterTitle}</DialogDescription>{' '}
+                            {/* Sử dụng chapterTitle */}
+                          </DialogHeader>
+                          <div className='space-y-4'>
+                            <div className='space-y-2'>
+                              <Label>Tiêu đề tài liệu</Label>
+                              <Input
+                                placeholder='Nhập tiêu đề tài liệu'
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                              />
+                            </div>
+                            <div className='space-y-2'>
+                              <Label>Tài liệu</Label>
+                              <Input type='file' onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} />
+                            </div>
+
+                            {/* Ẩn trường Chapter ID */}
+                            <div className='hidden'>
+                              <Label>Chapter ID</Label>
+                              <Input
+                                placeholder='Nhập ID chương' // Trường này vẫn còn, nhưng ẩn đi
+                                value={chapterId}
+                                onChange={() => { }} // Không cần thay đổi giá trị của nó
+                              />
+                            </div>
+
+                            <div className='flex justify-end gap-2'>
+                              <Button variant='outline' onClick={() => setIsUploadDocOpen(false)}>
+                                Hủy
+                              </Button>
+                              <Button onClick={handleUploadMaterial}>Đăng tải</Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+
+                    <div className='flex gap-2'>
+                      {/* Nút Xem tài liệu */}
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        className='gap-2'
+                        onClick={() => handleToggleDocuments(chapter._id)} // Dùng chapter._id để mở tài liệu
+                      >
+                        <FileText className='h-4 w-4' />
+                        Xem tài liệu ({chapter.documents?.length || 0})
+                      </Button>
                     </div>
                   </div>
 
-                  <Dialog
-                    open={isUploadDocOpen}
-                    onOpenChange={setIsUploadDocOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                      >
-                        <Upload className="h-4 w-4" />
-                        Thêm tài liệu
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          Thêm tài liệu mới
-                        </DialogTitle>
-                        <DialogDescription>
-                          Upload tài liệu cho {chapter.title}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Tiêu đề tài liệu</Label>
-                          <Input placeholder="Nhập tiêu đề tài liệu" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>File tài liệu</Label>
-                          <Input type="file" />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox id="public" />
-                          <Label htmlFor="public">
-                            Công khai cho tất cả học sinh
-                          </Label>
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              setIsUploadDocOpen(false)
-                            }
-                          >
-                            Hủy
-                          </Button>
-                          <Button
-                            onClick={() =>
-                              setIsUploadDocOpen(false)
-                            }
-                          >
-                            Upload
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
+                  {/* Mở rộng tài liệu khi expandedChapter trùng với chapter._id */}
+                  {expandedChapter === chapter._id && (
+                    <div className='mt-4 p-4 bg-muted/30 rounded-lg'>
+                      <h4 className='font-medium mb-3 flex items-center gap-2'>
+                        <FileText className='h-4 w-4' />
+                        Tài liệu chương
+                      </h4>
 
-              {/* Documents Section */}
-              {expandedChapter === chapter.id && (
-                <CardContent className="pt-0">
-                  <div className="mt-2 p-4 bg-muted/30 rounded-lg">
-                    <h4 className="font-medium mb-3 flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Tài liệu chương
-                    </h4>
-                    {mockDocuments.filter(doc => doc.chapterId === chapter.id).length > 0 ? (
-                      <div className="space-y-2">
-                        {mockDocuments
-                          .filter(doc => doc.chapterId === chapter.id)
-                          .map((doc) => (
-                            <div key={doc.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
-                              <div className="flex items-center gap-3">
-                                <FileText className="h-5 w-5 text-blue-500" />
+                      {chapterDocuments.length > 0 ? (
+                        <div className='space-y-2'>
+                          {chapterDocuments.map((doc) => (
+                            <div
+                              key={doc._id}
+                              className='flex items-center justify-between p-3 bg-background rounded-lg border'
+                            >
+                              <div className='flex items-center gap-3'>
+                                {getFileIcon(doc.type)}
                                 <div>
-                                  <p className="text-sm font-medium">{doc.title}</p>
-                                  <p className="text-xs text-muted-foreground">{doc.uploadDate} • {doc.size || '2.5 MB'}</p>
+                                  <h5 className='font-medium text-sm'>{doc.title}</h5>
+                                  <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                                    <span>{getFileTypeLabel(doc.type)}</span>
+                                    <span>•</span>
+                                    <span>{(doc.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                    <span>•</span>
+                                    <span>{doc.createdAt.slice(0, 10)}</span>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Eye className="h-4 w-4" />
-                                  <span className="sr-only">Xem</span>
+                              <div className='flex items-center gap-2'>
+                                <Button size='sm' variant='outline'>
+                                  <Eye className='h-4 w-4' />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Download className="h-4 w-4" />
-                                  <span className="sr-only">Tải xuống</span>
+                                <Button size='sm' variant='outline'>
+                                  <Download className='h-4 w-4' />
                                 </Button>
                               </div>
                             </div>
                           ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">Chưa có tài liệu nào trong chương này</p>
-                    )}
-                  </div>
+                        </div>
+                      ) : (
+                        <p className='text-sm text-muted-foreground text-center py-4'>
+                          Chưa có tài liệu nào cho chương này
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
-              )}
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)}
-                  >
-                    <FileText className="h-4 w-4" />
-                    {expandedChapter === chapter.id ? 'Ẩn tài liệu' : 'Xem tài liệu'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+              </Card>
+            ))
+          )}
         </TabsContent>
 
         {/* Quiz & Flashcard Tab */}
-        <TabsContent value="quiz-flashcard">
-          <TeacherQuizFlashcard subjectId={currentSubjectId} />
+        <TabsContent value='quiz-flashcard'>
+          <TeacherQuizFlashcard subjectId={currentSubjectId} addFlashcardSet={addFlashcardSet} />
         </TabsContent>
 
         {/* Students Tab */}
@@ -2044,75 +2358,141 @@ export function SubjectDetail() {
         </TabsContent>
 
         {/* Documents Tab */}
-        <TabsContent value="documents" className="space-y-4">
-          <Card className="flex-1 min-w-0">
+        <TabsContent value='documents' className='space-y-4'>
+          <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className='flex items-center justify-between'>
                 <div>
                   <CardTitle>Tài liệu học tập</CardTitle>
-                  <CardDescription>
-                    Quản lý tài liệu cho môn học
-                  </CardDescription>
+                  <CardDescription>Quản lý tài liệu cho môn học</CardDescription>
                 </div>
-                <Button className="gap-2">
-                  <Upload className="h-4 w-4" />
-                  Upload tài liệu
+                <Button className='gap-2'>
+                  <Upload className='h-4 w-4' />
+                  Đăng tải tài liệu
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockDocuments.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 bg-primary/10 rounded">
-                        <FileText className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="space-y-1">
-                        <h3 className="font-medium">
-                          {doc.title}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {doc.chapterName}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>Kích thước: {doc.size}</span>
-                          <span>•</span>
-                          <span>
-                            Upload:{" "}
-                            {new Date(
-                              doc.uploadDate,
-                            ).toLocaleDateString("vi-VN")}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+              <div className='space-y-4'>
+                {materialsLoading ? (
+                  <div className='flex justify-center py-8'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
                   </div>
-                ))}
+                ) : materials.length === 0 ? (
+                  <div className='text-center py-8 text-muted-foreground'>
+                    <FileText className='h-12 w-12 mx-auto mb-4 opacity-50' />
+                    <p>Chưa có tài liệu nào cho môn học này</p>
+                  </div>
+                ) : (
+                  materials.map((doc) => (
+                    <div key={doc.id} className='flex items-center justify-between p-4 border rounded-lg'>
+                      <div className='flex items-center gap-4'>
+                        <div className='p-2 bg-primary/10 rounded'>
+                          <FileText className='h-5 w-5 text-primary' />
+                        </div>
+                        <div className='space-y-1'>
+                          <h3 className='font-medium'>{doc.title}</h3>
+                          <div className='flex items-center gap-2'>
+                            <Badge variant='outline' className='text-xs'>
+                              {doc.chapter?.title || 'Không có chương'}
+                            </Badge>
+                          </div>
+                          <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                            <span>Kích thước: {(doc.size / 1024 / 1024).toFixed(1)} MB</span>
+                            <span>•</span>
+                            <span>Ngày đăng tải: {new Date(doc.createdAt).toLocaleDateString('vi-VN')}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className='flex items-center gap-2'>
+                        <Button variant='outline' size='sm' onClick={() => handleDownloadMaterial(doc)}>
+                          <Download className='h-4 w-4' />
+                        </Button>
+                        <Button variant='outline' size='sm' onClick={() => handleEditMaterial(doc)}>
+                          <Edit className='h-4 w-4' />
+                        </Button>
+                        <Button variant='outline' size='sm' onClick={() => handleDeleteMaterial(doc)}>
+                          <Trash2 className='h-4 w-4 text-destructive' />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Material Dialog */}
+      <Dialog open={!!editingMaterial} onOpenChange={(open) => !open && handleCancelEditMaterial()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa tài liệu</DialogTitle>
+            <DialogDescription>Thay đổi tên tài liệu</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Input
+                id="edit-title"
+                value={editMaterialTitle}
+                onChange={(e) => setEditMaterialTitle(e.target.value)}
+                placeholder="Nhập tên tài liệu"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelEditMaterial}>
+              Hủy
+            </Button>
+            <Button onClick={handleSaveEditMaterial}>
+              Lưu thay đổi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Material Confirmation Dialog */}
+      <Dialog open={isDeleteMaterialDialogOpen} onOpenChange={setIsDeleteMaterialDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Xác nhận xóa tài liệu
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>Bạn có chắc chắn muốn xóa tài liệu này?</p>
+              {materialToDelete && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="font-medium">{materialToDelete.title || materialToDelete.fileName || 'Không có tên'}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {materialToDelete.chapter?.title || 'Không có chương'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Kích thước: {(materialToDelete.size / 1024 / 1024).toFixed(1)} MB
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-destructive font-medium">
+                Hành động này không thể hoàn tác!
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={cancelDeleteMaterial}>
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteMaterial}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Xóa tài liệu
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
-  );
+  )
 }

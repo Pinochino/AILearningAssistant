@@ -155,7 +155,19 @@ const mockPrivateFlashcards = [
     },
 ];
 
-export function StudentQuizFlashcard() {
+interface StudentQuizFlashcardProps {
+    quizzesData?: any[];
+    flashcardsData?: any[];
+    quizzesLoading?: boolean;
+    flashcardsLoading?: boolean;
+}
+
+export function StudentQuizFlashcard({
+    quizzesData = [],
+    flashcardsData = [],
+    quizzesLoading = false,
+    flashcardsLoading = false
+}: StudentQuizFlashcardProps) {
     const [aiPrompt, setAiPrompt] = useState("");   // giữ nội dung text prompt
     const [aiFile, setAiFile] = useState<File | null>(null);  // giữ file upload
 
@@ -388,7 +400,7 @@ export function StudentQuizFlashcard() {
                 </div>
 
                 <div className="flex gap-2">
-                    <Dialog open={isCreateQuizOpen} onOpenChange={(open) => {
+                    <Dialog open={isCreateQuizOpen} onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
                         setIsCreateQuizOpen(open);
                         if (!open) resetQuizForm();
                     }}>
@@ -423,7 +435,7 @@ export function StudentQuizFlashcard() {
                                                 <Checkbox
                                                     id={`chapter-${chapter.id}`}
                                                     checked={selectedChapters.includes(chapter.id)}
-                                                    onCheckedChange={(checked) => handleChapterSelect(chapter.id, checked as boolean)}
+                                                    onCheckedChange={(checked: boolean) => handleChapterSelect(chapter.id, checked as boolean)}
                                                 />
                                                 <Label htmlFor={`chapter-${chapter.id}`}>{chapter.title}</Label>
                                             </div>
@@ -607,7 +619,7 @@ export function StudentQuizFlashcard() {
                     </Dialog>
 
                     {/* Global Flashcard Button */}
-                    <Dialog open={isCreateFlashcardOpen} onOpenChange={(open) => {
+                    <Dialog open={isCreateFlashcardOpen} onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
                         setIsCreateFlashcardOpen(open);
                         if (!open) resetFlashcardForm();
                     }}>
@@ -642,7 +654,7 @@ export function StudentQuizFlashcard() {
                                                 <Checkbox
                                                     id={`flashcard-chapter-${chapter.id}`}
                                                     checked={selectedFlashcardChapters.includes(chapter.id)}
-                                                    onCheckedChange={(checked) => handleFlashcardChapterSelect(chapter.id, checked as boolean)}
+                                                    onCheckedChange={(checked: boolean) => handleFlashcardChapterSelect(chapter.id, checked as boolean)}
                                                 />
                                                 <Label htmlFor={`flashcard-chapter-${chapter.id}`}>{chapter.title}</Label>
                                             </div>
@@ -812,113 +824,138 @@ export function StudentQuizFlashcard() {
 
                 {/* Quizzes Tab */}
                 <TabsContent value="quizzes" className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4">
-                        {[...mockPublicQuizzes, ...mockPrivateQuizzes].map((quiz) => (
-                            <Card key={quiz.id}>
-                                <CardContent className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-purple-100 rounded-lg">
-                                                <Target className="h-5 w-5 text-purple-600" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-medium">{quiz.title}</h3>
-                                                    <Badge className={getDifficultyColor(quiz.difficulty)}>
-                                                        {quiz.difficulty}
-                                                    </Badge>
-
+                    {quizzesLoading ? (
+                        <div className="flex items-center justify-center h-32">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : quizzesData.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-4">
+                            {quizzesData.map((quiz) => (
+                                <Card key={quiz.id}>
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 bg-purple-100 rounded-lg">
+                                                    <Target className="h-5 w-5 text-purple-600" />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">{quiz.description}</p>
-
-                                                {/* Chapters */}
-                                                <div className="flex flex-wrap gap-1">
-                                                    {quiz.chapterNames.map((chapter, index) => (
-                                                        <Badge key={index} variant="secondary" className="text-xs">
-                                                            {chapter}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="font-medium">{quiz.title}</h3>
+                                                        <Badge className={getDifficultyColor(quiz.difficulty)}>
+                                                            {quiz.difficulty}
                                                         </Badge>
-                                                    ))}
-                                                </div>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">{quiz.description}</p>
 
-                                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                    <span>{quiz.questions} câu hỏi</span>
+                                                    {/* Chapters */}
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {quiz.chapterNames?.map((chapter: string, index: number) => (
+                                                            <Badge key={index} variant="secondary" className="text-xs">
+                                                                {chapter}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                        <span>{quiz.questions?.length || 0} câu hỏi</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button size="sm">
+                                                        <Play className="h-4 w-4 mr-2" />
+                                                        Làm quiz
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-
-                                            <Button size="sm">
-                                                <Play className="h-4 w-4 mr-2" />
-                                                Làm quiz
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <Target className="h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-medium">Chưa có quiz nào cho lớp này</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Quiz sẽ xuất hiện ở đây sau khi giáo viên tạo
+                            </p>
+                        </div>
+                    )}
                 </TabsContent>
 
                 {/* Flashcards Tab */}
                 <TabsContent value="flashcards" className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4">
-                        {[...mockPublicFlashcards, ...mockPrivateFlashcards].map((flashcard) => (
-                            <Card key={flashcard.id}>
-                                <CardContent className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-orange-100 rounded-lg">
-                                                <BookOpen className="h-5 w-5 text-orange-600" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-medium">{flashcard.title}</h3>
-                                                    <Badge className={getDifficultyColor(flashcard.difficulty)}>
-                                                        {flashcard.difficulty}
-                                                    </Badge>
-
+                    {flashcardsLoading ? (
+                        <div className="flex items-center justify-center h-32">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : flashcardsData.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-4">
+                            {flashcardsData.map((flashcard) => (
+                                <Card key={flashcard.id}>
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 bg-orange-100 rounded-lg">
+                                                    <BookOpen className="h-5 w-5 text-orange-600" />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">{flashcard.description}</p>
-
-                                                {/* Chapters */}
-                                                <div className="flex flex-wrap gap-1">
-                                                    {flashcard.chapterNames.map((chapter, index) => (
-                                                        <Badge key={index} variant="secondary" className="text-xs">
-                                                            {chapter}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="font-medium">{flashcard.title}</h3>
+                                                        <Badge className={getDifficultyColor(flashcard.difficulty)}>
+                                                            {flashcard.difficulty}
                                                         </Badge>
-                                                    ))}
-                                                </div>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">{flashcard.description}</p>
 
-                                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                    <span>{flashcard.cards} thẻ</span>
+                                                    {/* Chapters */}
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {flashcard.chapterNames && flashcard.chapterNames.map((chapter: string, index: number) => (
+                                                            <Badge key={index} variant="secondary" className="text-xs">
+                                                                {chapter}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                        <span>{flashcard.totalCards || flashcard.flashcards?.length || 0} thẻ</span>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleEditFlashcard(flashcard)}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteFlashcard(flashcard.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button size="sm">
+                                                    <Play className="h-4 w-4 mr-2" />
+                                                    Ôn tập
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleEditFlashcard(flashcard)}
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleDeleteFlashcard(flashcard.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button size="sm">
-                                                <Play className="h-4 w-4 mr-2" />
-                                                Ôn tập
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-medium">Chưa có flashcard nào cho lớp này</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Flashcard sẽ xuất hiện ở đây sau khi giáo viên tạo
+                            </p>
+                        </div>
+                    )}
                 </TabsContent>
             </Tabs>
 

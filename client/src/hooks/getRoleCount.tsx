@@ -26,7 +26,7 @@ export default function GetRoleCountByName(name: string) {
 
   const { isPending, error, data } = useQuery({
     queryKey: [`count-role-${name}`, name],
-    queryFn:  getCountRole,
+    queryFn: getCountRole,
     staleTime: 60_000,
     retry: 0,
   })

@@ -57,7 +57,6 @@ export function EnrollmentApproval() {
     const intervalId = setInterval(() => {
       loadPendingEnrollments(selectedClass._id);
     }, 30000);
-
     // Clean up interval on unmount or when selected class changes
     return () => clearInterval(intervalId);
   }, [selectedClass]);
@@ -83,7 +82,6 @@ export function EnrollmentApproval() {
         }
         return prevClasses;
       });
-
       // Auto-select first class if available and no class is selected
       if (response.data.items.length > 0 && !selectedClass) {
         setSelectedClass(response.data.items[0]);
@@ -257,8 +255,8 @@ export function EnrollmentApproval() {
                   <Card
                     key={cls._id}
                     className={`cursor-pointer transition-all ${selectedClass?._id === cls._id
-                        ? 'border-primary shadow-md'
-                        : 'hover:border-primary/50'
+                      ? 'border-primary shadow-md'
+                      : 'hover:border-primary/50'
                       }`}
                     onClick={() => setSelectedClass(cls)}
                   >

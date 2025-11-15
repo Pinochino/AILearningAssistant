@@ -13,6 +13,7 @@ import { GetUserInfor } from '../../hooks/getUserInfor'
 import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleApi } from '../../api/handleApi'
 import { GetAllData } from '../../hooks/getAllData'
+import { useAuth } from '../../hooks/useAuth'
 
 
 interface IRole {
@@ -23,13 +24,21 @@ interface IRole {
 export function EditUser() {
   const { navigateTo, currentParams } = useNavigation()
   const userId = currentParams.userId
+  const { user: currentUser, setUser } = useAuth()
 
   const queryClient = useQueryClient();
 
-  const [user, setUser] = useState<any>(null)
+  const [user, setEditedUser] = useState<any>(null)
   // const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const { isLoading, data, error } = GetUserInfor(userId);
+
+  useEffect(() => {
+    if (data?.data) {
+      setEditedUser(data?.data);
+    }
+  }, [data]);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -37,14 +46,19 @@ export function EditUser() {
     username: '',
     removeRoleId: '',
     addRoleId: '',
-    status: '',
-    phone: '',
-    address: '',
-    bio: '',
     studentId: ''
   })
-
-  const { isLoading, data, error } = GetUserInfor(userId);
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        username: user.username || '',
+        removeRoleId: user?.roles?.[0]?._id || '',
+        addRoleId: '',
+        studentId: user?.studentId || ''
+      })
+    }
+  }, [user])
 
   const [roles, setRoles] = useState<IRole[]>([{
     id: '',
@@ -52,16 +66,6 @@ export function EditUser() {
   }])
 
   const { data: roleList, isLoading: rolesListLoading } = GetAllData({ url: '/roles/list', name: 'RoleList' })
-
-
-  useEffect(() => {
-    if (data?.data) {
-      setUser(data?.data);
-    }
-  }, [data]);
-
-
-  formData.removeRoleId = user?.roles[0]._id
 
 
   const handleInputChange = (field: string, value: string) => {
@@ -83,38 +87,60 @@ export function EditUser() {
 
   console.log('id: ', userId)
 
-  const { isLoading: editUserLoading, mutate: updateUser, error: editUserError } = useMutation({
-    mutationFn: async () => {
+  const { isLoading: editUserLoading, mutate: updateUser } = useMutation({
+    mutationFn: async (payload: any) => {
       const res = await handleApi({
         url: `/users/update/${userId}`,
         method: 'PUT',
-        data: formData,
+        data: payload,
         withCredentials: true,
-      })
-
-      const result = await res.data;
-      return result;
+      });
+      return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedData: any) => {
       queryClient.invalidateQueries({ queryKey: [`detail-infor-${userId}`, userId] });
       queryClient.invalidateQueries({ queryKey: [`users`] });
+
+      // If admin is editing their own profile, update global user state
+      const updatedUser = updatedData?.data;
+      if (updatedUser && currentUser?.id === userId) {
+        const updatedGlobalUser = {
+          ...currentUser!,
+          name: updatedUser.name,
+          username: updatedUser.username,
+          avatar: updatedUser.avatar || currentUser?.avatar,
+        };
+        setUser(updatedGlobalUser);
+
+        // Force update all components that depend on user state
+        window.dispatchEvent(new Event('storage'));
+      }
+
       toast.success('Cập nhật người dùng thành công!');
     },
     onError: (err: any) => {
-      console.error('Update failed', err);
       toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật');
     },
-  })
+  });
 
   const handleEditUser = () => {
     if (!formData.username || !formData.name) {
-      toast.error('Họ tên và Username là bắt buộc');
-      return;
+      toast.error('Họ tên và Tên đăng nhập là bắt buộc')
+      return
     }
-    console.log('Sending update: ', formData);
-    updateUser();
-  }
+    const payload: any = {
+      username: formData.username,
+      name: formData.name,
+    };
+    // Chỉ gửi removeRoleId/addRoleId khi người dùng thực sự đổi role
+    if (formData.addRoleId && formData.addRoleId !== formData.removeRoleId) {
+      payload.removeRoleId = formData.removeRoleId;
+      payload.addRoleId = formData.addRoleId;
+    }
 
+    console.log('Sending update: ', payload);
+    updateUser(payload);
+  }
 
   const handleToggleStatus = async () => {
     const newStatus = formData.status === 'active' ? 'inactive' : 'active'
@@ -233,10 +259,16 @@ export function EditUser() {
                   <p className='text-sm text-muted-foreground font-medium'>Mã sinh viên: {formData._id}</p>
                 )} */}
                 <div className='flex gap-2 mt-2'>
-                  <Badge variant={getRoleBadgeVariant(user?.roles[0].name)}>{getRoleLabel(user?.roles[0].name)}</Badge>
-                  <Badge variant={user.isActive === 'active' ? 'secondary' : 'outline'}>
-                    {user?.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
-                  </Badge>
+                  <div className='flex gap-2 mt-2'>
+                    {user?.roles?.[0]?.name && (
+                      <Badge variant={getRoleBadgeVariant(user.roles[0].name)}>
+                        {getRoleLabel(user.roles[0].name)}
+                      </Badge>
+                    )}
+                    <Badge variant={user?.isActive === 'active' ? 'secondary' : 'outline'}>
+                      {user?.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 

@@ -12,6 +12,7 @@ import { GetUserInfor } from '../../hooks/getUserInfor'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleApi } from '../../api/handleApi'
 import { GetAllData } from '../../hooks/getAllData'
+import { useAuth } from '../../hooks/useAuth'
 
 
 interface IRole {
@@ -22,10 +23,11 @@ interface IRole {
 export function UserDetailPage() {
   const { navigateTo, currentParams } = useNavigation()
   const userId = currentParams.userId
+  const { user: currentUser, setUser } = useAuth()
 
   const queryClient = useQueryClient();
 
-  const [user, setUser] = useState<any>(null)
+  const [user, setEditedUser] = useState<any>(null)
   // const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -55,7 +57,7 @@ export function UserDetailPage() {
 
   useEffect(() => {
     if (data?.data) {
-      setUser(data?.data);
+      setEditedUser(data?.data);
     }
   }, [data]);
 
@@ -94,9 +96,25 @@ export function UserDetailPage() {
       const result = await res.data;
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (updatedData: any) => {
       queryClient.invalidateQueries({ queryKey: [`detail-infor-${userId}`, userId] });
       queryClient.invalidateQueries({ queryKey: [`users`] });
+
+      // If admin is editing their own profile, update global user state
+      const updatedUser = updatedData?.data;
+      if (updatedUser && currentUser?.id === userId) {
+        const updatedGlobalUser = {
+          ...currentUser!,
+          name: updatedUser.name,
+          username: updatedUser.username,
+          avatar: updatedUser.avatar || currentUser?.avatar,
+        };
+        setUser(updatedGlobalUser);
+
+        // Force update all components that depend on user state
+        window.dispatchEvent(new Event('storage'));
+      }
+
       toast.success('Cập nhật người dùng thành công!');
     },
     onError: (err: any) => {
@@ -134,8 +152,12 @@ export function UserDetailPage() {
     switch (role) {
       case 'SUPER_ADMIN':
         return 'Quản trị viên'
+      case 'ADMIN':
+        return 'Quản trị viên'
       case 'TEACHER':
         return 'Giáo viên'
+      case 'STUDENT':
+        return 'Học sinh'
       case 'USER':
         return 'Học sinh'
       default:
@@ -147,8 +169,12 @@ export function UserDetailPage() {
     switch (role) {
       case 'SUPER_ADMIN':
         return 'destructive'
+      case 'ADMIN':
+        return 'destructive'
       case 'TEACHER':
         return 'default'
+      case 'STUDENT':
+        return 'secondary'
       case 'USER':
         return 'secondary'
       default:

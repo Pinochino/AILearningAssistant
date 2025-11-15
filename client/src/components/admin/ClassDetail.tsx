@@ -38,7 +38,7 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
       const cls = response.data;
       setClassData(cls);
 
-      
+
       if (cls.teacherId) {
         setTeacherInfo({
           username: (cls.teacherId as any)?.username || 'Không xác định',
@@ -46,7 +46,7 @@ export function ClassDetail({ classId, isOpen, onClose }: ClassDetailProps) {
         });
       }
 
-      
+
       if (cls.studentIds && cls.studentIds.length > 0) {
         setStudentInfo(cls.studentIds.map((student: any) => ({
           username: student?.username || 'Không xác định',

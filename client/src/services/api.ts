@@ -77,20 +77,6 @@ export interface Class {
   updatedAt: string;
 }
 
-export interface Subject {
-  _id: string;
-  name: string;
-  code: string;
-  description?: string;
-  credits: number;
-  department: string;
-  teacherId?: string;
-  prerequisites?: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface ClassEnrollment {
   _id: string;
   classId: string;
@@ -243,6 +229,9 @@ export const classApi = {
     if (params?.subject) queryParams.append('subject', params.subject);
     if (params?.teacherId) queryParams.append('teacherId', params.teacherId);
     if (params?.dayOfWeek !== undefined) queryParams.append('dayOfWeek', params.dayOfWeek.toString());
+
+    // Add populate parameter to get teacher details
+    queryParams.append('populate', 'teacherId');
 
     // Add populate parameter to get teacher details
     queryParams.append('populate', 'teacherId');

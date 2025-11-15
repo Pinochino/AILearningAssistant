@@ -341,19 +341,35 @@ export function UserManagement() {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'admin': return 'Quản trị viên';
-      case 'teacher': return 'Giáo viên';
-      case 'student': return 'Học sinh';
-      default: return role;
+      case 'SUPER_ADMIN':
+        return 'Quản trị viên'
+      case 'ADMIN':
+        return 'Quản trị viên'
+      case 'TEACHER':
+        return 'Giáo viên'
+      case 'STUDENT':
+        return 'Học sinh'
+      case 'USER':
+        return 'Học sinh'
+      default:
+        return role
     }
-  };
+  }
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'admin': return 'destructive';
-      case 'teacher': return 'default';
-      case 'student': return 'secondary';
-      default: return 'outline';
+      case 'SUPER_ADMIN':
+        return 'destructive'
+      case 'ADMIN':
+        return 'destructive'
+      case 'TEACHER':
+        return 'default'
+      case 'STUDENT':
+        return 'secondary'
+      case 'USER':
+        return 'secondary'
+      default:
+        return 'outline'
     }
   }
 
@@ -449,27 +465,24 @@ export function UserManagement() {
       </Dialog>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <div>
           <h1>Quản lý người dùng</h1>
-          <p className="text-muted-foreground">
-            Quản lý tài khoản giáo viên và học sinh trong hệ thống
-          </p>
+          <p className='text-muted-foreground'>Quản lý tài khoản giáo viên và học sinh trong hệ thống</p>
         </div>
 
+        {/* CREATE USER */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
+            <Button className='gap-2'>
+              <Plus className='h-4 w-4' />
               Thêm người dùng
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Tạo tài khoản mới</DialogTitle>
-              <DialogDescription>
-                Thêm người dùng mới vào hệ thống
-              </DialogDescription>
+              <DialogDescription>Thêm người dùng mới vào hệ thống</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreateUser}>
               <div className='space-y-4'>
@@ -546,23 +559,23 @@ export function UserManagement() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <CardContent className='p-4'>
+          <div className='flex gap-4'>
+            <div className='flex-1'>
+              <div className='relative'>
+                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
                 <Input
-                  placeholder="Tìm kiếm theo tên hoặc username..."
+                  placeholder="Tìm kiếm theo tên hoặc tên đăng nhập..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+                  className='pl-9'
                 />
 
               </div>
             </div>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Lọc theo vai trò" />
+            <Select value={selectedRole} onValueChange={handleChangeUserByRoleId}>
+              <SelectTrigger className='w-48'>
+                <SelectValue placeholder='Lọc theo vai trò' />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='all'>Tất cả vai trò</SelectItem>
@@ -591,63 +604,65 @@ export function UserManagement() {
             )}
           </div>
           <CardDescription>Quản lý thông tin và quyền hạn của từng người dùng</CardDescription>
-        </CardHeader>
+        </CardHeader >
         <CardContent>
           <div className='space-y-4'>
-            {selectedRole && selectedRole !== 'all'
-              ? (
-                filteredUsers.length > 0
-                  ? <DisplayUsers
-                    users={filteredUsers}
-                    navigateTo={navigateTo}
-                    getRoleBadgeVariant={getRoleBadgeVariant}
-                    getRoleLabel={getRoleLabel}
-                    onDeleteClick={handleDeleteClick}
-                  />
-                  : <p className='text-center py-4 text-muted-foreground'>Không tìm thấy người dùng nào</p>
-              )
-              : (
-                userData.length > 0
-                  ? <DisplayUsers
-                    users={userData}
-                    navigateTo={navigateTo}
-                    getRoleBadgeVariant={getRoleBadgeVariant}
-                    getRoleLabel={getRoleLabel}
-                    onDeleteClick={handleDeleteClick}
-                  />
-                  : <p className='text-center py-4 text-muted-foreground'>Không có người dùng nào</p>
-              )}
-          </div>
-        </CardContent>
-      </Card>
+            {
+              selectedRole && selectedRole !== 'all'
+                ? (
+                  filteredUsers.length > 0
+                    ? <DisplayUsers
+                      users={filteredUsers}
+                      navigateTo={navigateTo}
+                      getRoleBadgeVariant={getRoleBadgeVariant}
+                      getRoleLabel={getRoleLabel}
+                      onDeleteClick={handleDeleteClick}
+                    />
+                    : <p className='text-center py-4 text-muted-foreground'>Không tìm thấy người dùng nào</p>
+                )
+                : (
+                  userData.length > 0
+                    ? <DisplayUsers
+                      users={userData}
+                      navigateTo={navigateTo}
+                      getRoleBadgeVariant={getRoleBadgeVariant}
+                      getRoleLabel={getRoleLabel}
+                      onDeleteClick={handleDeleteClick}
+                    />
+                    : <p className='text-center py-4 text-muted-foreground'>Không có người dùng nào</p>
+                )
+            }
+          </div >
+        </CardContent >
+      </Card >
 
       {/* Stats */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+      < div className='grid grid-cols-1 md:grid-cols-3 gap-4' >
         <Card>
           <CardContent className='p-4'>
             <div className='text-center'>
               <p className='text-2xl font-bold'>{teacherCounts || 0}</p>
               <p className='text-sm text-muted-foreground'>Giáo viên</p>
-            </div>
-          </CardContent>
-        </Card>
+            </div >
+          </CardContent >
+        </Card >
         <Card>
           <CardContent className='p-4'>
             <div className='text-center'>
               <p className='text-2xl font-bold'>{userCounts || 0}</p>
               <p className='text-sm text-muted-foreground'>Học sinh</p>
-            </div>
-          </CardContent>
-        </Card>
+            </div >
+          </CardContent >
+        </Card >
         <Card>
           <CardContent className='p-4'>
             <div className='text-center'>
               <p className='text-2xl font-bold'>{userActiveCount?.data?.userCount}</p>
               <p className='text-sm text-muted-foreground'>Đang hoạt động</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+            </div >
+          </CardContent >
+        </Card >
+      </div >
+    </div >
+  )
 }

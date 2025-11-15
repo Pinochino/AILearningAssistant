@@ -35,36 +35,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { classApi } from '../../services/api';
 import { teacherApi } from '../../services/api';
 
-const mySubjects = [
-  {
-    id: '1',
-    name: 'Toán học 12A1',
-    students: 35,
-    completion: 78,
-    nextClass: '2024-09-19 07:30',
-    pendingQuizzes: 3,
-    newMessages: 5,
-  },
-  {
-    id: '2',
-    name: 'Toán học 12A2',
-    students: 32,
-    completion: 82,
-    nextClass: '2024-09-19 09:15',
-    pendingQuizzes: 1,
-    newMessages: 2,
-  },
-  {
-    id: '3',
-    name: 'Toán nâng cao',
-    students: 18,
-    completion: 91,
-    nextClass: '2024-09-20 14:00',
-    pendingQuizzes: 0,
-    newMessages: 1,
-  },
-];
-
 const recentActivities = [
   {
     student: 'Nguyễn Văn A',

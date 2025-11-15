@@ -6,7 +6,6 @@ import { Role, RoleName } from '~/models/Role'
 import emailService from './emailService'
 import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils'
 import { ForgotPassword } from '~/models/ForgotPassword'
-import { Types } from 'mongoose'
 
 const authService = {
   authenticate: async ({ username, password }: LoginType) => {

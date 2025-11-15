@@ -1,4 +1,4 @@
-import cloudinary from '~/configs/cloudinaryConfig'
+import cloudinary from '../configs/cloudinaryConfig'
 
 const cloudinaryService = {
   // Uploads an image file

@@ -2,11 +2,11 @@ import dotenv from 'dotenv'
 import { Request } from 'express'
 dotenv.config()
 import passport from 'passport'
-import { User } from '~/models/User'
-import { UserProvider, UserProviderType } from '~/models/UserProvider'
+import { User } from '../models/User'
+import { UserProvider, UserProviderType } from '../models/UserProvider'
 const GoogleStrategy = require('passport-google-oauth2').Strategy
 import crypto from 'crypto'
-import { Role, RoleName } from '~/models/Role'
+import { Role, RoleName } from '../models/Role'
 import { Types } from 'mongoose'
 
 passport.use(
@@ -41,7 +41,7 @@ passport.use(
         }
 
         const roles: Types.ObjectId[] = []
-        roles.push(oldRole._id)
+        roles.push(oldRole._id as Types.ObjectId)
 
         let oldUser = await User.findOne({
           provider: {

@@ -9,10 +9,7 @@ const userService = {
     const users = await User.find(
       search
         ? {
-          $or: [
-            { username: search },
-            { name: search }
-          ]
+          $or: [{ username: { $regex: search, $options: 'i' } }, { name: { $regex: search, $options: 'i' } }]
         }
         : {}
     )
@@ -42,6 +39,8 @@ const userService = {
   },
 
   updateUser: async (userId: string, props: EditUserInterface) => {
+    console.log('props: ', props)
+
     try {
       const oldUser = await User.findById(userId)
       if (!oldUser) throw new Error('User not found')

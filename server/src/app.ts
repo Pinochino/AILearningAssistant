@@ -23,6 +23,12 @@ import classesRoutes from "./routes/class.routes.js";
 import authRouter from "./routers/authRouter.js";
 import userRouter from "./routers/userRouter.js";
 import roleRouter from "./routers/roleRouter.js";
+import chapterRouter from "./routers/chapterRouter.js";
+import quizRouter from "./routers/quizRouter.js";
+import flashcardRouter from "./routers/flashcardRouter.js";
+import flashcardSetRouter from "./routers/flashcardSetRouter.js";
+import materialRouter from "./routers/materialRouter.js";
+import aiRouter from "./routers/aiRouter.js";
 
 // Import server-1 routes
 // import authRouter from "./routers/authRouter";
@@ -127,7 +133,7 @@ app.get("/health", (req, res) => {
     res.json({
         status: "OK",
         timestamp: new Date().toISOString(),
-        service: "ATIUI Messaging & Notifications Service"
+        service: "AI Learning Assistant Platform"
     });
 });
 
@@ -146,6 +152,12 @@ app.use("/api", classesRoutes);
 // Compatibility: also accept requests without '/api' prefix
 app.use("/", classRoutes);
 app.use("/api/roles", roleRouter);
+app.use("/api/chapters", chapterRouter);
+app.use("/api/quizzes", quizRouter);
+app.use("/api/flashcards", flashcardRouter);
+app.use("/api/flashcard-sets", flashcardSetRouter);
+app.use("/api/materials", materialRouter);
+app.use("/api/ai", aiRouter);
 
 // 404 handler with verbose logging
 app.use((req, res) => {

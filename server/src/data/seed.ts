@@ -273,42 +273,42 @@ async function main() {
     const classesToSeed: Array<Partial<IClass>> = [
       // ===== LỚP CẤP 3 (có grade cụ thể) =====
       {
-        name: "Toán học - 12A1",
-        subject: "Toán học",
-        grade: "12A1",
-        description: "Lớp Toán học nâng cao dành cho học sinh lớp 12A1",
+        name: 'Toán học - 12A1',
+        subject: 'Toán học',
+        grade: '12A1',
+        description: 'Lớp Toán học nâng cao dành cho học sinh lớp 12A1',
         teacherId: teacher1?._id as any,
         students: [student1?._id as any, student2?._id as any],
         schedule: [
-          { dayOfWeek: 1, startTime: "07:00", endTime: "08:30" },
-          { dayOfWeek: 3, startTime: "07:00", endTime: "08:30" },
-          { dayOfWeek: 5, startTime: "07:00", endTime: "08:30" }
+          { dayOfWeek: 1, startTime: '07:00', endTime: '08:30' },
+          { dayOfWeek: 3, startTime: '07:00', endTime: '08:30' },
+          { dayOfWeek: 5, startTime: '07:00', endTime: '08:30' }
         ],
         maxStudents: 40,
       },
       {
-        name: "Vật lý - 12A1",
-        subject: "Vật lý",
-        grade: "12A1",
-        description: "Lớp Vật lý thí nghiệm cho học sinh 12A1",
+        name: 'Vật lý - 12A1',
+        subject: 'Vật lý',
+        grade: '12A1',
+        description: 'Lớp Vật lý thí nghiệm cho học sinh 12A1',
         teacherId: teacher1?._id as any,
         students: [student1?._id as any, student2?._id as any],
         schedule: [
-          { dayOfWeek: 2, startTime: "08:45", endTime: "10:15" },
-          { dayOfWeek: 4, startTime: "08:45", endTime: "10:15" }
+          { dayOfWeek: 2, startTime: '08:45', endTime: '10:15' },
+          { dayOfWeek: 4, startTime: '08:45', endTime: '10:15' }
         ],
         maxStudents: 35,
       },
       {
-        name: "Trí tuệ nhân tạo",
-        subject: "Trí tuệ nhân tạo",
+        name: 'Trí tuệ nhân tạo',
+        subject: 'Trí tuệ nhân tạo',
         grade: undefined, // Không có grade - áp dụng chung
-        description: "Machine Learning, Deep Learning và ứng dụng AI - Tất cả ngành",
+        description: 'Machine Learning, Deep Learning và ứng dụng AI - Tất cả ngành',
         teacherId: teacher1?._id as any,
         students: [student2?._id as any],
         schedule: [
-          { dayOfWeek: 4, startTime: "15:30", endTime: "17:00" },
-          { dayOfWeek: 6, startTime: "08:00", endTime: "09:30" }
+          { dayOfWeek: 4, startTime: '15:30', endTime: '17:00' },
+          { dayOfWeek: 6, startTime: '08:00', endTime: '09:30' }
         ],
         maxStudents: 70,
       }
@@ -343,3 +343,5 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   // Executed directly
   main()
 }
+
+

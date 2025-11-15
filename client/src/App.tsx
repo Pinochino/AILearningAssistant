@@ -6,6 +6,7 @@ import { DashboardLayout } from './components/layout/DashboardLayout';
 import { PageRouter } from './components/PageRouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from './components/ui/sonner';
+import Spinner from './components/layout/spinner/Spinner';
 
 function AppContent() {
   const { user, isLoading } = useAuth();

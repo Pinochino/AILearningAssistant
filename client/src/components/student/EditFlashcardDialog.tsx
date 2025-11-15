@@ -158,7 +158,7 @@ export function EditFlashcardDialog({ isOpen, onOpenChange, flashcard, onSave }:
                                     <Checkbox
                                         id={`edit-fc-chapter-${chapter.id}`}
                                         checked={selectedChapters.includes(chapter.id)}
-                                        onCheckedChange={(checked) => handleChapterSelect(chapter.id, checked as boolean)}
+                                        onCheckedChange={(checked: boolean) => handleChapterSelect(chapter.id, checked as boolean)}
                                     />
                                     <Label htmlFor={`edit-fc-chapter-${chapter.id}`}>{chapter.title}</Label>
                                 </div>

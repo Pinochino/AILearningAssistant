@@ -34,8 +34,6 @@ export function SubjectSearch() {
   const [enrollmentMessage, setEnrollmentMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
   const [conflictingClasses, setConflictingClasses] = useState<string[]>([]);
@@ -66,7 +64,7 @@ export function SubjectSearch() {
   // Load available classes and enrollments
   useEffect(() => {
     loadData();
-  }, [currentPage, selectedSubject]);
+  }, [selectedSubject]);
 
   const loadData = async () => {
     try {
@@ -83,16 +81,16 @@ export function SubjectSearch() {
         return;
       }
 
-      // Load available classes
-      console.log('Fetching available classes for user:', userId); // Debug
+      // Load all available classes at once
+      console.log('Fetching all available classes for user:', userId); // Debug
       const classesResponse = await enrollmentApi.getAvailableClasses(userId, {
-        page: currentPage,
-        limit: 10,
+        page: 1,
+        limit: 100, // Load a large number of classes at once
         subject: selectedSubject !== 'all' ? selectedSubject : undefined,
       });
       console.log('Classes response:', classesResponse); // Debug
+
       setAvailableClasses(classesResponse?.data?.items || []);
-      setTotalPages(classesResponse?.data?.pagination?.totalPages || 1);
 
       // Load my enrollments (all statuses: pending, approved, rejected)
       console.log('Fetching enrollments for user:', userId); // Debug
@@ -462,28 +460,6 @@ export function SubjectSearch() {
         </Card>
       )}
 
-      {/* Pagination */}
-      {!loading && !error && totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <Button
-            variant="outline"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-          >
-            Trang trước
-          </Button>
-          <span className="flex items-center px-4">
-            Trang {currentPage} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-          >
-            Trang sau
-          </Button>
-        </div>
-      )}
 
       {/* Enrollment Dialog */}
       <Dialog open={isEnrollmentDialogOpen} onOpenChange={setIsEnrollmentDialogOpen}>

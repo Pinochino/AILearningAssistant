@@ -16,12 +16,14 @@ import {
   ChevronRight,
   Eye,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  BookOpen as BookOpenIcon,
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { StudentQuizFlashcard } from './StudentQuizFlashcard';
 import { useNavigation } from '../../hooks/useNavigation';
 import { enrollmentApi, classApi, type Class } from '../../services/api';
+import axios from 'axios';
 
 const mockSubjects = [
   {
@@ -209,6 +211,16 @@ export function SubjectView() {
   const [loading, setLoading] = useState(true);
   const [hasClasses, setHasClasses] = useState(false);
 
+  // Real data states
+  const [chapters, setChapters] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [flashcards, setFlashcards] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [chaptersLoading, setChaptersLoading] = useState(false);
+  const [quizzesLoading, setQuizzesLoading] = useState(false);
+  const [flashcardsLoading, setFlashcardsLoading] = useState(false);
+  const [materialsLoading, setMaterialsLoading] = useState(false);
+
   // Get current user ID
   const getCurrentUserId = () => {
     const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user');
@@ -256,7 +268,6 @@ export function SubjectView() {
         // Get approved enrollments for reference
         const enrollmentsResponse = await enrollmentApi.getStudentEnrollments(userId, 'approved');
         const approvedEnrollments = enrollmentsResponse.data || [];
-
         // Create a map of classId to enrollment status
         const enrollmentMap = new Map();
         approvedEnrollments.forEach((enrollment: any) => {
@@ -269,7 +280,6 @@ export function SubjectView() {
           ...cls,
           enrollmentStatus: enrollmentMap.has(cls._id) ? 'approved' : 'direct_add'
         })) as Array<Class & { enrollmentStatus: string }>;
-
         console.log('📖 Loaded classes:', classes);
 
         // Map classes to subjects format
@@ -303,6 +313,16 @@ export function SubjectView() {
 
     loadClasses();
   }, []);
+
+  // Fetch real data when currentSubjectId changes
+  useEffect(() => {
+    if (currentSubjectId && hasClasses) {
+      fetchChapters();
+      fetchQuizzes();
+      fetchFlashcards();
+      fetchMaterials();
+    }
+  }, [currentSubjectId, hasClasses]);
 
   const currentSubject = subjects.find(s => s.id === currentSubjectId) || subjects[0];
   const currentSubjectIndex = subjects.findIndex(s => s.id === currentSubjectId);
@@ -365,7 +385,109 @@ export function SubjectView() {
   };
 
   const getDocumentsForChapter = (chapterId: string) => {
+    // Use real materials data if available, otherwise fall back to mock data
+    if (materials.length > 0) {
+      return materials.filter(material => material.chapterId === chapterId);
+    }
     return mockDocuments.filter(doc => doc.chapter === chapterId);
+  };
+
+  // Fetch functions for real data
+  const fetchChapters = async () => {
+    if (!currentSubjectId) return;
+
+    setChaptersLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:9000/api/chapters/class/${currentSubjectId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+
+      if (response.data?.data) {
+        setChapters(response.data.data);
+      } else {
+        setChapters([]);
+      }
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setChapters([]);
+      } else {
+        console.error('Error fetching chapters:', error);
+        setChapters([]);
+      }
+    } finally {
+      setChaptersLoading(false);
+    }
+  };
+
+  const fetchQuizzes = async () => {
+    if (!currentSubjectId) return;
+
+    setQuizzesLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:9000/api/quizzes/class/${currentSubjectId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+
+      setQuizzes(response.data?.data?.items || []);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setQuizzes([]);
+      } else {
+        console.error('Error fetching quizzes:', error);
+        setQuizzes([]);
+      }
+    } finally {
+      setQuizzesLoading(false);
+    }
+  };
+
+  const fetchFlashcards = async () => {
+    if (!currentSubjectId) return;
+
+    setFlashcardsLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:9000/api/flashcard-sets/class/${currentSubjectId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+
+      setFlashcards(response.data?.data?.items || []);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setFlashcards([]);
+      } else {
+        console.error('Error fetching flashcards:', error);
+        setFlashcards([]);
+      }
+    } finally {
+      setFlashcardsLoading(false);
+    }
+  };
+
+  const fetchMaterials = async (chapterId?: string) => {
+    if (!currentSubjectId) return;
+
+    setMaterialsLoading(true);
+    try {
+      let url = `http://localhost:9000/api/materials/class/${currentSubjectId}`;
+      if (chapterId) {
+        url += `/chapter/${chapterId}`;
+      }
+
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+
+      setMaterials(response.data?.data?.items || []);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setMaterials([]);
+      } else {
+        console.error('Error fetching materials:', error);
+        setMaterials([]);
+      }
+    } finally {
+      setMaterialsLoading(false);
+    }
   };
 
   // No need for status text since we only show approved classes now
@@ -423,8 +545,8 @@ export function SubjectView() {
           Lớp trước
         </Button>
 
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
+        <div className='flex items-center gap-4'>
+          <span className='text-sm text-muted-foreground'>
             {currentSubjectIndex + 1} / {subjects.length}
           </span>
 
@@ -462,84 +584,103 @@ export function SubjectView() {
 
         {/* Chapters Tab */}
         <TabsContent value="chapters" className="space-y-4">
-          {mockChapters.map((chapter) => (
-            <Card key={chapter.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {chapter.title}
-                    </CardTitle>
+          {chaptersLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : chapters.length > 0 ? (
+            chapters.map((chapter) => (
+              <Card key={chapter.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        {chapter.title}
+                      </CardTitle>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => handleToggleDocuments(chapter.id)}
-                    >
-                      <FileText className="h-4 w-4" />
-                      Xem tài liệu ({getDocumentsForChapter(chapter.id).length})
-                    </Button>
-                  </div>
-
-                  {/* Documents Section */}
-                  {expandedChapter === chapter.id && (
-                    <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => handleToggleDocuments(chapter.id)}
+                      >
                         <FileText className="h-4 w-4" />
-                        Tài liệu chương
-                      </h4>
-                      {getDocumentsForChapter(chapter.id).length > 0 ? (
-                        <div className="space-y-2">
-                          {getDocumentsForChapter(chapter.id).map((doc) => (
-                            <div key={doc.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
-                              <div className="flex items-center gap-3">
-                                {getFileIcon(doc.type)}
-                                <div>
-                                  <h5 className="font-medium text-sm">{doc.title}</h5>
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span>{getFileTypeLabel(doc.type)}</span>
-                                    <span>•</span>
-                                    <span>{doc.size}</span>
-                                    <span>•</span>
-                                    <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
+                        Xem tài liệu ({getDocumentsForChapter(chapter.id).length})
+                      </Button>
+                    </div>
+
+                    {/* Documents Section */}
+                    {expandedChapter === chapter.id && (
+                      <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Tài liệu chương
+                        </h4>
+                        {getDocumentsForChapter(chapter.id).length > 0 ? (
+                          <div className="space-y-2">
+                            {getDocumentsForChapter(chapter.id).map((doc) => (
+                              <div key={doc.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                                <div className="flex items-center gap-3">
+                                  {getFileIcon(doc.type)}
+                                  <div>
+                                    <h5 className="font-medium text-sm">{doc.title}</h5>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <span>{getFileTypeLabel(doc.type)}</span>
+                                      <span>•</span>
+                                      <span>{doc.size}</span>
+                                      <span>•</span>
+                                      <span>{new Date(doc.uploadDate).toLocaleDateString('vi-VN')}</span>
+                                    </div>
                                   </div>
                                 </div>
+                                <div className="flex items-center gap-2">
+                                  <Button size="sm" variant="outline">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button size="sm" variant="outline">
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Button size="sm" variant="outline">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Chưa có tài liệu nào cho chương này
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Chưa có tài liệu nào cho chương này
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium">Chưa có chương học nào trong lớp</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Chương học sẽ xuất hiện ở đây sau khi giáo viên tạo
+              </p>
+            </div>
+          )}
         </TabsContent>
 
         {/* Student Content Tab */}
         <TabsContent value="student-content" className="space-y-4">
-          <StudentQuizFlashcard />
+          <StudentQuizFlashcard
+            quizzesData={quizzes}
+            flashcardsData={flashcards}
+            quizzesLoading={quizzesLoading}
+            flashcardsLoading={flashcardsLoading}
+          />
         </TabsContent>
       </Tabs>
-    </div >
+    </div>
   );
 }

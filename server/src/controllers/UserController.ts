@@ -111,6 +111,25 @@ const userController = {
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
+  },
+
+  countUsesByActive: async (req: Request, res: Response) => {
+    try {
+      const userCount = await userService.countUsersByActive()
+      responseUtils({ req, res, code: 200, message: `Count users by isActive successfully`, data: { userCount } })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  filterUserByRoleId: async (req: Request, res: Response) => {
+    try {
+      const { roleId } = req.params
+      const users = await userService.getUsersByRoleId(roleId)
+      responseUtils({ req, res, code: 200, message: `Filter users by roleId successfully`, data: { users } })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
   }
 }
 

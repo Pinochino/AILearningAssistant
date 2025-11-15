@@ -10,12 +10,21 @@
 			"name": "Auth",
 			"item": [
 				{
-					"name": "VerifyOtp",
+					"name": "Login",
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "http://localhost:9000/api/auth/verify-otp",
+							"raw": "http://localhost:9000/api/auth/login",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -24,20 +33,275 @@
 							"path": [
 								"api",
 								"auth",
-								"verify-otp"
+								"login"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Login",
+					"name": "RefreshToken",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
 							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "getAllUsers",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"username\": \"thai\",\r\n    \"email\": \"thai@gmail.com\",\r\n    \"newPassword\": \"hung2211\",\r\n    \"roles\": [\"OPERATOR\"]\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/users/list",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"users",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateUser",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGNiYTcyMDhkMzcxYThkZWY1NTEyZSIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MjQ0MjY1MCwiZXhwIjoxNzYyNDQyOTUwfQ.TLRxWp1AwlJnf3oOjBs0P-ziehhDeNoIMA_AQCZBHA8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"addRoleId\": \"690cba7208d371a8def5511e\",\r\n    \"name\": \"hehe\",\r\n    \"removeRoleId\": \"690cba7208d371a8def5511d\",\r\n    \"username\": \"Hehe\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/users/update/690cba8c08d371a8def5514a",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"users",
+								"update",
+								"690cba8c08d371a8def5514a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteUser",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGNiYTcyMDhkMzcxYThkZWY1NTEyZSIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MjQ0MjY1MCwiZXhwIjoxNzYyNDQyOTUwfQ.TLRxWp1AwlJnf3oOjBs0P-ziehhDeNoIMA_AQCZBHA8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"addRoleId\": \"690cba7208d371a8def5511e\",\r\n    \"name\": \"hehe\",\r\n    \"removeRoleId\": \"690cba7208d371a8def5511d\",\r\n    \"username\": \"Hehe\",\r\n    \"_id\": \"\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/users/delete/690cba8c08d371a8def5514a",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"users",
+								"delete",
+								"690cba8c08d371a8def5514a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getUserDetail",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"username\": \"thai\",\r\n    \"email\": \"thai@gmail.com\",\r\n    \"newPassword\": \"hung2211\",\r\n    \"roles\": [\"OPERATOR\"]\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/users/detail/690cba8c08d371a8def5514a",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"users",
+								"detail",
+								"690cba8c08d371a8def5514a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "countUsersByRoleId",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/users/count-by-role/Teacher",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"users",
+								"count-by-role",
+								"Teacher"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "filterUsersByRoleId",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/users/list-user/690cba7208d371a8def5511c",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"users",
+								"list-user",
+								"690cba7208d371a8def5511c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createUser",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"name\": \"admin\",\r\n    \"password\": \"123456\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -61,33 +325,33 @@
 					"response": []
 				},
 				{
-					"name": "Register",
+					"name": "countUserByActive",
 					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:9000/api/auth/register",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "9000",
-							"path": [
-								"api",
-								"auth",
-								"register"
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGNiYTcyMDhkMzcxYThkZWY1NTEyZSIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MjQ0MjY1MCwiZXhwIjoxNzYyNDQyOTUwfQ.TLRxWp1AwlJnf3oOjBs0P-ziehhDeNoIMA_AQCZBHA8",
+									"type": "string"
+								}
 							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "RefreshToken",
-					"request": {
+						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"addRoleId\": \"690cba7208d371a8def5511e\",\r\n    \"name\": \"hehe\",\r\n    \"removeRoleId\": \"690cba7208d371a8def5511d\",\r\n    \"username\": \"Hehe\"\r\n}"
+						},
 						"url": {
-							"raw": "http://localhost:9000/api/auth/refresh-token",
+							"raw": "http://localhost:9000/api/users/count-by-active",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -95,29 +359,8 @@
 							"port": "9000",
 							"path": [
 								"api",
-								"auth",
-								"refresh-token"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "loginWithGoogle",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:9000/api/auth/google",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "9000",
-							"path": [
-								"api",
-								"auth",
-								"google"
+								"users",
+								"count-by-active"
 							]
 						}
 					},
@@ -126,24 +369,17 @@
 			]
 		},
 		{
-			"name": "Quizz",
-			"item": []
-		},
-		{
-			"name": "Schedule",
-			"item": []
-		},
-		{
-			"name": "User",
-			"item": []
-		},
-		{
-			"name": "New Request",
-			"request": {
-				"method": "GET",
-				"header": []
-			},
-			"response": []
+			"name": "Role",
+			"item": [
+				{
+					"name": "getAllRoles",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"variable": [

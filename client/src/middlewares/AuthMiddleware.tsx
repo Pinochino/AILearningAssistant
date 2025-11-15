@@ -1,4 +1,4 @@
-import {useCookies} from 'react-cookie';
+import { useCookies } from 'react-cookie';
 import { LoginForm } from '../components/auth/LoginForm';
 
 interface IAuthMiddleware {
