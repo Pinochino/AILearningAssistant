@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSection';
 import { AnnouncementCreator } from '../dashboard/AnnouncementCreator';
-import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
@@ -12,6 +11,7 @@ import { toast } from 'sonner';
 import { Progress } from '../ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import axios from 'axios';
 import {
   BookOpen,
   Users,
@@ -175,6 +175,9 @@ export function TeacherDashboard() {
   const { navigateTo } = useNavigation();
   const { user } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState('all');
+  const [totalQuizzes, setTotalQuizzes] = useState(0);
+  const [totalFlashcards, setTotalFlashcards] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [totalClasses, setTotalClasses] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -193,11 +196,11 @@ export function TeacherDashboard() {
     const fetchTeacherData = async () => {
       try {
         setIsLoading(true);
-        
+
         // Get user ID from localStorage as a fallback
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const userId = user?._id || currentUser?._id || currentUser?.id;
-        
+        const userId = user?.id || currentUser?._id || currentUser?.id;
+
         if (!userId) {
           console.error('No user ID found');
           // Fallback to mock data
@@ -207,9 +210,9 @@ export function TeacherDashboard() {
         }
 
         console.log('Fetching classes for teacher ID:', userId);
-        
+
         // Fetch all classes for the teacher using classApi with teacherId filter
-        const response = await classApi.getAll({ 
+        const response = await classApi.getAll({
           teacherId: userId,
           limit: 100 // Get all classes
         });
@@ -218,7 +221,7 @@ export function TeacherDashboard() {
 
         // Handle the API response format
         let classes: any[] = [];
-        
+
         if (response.success) {
           if (Array.isArray(response.data?.items)) {
             // Response is paginated
@@ -231,7 +234,7 @@ export function TeacherDashboard() {
           // Response is already an array
           classes = response;
         }
-        
+
         console.log('Processed classes:', classes);
         setTotalClasses(classes.length);
 
@@ -253,7 +256,7 @@ export function TeacherDashboard() {
 
         console.log('Total students:', studentCount);
         setTotalStudents(studentCount);
-        
+
       } catch (error) {
         console.error('Error fetching teacher data:', error);
         // Fallback to mock data
@@ -265,7 +268,113 @@ export function TeacherDashboard() {
     };
 
     fetchTeacherData();
-  }, [user?._id]);
+  }, [user?.id]);
+
+  // Fetch teacher's quizzes and flashcards counts
+  useEffect(() => {
+    const loadStatsCount = async () => {
+      try {
+        setStatsLoading(true);
+
+        // Get user ID from localStorage as a fallback
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const userId = user?.id || currentUser?._id || currentUser?.id;
+
+        if (!userId) {
+          console.error('No user ID found for stats');
+          setTotalQuizzes(0);
+          setTotalFlashcards(0);
+          return;
+        }
+
+        console.log('Fetching stats for teacher ID:', userId);
+
+        // First, get all classes for this teacher
+        const classesResponse = await classApi.getAll({
+          teacherId: userId,
+          limit: 100
+        });
+
+        let classes: any[] = [];
+        if (classesResponse.success) {
+          if (Array.isArray(classesResponse.data?.items)) {
+            classes = classesResponse.data.items;
+          } else if (Array.isArray(classesResponse.data)) {
+            classes = classesResponse.data;
+          }
+        }
+
+        console.log('Teacher classes:', classes);
+
+        if (classes.length === 0) {
+          setTotalQuizzes(0);
+          setTotalFlashcards(0);
+          return;
+        }
+
+        // Fetch quizzes and flashcards for each class
+        let totalQuizCount = 0;
+        let totalFlashcardCount = 0;
+
+        for (const classItem of classes) {
+          const classId = classItem._id || classItem.id;
+          if (!classId) continue;
+
+          try {
+            // Fetch quizzes for this class
+            const quizzesRes = await axios.get(`http://localhost:9000/api/quizzes/class/${classId}`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+
+            // Fetch flashcards for this class
+            const flashcardsRes = await axios.get(`http://localhost:9000/api/flashcard-sets/class/${classId}`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+
+            console.log(`Class ${classId} quizzes:`, quizzesRes.data);
+            console.log(`Class ${classId} flashcards:`, flashcardsRes.data);
+
+            // Count quizzes for this class
+            const classQuizCount = quizzesRes.data?.pagination?.totalItems ||
+              quizzesRes.data?.data?.items?.length ||
+              quizzesRes.data?.items?.length ||
+              quizzesRes.data?.data?.length ||
+              quizzesRes.data?.length || 0;
+
+            // Count flashcards for this class
+            const classFlashcardCount = flashcardsRes.data?.pagination?.totalItems ||
+              flashcardsRes.data?.data?.items?.length ||
+              flashcardsRes.data?.items?.length ||
+              flashcardsRes.data?.data?.length ||
+              flashcardsRes.data?.length || 0;
+
+            totalQuizCount += classQuizCount;
+            totalFlashcardCount += classFlashcardCount;
+
+          } catch (error) {
+            console.error(`Error fetching data for class ${classId}:`, error);
+            // Continue with other classes even if one fails
+          }
+        }
+
+        console.log('Final totals - Quizzes:', totalQuizCount, 'Flashcards:', totalFlashcardCount);
+        setTotalQuizzes(totalQuizCount);
+        setTotalFlashcards(totalFlashcardCount);
+      } catch (error) {
+        console.error('Error loading teacher stats count:', error);
+        setTotalQuizzes(0);
+        setTotalFlashcards(0);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    loadStatsCount();
+  }, [user?.id]);
 
   const mapToAnnouncement = (n: any): Announcement => ({
     id: n._id || n.id,
@@ -395,14 +504,18 @@ export function TeacherDashboard() {
           <AnnouncementSection
             announcements={announcements}
             canManage
+            currentUser={user}
             onEdit={(id) => {
               const target = (announcements || []).find(a => a.id === id);
+              if (!target || target.author !== user?.name) return;
               setEditingId(id);
               setFormTitle(target?.title || '');
               setFormContent(target?.content || '');
               setEditOpen(true);
             }}
             onDelete={(id) => {
+              const target = (announcements || []).find(a => a.id === id);
+              if (!target || target.author !== user?.name) return;
               setEditingId(id);
               setDeleteOpen(true);
             }}
@@ -533,7 +646,7 @@ export function TeacherDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Số lượng Quiz</p>
-                <p className="text-xl font-semibold">{mockOverallStats.avgQuizScore}%</p>
+                <p className="text-xl font-semibold">{statsLoading ? '...' : totalQuizzes}</p>
               </div>
             </div>
           </CardContent>
@@ -547,7 +660,7 @@ export function TeacherDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Số lượng Flashcard</p>
-                <p className="text-xl font-semibold">{mockOverallStats.completionRate}%</p>
+                <p className="text-xl font-semibold">{statsLoading ? '...' : totalFlashcards}</p>
               </div>
             </div>
           </CardContent>

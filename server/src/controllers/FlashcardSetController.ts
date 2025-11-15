@@ -24,10 +24,11 @@ export const listAll: RequestHandler = async (req, res) => {
 
         const [items, total] = await Promise.all([
             FlashcardSet.find(filter)
+                .populate('createdBy', 'username name')
+                .populate('chapters', 'title')
                 .sort({ createdAt: -1 })
                 .skip((p - 1) * l)
                 .limit(l)
-                .populate('chapters', 'title')
                 .lean(),
             FlashcardSet.countDocuments(filter)
         ])
@@ -70,10 +71,11 @@ export const listByClass: RequestHandler = async (req, res) => {
 
         const [items, total] = await Promise.all([
             FlashcardSet.find(filter)
+                .populate('createdBy', 'username name')
+                .populate('chapters', 'title')
                 .sort({ createdAt: -1 })
                 .skip((p - 1) * l)
                 .limit(l)
-                .populate('chapters', 'title')
                 .lean(),
             FlashcardSet.countDocuments(filter)
         ])

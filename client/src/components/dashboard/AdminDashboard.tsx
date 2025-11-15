@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 import {
   Card,
@@ -201,6 +202,9 @@ export function AdminDashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formContent, setFormContent] = useState("");
+  const [totalQuizzes, setTotalQuizzes] = useState(0);
+  const [totalFlashcards, setTotalFlashcards] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const mapToAnnouncement = (n: any): Announcement => ({
     id: n._id || n.id,
@@ -301,6 +305,46 @@ export function AdminDashboard() {
     loadClassesCount();
   }, []);
 
+  // Load total quizzes and flashcards count
+  useEffect(() => {
+    const loadStatsCount = async () => {
+      try {
+        setStatsLoading(true);
+
+        // Fetch total quizzes - use admin endpoint with pagination to get all
+        const quizzesRes = await axios.get('http://localhost:9000/api/quizzes?limit=1000&page=1', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+
+        // Fetch total flashcards - use admin endpoint with pagination to get all
+        const flashcardsRes = await axios.get('http://localhost:9000/api/flashcard-sets?limit=1000&page=1', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+
+        console.log('Quizzes response:', quizzesRes.data);
+        console.log('Flashcards response:', flashcardsRes.data);
+
+        const totalQuizCount = quizzesRes.data?.pagination?.totalItems || quizzesRes.data?.data?.items?.length || quizzesRes.data?.items?.length || quizzesRes.data?.data?.length || quizzesRes.data?.length || 0;
+        const totalFlashcardCount = flashcardsRes.data?.pagination?.totalItems || flashcardsRes.data?.data?.items?.length || flashcardsRes.data?.items?.length || flashcardsRes.data?.data?.length || flashcardsRes.data?.length || 0;
+
+        setTotalQuizzes(totalQuizCount);
+        setTotalFlashcards(totalFlashcardCount);
+      } catch (error) {
+        console.error('Error loading stats count:', error);
+        setTotalQuizzes(0);
+        setTotalFlashcards(0);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    loadStatsCount();
+  }, []);
+
   const isDataLoading = !userCount || !adminCount || !teacherCount || isLoading;
 
   return (
@@ -342,6 +386,7 @@ export function AdminDashboard() {
           <AnnouncementSection
             announcements={announcements}
             canManage
+            currentUser={null}
             onEdit={(id) => {
               const target = (announcements || []).find(a => a.id === id);
               setEditingId(id);
@@ -559,9 +604,13 @@ export function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">
                   Tổng số Quiz
                 </p>
-                <p className="text-xl font-semibold">
-                  {mockOverallStats.totalQuizzes}
-                </p>
+                {statsLoading ? (
+                  <div className="animate-pulse h-6 w-8 bg-gray-200 rounded"></div>
+                ) : (
+                  <p className="text-xl font-semibold">
+                    {totalQuizzes}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -577,9 +626,13 @@ export function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">
                   Tổng số Flashcard
                 </p>
-                <p className="text-xl font-semibold">
-                  {mockOverallStats.activeUsers}
-                </p>
+                {statsLoading ? (
+                  <div className="animate-pulse h-6 w-8 bg-gray-200 rounded"></div>
+                ) : (
+                  <p className="text-xl font-semibold">
+                    {totalFlashcards}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

@@ -87,7 +87,7 @@ export const listAll: RequestHandler = async (req, res) => {
     const l = Math.min(100, Math.max(1, parseInt(String(limit)) || 20))
 
     const [items, total] = await Promise.all([
-      Quiz.find(filter).sort({ createdAt: -1 }).skip((p - 1) * l).limit(l).lean(),
+      Quiz.find(filter).populate('createdBy', 'username name').sort({ createdAt: -1 }).skip((p - 1) * l).limit(l).lean(),
       Quiz.countDocuments(filter)
     ])
     return responseUtils({
@@ -118,7 +118,7 @@ export const listByClass: RequestHandler = async (req, res) => {
     const l = Math.min(100, Math.max(1, parseInt(String(limit)) || 20))
 
     const [items, total] = await Promise.all([
-      Quiz.find(filter).sort({ createdAt: -1 }).skip((p - 1) * l).limit(l).lean(),
+      Quiz.find(filter).populate('createdBy', 'username name').sort({ createdAt: -1 }).skip((p - 1) * l).limit(l).lean(),
       Quiz.countDocuments(filter)
     ])
     return responseUtils({

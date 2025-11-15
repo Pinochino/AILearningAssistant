@@ -1539,14 +1539,14 @@ export function SubjectDetail() {
                           <div className='flex items-center gap-3'>
                             <Avatar className='h-10 w-10'>
                               <AvatarFallback>
-                                {(student?.username || student?.email || 'U').substring(0, 2).toUpperCase()}
+                                {(student?.name || student?.username || 'U').substring(0, 2).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div className='space-y-1'>
                               <div className='flex items-center gap-2'>
-                                <h3 className='font-medium'>{student?.username || 'Unknown'}</h3>
+                                <h3 className='font-medium'>{student?.name || student?.username || 'Unknown'}</h3>
                               </div>
-                              <p className='text-sm text-muted-foreground'>{student?.email || 'No email'}</p>
+                              <p className='text-sm text-muted-foreground'>Username: {student?.username || 'No username'}</p>
                               <p className='text-sm text-muted-foreground'>
                                 Đăng ký: {new Date(enrollment.requestedAt).toLocaleDateString('vi-VN')}
                               </p>

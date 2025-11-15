@@ -14,7 +14,7 @@ export type Announcement = {
     date: string;
 };
 
-export function AnnouncementSection({ announcements, canManage = false, onEdit, onDelete }: { announcements: Announcement[]; canManage?: boolean; onEdit?: (id: string) => void; onDelete?: (id: string) => void; }) {
+export function AnnouncementSection({ announcements, canManage = false, onEdit, onDelete, currentUser }: { announcements: Announcement[]; canManage?: boolean; onEdit?: (id: string) => void; onDelete?: (id: string) => void; currentUser?: { name?: string } | null; }) {
     const [open, setOpen] = useState(false);
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const limited = announcements.slice(0, 5);
@@ -47,7 +47,7 @@ export function AnnouncementSection({ announcements, canManage = false, onEdit, 
                                             <span>{a.date}</span>
                                             <div className="flex items-center gap-2">
                                                 <Badge variant="outline">{a.author}</Badge>
-                                                {canManage && (
+                                                {canManage && (currentUser === null || a.author === currentUser?.name) && (
                                                     <>
                                                         <Button size="icon" variant="ghost" onClick={() => onEdit ? onEdit(a.id) : null}>
                                                             <Pencil className="h-4 w-4" />
@@ -95,7 +95,7 @@ export function AnnouncementSection({ announcements, canManage = false, onEdit, 
                                 </div>
                                 <div className="shrink-0 flex items-center gap-1">
                                     <Badge variant="outline" className="text-xs">{a.author}</Badge>
-                                    {canManage && (
+                                    {canManage && (currentUser === null || a.author === currentUser?.name) && (
                                         <>
                                             <Button size="icon" variant="ghost" onClick={() => onEdit ? onEdit(a.id) : null}>
                                                 <Pencil className="h-4 w-4" />
