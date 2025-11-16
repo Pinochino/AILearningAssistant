@@ -85,7 +85,7 @@ export function SubjectView() {
   const [quizzesLoading, setQuizzesLoading] = useState(false)
   const [flashcardsLoading, setFlashcardsLoading] = useState(false)
 
-  const [currentSubjectId, setCurrentSubjectId] = useState('1')
+  const [currentSubjectId, setCurrentSubjectId] = useState<string | null>(null)
   const [materials, setMaterials] = useState<any[]>([])
   const [materialsLoading, setMaterialsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -195,7 +195,9 @@ export function SubjectView() {
             status: cls.enrollmentStatus
           }))
           setSubjects(mappedSubjects)
-          setCurrentSubjectId(mappedSubjects[0].id)
+          if (!currentSubjectId) {
+            setCurrentSubjectId(mappedSubjects[0].id)
+          }
           setHasClasses(true)
           console.log('✅ Subjects set:', mappedSubjects)
         } else {
@@ -223,8 +225,10 @@ export function SubjectView() {
     }
   }, [currentSubjectId, hasClasses])
 
-  const currentSubject = subjects.find((s) => s.id === currentSubjectId) || subjects[0]
-  const currentSubjectIndex = subjects.findIndex((s) => s.id === currentSubjectId)
+  const currentSubject = currentSubjectId
+    ? subjects.find((s) => s.id === currentSubjectId) || subjects[0] || { id: '', name: 'Loading...', description: '' }
+    : subjects[0] || { id: '', name: 'Loading...', description: '' }
+  const currentSubjectIndex = currentSubjectId ? subjects.findIndex((s) => s.id === currentSubjectId) : 0
 
   const handleSubjectChange = (subjectId: string) => {
     setCurrentSubjectId(subjectId)
@@ -308,24 +312,26 @@ export function SubjectView() {
   const fetchChapters = async () => {
     if (!currentSubjectId) return
 
+    console.log('📚 Fetching chapters for classId:', currentSubjectId)
     setChaptersLoading(true)
     try {
       const response = await axios.get(`http://localhost:9000/api/chapters/class/${currentSubjectId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       })
 
+      console.log('📖 Chapters response:', response.data)
+
       if (response.data?.data) {
         setChapters(response.data.data)
+        setChError(null)
       } else {
         setChapters([])
+        setChError('Không có chương nào được tìm thấy')
       }
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        setChapters([])
-      } else {
-        console.error('Error fetching chapters:', error)
-        setChapters([])
-      }
+    } catch (error) {
+      console.error('Error fetching chapters:', error)
+      setChapters([])
+      setChError('Không thể tải chương học. Vui lòng thử lại sau.')
     } finally {
       setChaptersLoading(false)
     }
@@ -464,9 +470,9 @@ export function SubjectView() {
       questions.map((q) =>
         q.id === questionId
           ? {
-              ...q,
-              answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
-            }
+            ...q,
+            answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
+          }
           : q
       )
     )
@@ -874,6 +880,9 @@ export function SubjectView() {
             flashcardsData={flashcards}
             quizzesLoading={quizzesLoading}
             flashcardsLoading={flashcardsLoading}
+            chapters={chapters}
+            chaptersLoading={chaptersLoading}
+            currentSubjectId={currentSubjectId}
           />
         </TabsContent>
       </Tabs>

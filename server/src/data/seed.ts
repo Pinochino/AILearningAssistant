@@ -83,7 +83,7 @@ export async function runSeed() {
     User.findOne({ username: 'student2' }),
   ])
 
-const AnnouncementModel = Announcement as Model<IAnnouncement>
+  const AnnouncementModel = Announcement as Model<IAnnouncement>
 
 
   // Clean sample collections (keep users/roles)
@@ -248,6 +248,77 @@ const AnnouncementModel = Announcement as Model<IAnnouncement>
   })
 
   console.log('✅ Seed dữ liệu (roles + users) hoàn tất')
+
+  // Seed Classes
+  console.log('🏫 Creating classes...')
+
+  // Fetch required users for class seeding in this scope
+  const [classTeacher1, classStudent1, classStudent2] = await Promise.all([
+    User.findOne({ username: 'teacher1' }),
+    User.findOne({ username: 'student1' }),
+    User.findOne({ username: 'student2' }),
+  ])
+
+  const classesToSeed: Array<Partial<IClass>> = [
+    // ===== LỚP CẤP 3 (có grade cụ thể) =====
+    {
+      name: 'Toán học - 12A1',
+      subject: 'Toán học',
+      grade: '12A1',
+      description: 'Lớp Toán học nâng cao dành cho học sinh lớp 12A1',
+      teacherId: classTeacher1?._id as any,
+      students: [classStudent1?._id as any, classStudent2?._id as any],
+      schedule: [
+        { dayOfWeek: 1, startTime: '07:00', endTime: '08:30' },
+        { dayOfWeek: 3, startTime: '07:00', endTime: '08:30' },
+        { dayOfWeek: 5, startTime: '07:00', endTime: '08:30' }
+      ],
+      maxStudents: 40,
+    },
+    {
+      name: 'Vật lý - 12A1',
+      subject: 'Vật lý',
+      grade: '12A1',
+      description: 'Lớp Vật lý thí nghiệm cho học sinh 12A1',
+      teacherId: classTeacher1?._id as any,
+      students: [classStudent1?._id as any, classStudent2?._id as any],
+      schedule: [
+        { dayOfWeek: 2, startTime: '08:45', endTime: '10:15' },
+        { dayOfWeek: 4, startTime: '08:45', endTime: '10:15' }
+      ],
+      maxStudents: 35,
+    },
+    {
+      name: 'Trí tuệ nhân tạo',
+      subject: 'Trí tuệ nhân tạo',
+      grade: undefined, // Không có grade - áp dụng chung
+      description: 'Machine Learning, Deep Learning và ứng dụng AI - Tất cả ngành',
+      teacherId: classTeacher1?._id as any,
+      students: [classStudent2?._id as any],
+      schedule: [
+        { dayOfWeek: 4, startTime: '15:30', endTime: '17:00' },
+        { dayOfWeek: 6, startTime: '08:00', endTime: '09:30' }
+      ],
+      maxStudents: 70,
+    }
+  ]
+
+  // Insert classes (idempotent by name)
+  for (const classData of classesToSeed) {
+    const existingClass = await Class.findOne({ name: classData.name })
+    if (!existingClass) {
+      await Class.create(classData)
+      console.log(`✅ Created class: ${classData.name}`)
+    } else {
+      console.log(`⏭️  Skipped (exists): ${classData.name}`)
+    }
+  }
+
+  console.log('\n🎉 Database seeding completed!')
+  console.log('\n📊 Summary:')
+  console.log(`   - Roles: ${await Role.countDocuments()}`)
+  console.log(`   - Users: ${await User.countDocuments()}`)
+  console.log(`   - Classes: ${await Class.countDocuments()}`)
 }
 
 // Allow running the seed directly: `npx tsx src/data/seed.ts`
@@ -264,76 +335,7 @@ async function main() {
 
     await runSeed()
 
-    // 6. Seed Classes
-    console.log('🏫 Creating classes...')
-
-    // Fetch required users for class seeding in this scope
-    const [teacher1, student1, student2] = await Promise.all([
-      User.findOne({ username: 'teacher1' }),
-      User.findOne({ username: 'student1' }),
-      User.findOne({ username: 'student2' }),
-    ])
-
-    const classesToSeed: Array<Partial<IClass>> = [
-      // ===== LỚP CẤP 3 (có grade cụ thể) =====
-      {
-        name: 'Toán học - 12A1',
-        subject: 'Toán học',
-        grade: '12A1',
-        description: 'Lớp Toán học nâng cao dành cho học sinh lớp 12A1',
-        teacherId: teacher1?._id as any,
-        students: [student1?._id as any, student2?._id as any],
-        schedule: [
-          { dayOfWeek: 1, startTime: '07:00', endTime: '08:30' },
-          { dayOfWeek: 3, startTime: '07:00', endTime: '08:30' },
-          { dayOfWeek: 5, startTime: '07:00', endTime: '08:30' }
-        ],
-        maxStudents: 40,
-      },
-      {
-        name: 'Vật lý - 12A1',
-        subject: 'Vật lý',
-        grade: '12A1',
-        description: 'Lớp Vật lý thí nghiệm cho học sinh 12A1',
-        teacherId: teacher1?._id as any,
-        students: [student1?._id as any, student2?._id as any],
-        schedule: [
-          { dayOfWeek: 2, startTime: '08:45', endTime: '10:15' },
-          { dayOfWeek: 4, startTime: '08:45', endTime: '10:15' }
-        ],
-        maxStudents: 35,
-      },
-      {
-        name: 'Trí tuệ nhân tạo',
-        subject: 'Trí tuệ nhân tạo',
-        grade: undefined, // Không có grade - áp dụng chung
-        description: 'Machine Learning, Deep Learning và ứng dụng AI - Tất cả ngành',
-        teacherId: teacher1?._id as any,
-        students: [student2?._id as any],
-        schedule: [
-          { dayOfWeek: 4, startTime: '15:30', endTime: '17:00' },
-          { dayOfWeek: 6, startTime: '08:00', endTime: '09:30' }
-        ],
-        maxStudents: 70,
-      }
-    ]
-
-    // Insert classes (idempotent by name)
-    for (const classData of classesToSeed) {
-      const existingClass = await Class.findOne({ name: classData.name })
-      if (!existingClass) {
-        await Class.create(classData)
-        console.log(`✅ Created class: ${classData.name}`)
-      } else {
-        console.log(`⏭️  Skipped (exists): ${classData.name}`)
-      }
-    }
-
-    console.log('\n🎉 Database seeding completed!')
-    console.log('\n📊 Summary:')
-    console.log(`   - Roles: ${await Role.countDocuments()}`)
-    console.log(`   - Users: ${await User.countDocuments()}`)
-    console.log(`   - Classes: ${await Class.countDocuments()}`)
+    process.exit(0)
   } catch (err) {
     console.error('❌ Lỗi khi seed dữ liệu:', err)
     process.exitCode = 1

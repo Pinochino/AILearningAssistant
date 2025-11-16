@@ -92,7 +92,7 @@ export function SubjectDetail() {
     }
   ]
 
-  const [currentSubjectId, setCurrentSubjectId] = useState('1')
+  const [currentSubjectId, setCurrentSubjectId] = useState<string | null>(null)
   const [materials, setMaterials] = useState<any[]>([])
   const [materialsLoading, setMaterialsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -560,7 +560,9 @@ export function SubjectDetail() {
 
           console.log('Mapped subjects with student counts:', mappedSubjects)
           setSubjects(mappedSubjects)
-          if (mappedSubjects.length > 0) {
+
+          // Set the first class as current subject if no current subject is selected
+          if (mappedSubjects.length > 0 && !currentSubjectId) {
             setCurrentSubjectId(mappedSubjects[0].id)
           }
         } else {
@@ -767,7 +769,9 @@ export function SubjectDetail() {
             if (data.success) {
               toast.success('Đã từ chối sinh viên!', { id: toastId })
               // Reload pending enrollments
-              loadPendingEnrollments(currentSubjectId)
+              if (currentSubjectId) {
+                loadPendingEnrollments(currentSubjectId)
+              }
             } else {
               toast.error(`Lỗi: ${data.message}`, { id: toastId })
             }
@@ -778,7 +782,7 @@ export function SubjectDetail() {
       },
       cancel: {
         label: 'Hủy',
-        onClick: () => {}
+        onClick: () => { }
       },
       duration: 10000
     })
@@ -804,7 +808,9 @@ export function SubjectDetail() {
 
   const handleOpenPendingStudents = () => {
     setIsPendingStudentsOpen(true)
-    loadPendingEnrollments(currentSubjectId)
+    if (currentSubjectId) {
+      loadPendingEnrollments(currentSubjectId)
+    }
   }
 
   // Đóng mở phần xem tài liệu
@@ -923,9 +929,9 @@ export function SubjectDetail() {
       questions.map((q) =>
         q.id === questionId
           ? {
-              ...q,
-              answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
-            }
+            ...q,
+            answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
+          }
           : q
       )
     )
@@ -1953,7 +1959,7 @@ export function SubjectDetail() {
                               <Input
                                 placeholder='Nhập ID chương' // Trường này vẫn còn, nhưng ẩn đi
                                 value={chapterId}
-                                onChange={() => {}} // Không cần thay đổi giá trị của nó
+                                onChange={() => { }} // Không cần thay đổi giá trị của nó
                               />
                             </div>
 
@@ -2039,7 +2045,7 @@ export function SubjectDetail() {
 
         {/* Quiz & Flashcard Tab */}
         <TabsContent value='quiz-flashcard'>
-          <TeacherQuizFlashcard subjectId={currentSubjectId} addFlashcardSet={addFlashcardSet} />
+          {currentSubjectId && <TeacherQuizFlashcard subjectId={currentSubjectId} addFlashcardSet={addFlashcardSet} />}
         </TabsContent>
 
         {/* Students Tab */}
