@@ -1,21 +1,10 @@
-import { useState, useEffect } from "react";
-import { toast } from 'sonner';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { Avatar, AvatarFallback } from "../ui/avatar";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../ui/tabs";
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import { Avatar, AvatarFallback } from '../ui/avatar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import {
   Plus,
   FileText,
@@ -42,7 +31,8 @@ import {
   BookText,
   Play,
   AlertTriangle,
-} from "lucide-react";
+  Headphones
+} from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -50,130 +40,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Textarea } from "../ui/textarea";
-import { Checkbox } from "../ui/checkbox";
-import TeacherQuizFlashcard from "./TeacherQuizFlashcard";
-import { teacherApi, enrollmentApi, classApi, type Class } from '../../services/api';
-import { UsersService } from '../../services/users';
-import axios from "axios";
-import Spinner from "../layout/spinner/Spinner";
-
-const mockSubjects = [
-  {
-    id: '1',
-    name: 'Toán học 12A1',
-    description: 'Chương trình Toán học lớp 12A1 - Học kỳ 1',
-    studentCount: 35,
-  },
-  {
-    id: '2',
-    name: 'Toán học 12A2',
-    description: 'Chương trình Toán học lớp 12A2 - Học kỳ 1',
-    studentCount: 33,
-  },
-  {
-    id: '3',
-    name: 'Vật lý 11B1',
-    description: 'Chương trình Vật lý lớp 11B1 - Học kỳ 1',
-    studentCount: 38,
-  },
-];
-
-// Mock data for when API fails
-const mockChapters = [
-  { _id: 'ch1', title: 'Chương 1: Đạo hàm và vi phân', classId: '1', documents: [] },
-  { _id: 'ch2', title: 'Chương 2: Nguyên hàm', classId: '1', documents: [] },
-  { _id: 'ch3', title: 'Chương 3: Tích phân', classId: '1', documents: [] },
-];
-
-const mockQuizzes = [
-  { _id: 'q1', title: 'Kiểm tra giữa kỳ', classId: '1', duration: 60, questions: 10 },
-  { _id: 'q2', title: 'Kiểm tra cuối kỳ', classId: '1', duration: 90, questions: 15 },
-];
-
-const mockStudents = [
-  { id: 's1', name: 'Nguyễn Văn A', username: 'student1', studentId: 'SV001', quizScore: 85, lastActive: '2024-01-15', status: 'active' },
-  { id: 's2', name: 'Trần Thị B', username: 'student2', studentId: 'SV002', quizScore: 92, lastActive: '2024-01-14', status: 'active' },
-  { id: 's3', name: 'Lê Văn C', username: 'student3', studentId: 'SV003', quizScore: 78, lastActive: '2024-01-13', status: 'active' },
-];
-
-const mockAvailableStudents = [
-  {
-    id: '7',
-    name: 'Trần Văn G',
-    email: 'student7@example.com',
-    studentId: 'SV007',
-    class: '12A3'
-  },
-  {
-    id: '8',
-    name: 'Lê Thị H',
-    email: 'student8@example.com',
-    studentId: 'SV008',
-    class: '12A4'
-  },
-  {
-    id: '9',
-    name: 'Phạm Văn I',
-    email: 'student9@example.com',
-    studentId: 'SV009',
-    class: '12A5'
-  }
-]
-
-const mockDocuments = [
-  {
-    id: "1",
-    title: "Bài giảng: Hàm số bậc nhất",
-    type: "pdf",
-    size: "2.5 MB",
-    chapterId: "1",
-    chapterName: "Chương 1: Hàm số và đồ thị",
-    uploadDate: "2025-09-15",
-    downloads: 32,
-  },
-  {
-    id: "2",
-    title: "Video: Cách vẽ đồ thị hàm số",
-    type: "video",
-    size: "15.2 MB",
-    chapterId: "1",
-    chapterName: "Chương 1: Hàm số và đồ thị",
-    uploadDate: "2025-09-14",
-    downloads: 28,
-  },
-  {
-    id: "3",
-    title: "Bài tập: Đạo hàm cơ bản",
-    type: "pdf",
-    size: "1.8 MB",
-    chapterId: "2",
-    chapterName: "Chương 2: Đạo hàm",
-    uploadDate: "2025-09-13",
-    downloads: 45,
-  },
-  {
-    id: "4",
-    title: "Slide: Ứng dụng đạo hàm trong thực tế",
-    type: "pptx",
-    size: "5.2 MB",
-    chapterId: "3",
-    chapterName: "Chương 3: Ứng dụng đạo hàm",
-    uploadDate: "2025-09-12",
-    downloads: 23,
-  },
-];
+  DialogTrigger
+} from '../ui/dialog'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { Textarea } from '../ui/textarea'
+import { Checkbox } from '../ui/checkbox'
+import TeacherQuizFlashcard from './TeacherQuizFlashcard'
+import { teacherApi, enrollmentApi, classApi, type Class } from '../../services/api'
+import { UsersService } from '../../services/users'
+import axios from 'axios'
+import Spinner from '../layout/spinner/Spinner'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
 
 interface QuizQuestion {
   id: string
@@ -188,13 +67,34 @@ interface FlashcardItem {
   back: string
 }
 
-type ChapterLite = { _id: string; title: string }
-
 export function SubjectDetail() {
+  const mockSubjects = [
+    {
+      id: '1',
+      name: 'Toán học 12A1',
+      description: 'Chương trình Toán học lớp 12A1 - Học kỳ 1',
+      studentCount: 35,
+      progress: 78
+    },
+    {
+      id: '2',
+      name: 'Toán học 12A2',
+      description: 'Chương trình Toán học lớp 12A2 - Học kỳ 1',
+      studentCount: 33,
+      progress: 82
+    },
+    {
+      id: '3',
+      name: 'Vật lý 11B1',
+      description: 'Chương trình Vật lý lớp 11B1 - Học kỳ 1',
+      studentCount: 38,
+      progress: 65
+    }
+  ]
+
   const [currentSubjectId, setCurrentSubjectId] = useState('1')
   const [materials, setMaterials] = useState<any[]>([])
   const [materialsLoading, setMaterialsLoading] = useState(false)
-  const [subjects, setSubjects] = useState(mockSubjects)
   const [loading, setLoading] = useState(true)
   const [pendingEnrollments, setPendingEnrollments] = useState<any[]>([])
   const [enrolledStudents, setEnrolledStudents] = useState<any[]>([])
@@ -229,6 +129,7 @@ export function SubjectDetail() {
   const [quizLoading, setQuizLoading] = useState(false)
   const [quizError, setQuizError] = useState<string | null>(null)
   const [creatingQuiz, setCreatingQuiz] = useState(false)
+  const [subjects, setSubjects] = useState(mockSubjects)
 
   // Flashcard state variables
   const [flashcardTitle, setFlashcardTitle] = useState('')
@@ -240,7 +141,9 @@ export function SubjectDetail() {
   // Quiz state variables
   const [selectedChapters, setSelectedChapters] = useState<string[]>([])
   const [quizTitle, setQuizTitle] = useState('')
-  const [questions, setQuestions] = useState<{ id: string; question: string; answers: string[]; correctAnswer: number }[]>([{ id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }])
+  const [questions, setQuestions] = useState<
+    { id: string; question: string; answers: string[]; correctAnswer: number }[]
+  >([{ id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }])
   const [editingMaterial, setEditingMaterial] = useState<any | null>(null)
   const [editMaterialTitle, setEditMaterialTitle] = useState('')
   const [isDeleteMaterialDialogOpen, setIsDeleteMaterialDialogOpen] = useState(false)
@@ -288,40 +191,18 @@ export function SubjectDetail() {
   const fetchChapters = async () => {
     setLoading(true)
     try {
-      // Check if we're using mock data (classId is '1', '2', or '3')
-      if (['1', '2', '3'].includes(currentSubjectId)) {
-        // Use mock chapters
-        const mockData = mockChapters.filter(ch => ch.classId === currentSubjectId);
-        setChapters(mockData);
-        setError(null);
+      const response = await axios.get(`http://localhost:9000/api/chapters/class/${currentSubjectId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      })
+      if (response.data?.data) {
+        setChapters(response.data.data)
+        setError(null)
       } else {
-        // Fetch from API
-        const response = await axios.get(`http://localhost:9000/api/chapters/class/${currentSubjectId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-        })
-        if (response.data?.data) {
-          setChapters(response.data.data)
-          setError(null)
-        } else {
-          setError('Không có chương nào được tìm thấy')
-        }
+        setError('Không có chương nào được tìm thấy')
       }
-    } catch (error: any) {
-      // If it's a 404, just set empty chapters (class might not have any chapters yet)
-      if (error.response?.status === 404) {
-        setChapters([]);
-        setError(null);
-      } else {
-        console.error('Error fetching chapters:', error)
-        // For other errors, fall back to mock data if using mock IDs
-        if (['1', '2', '3'].includes(currentSubjectId)) {
-          const mockData = mockChapters.filter(ch => ch.classId === currentSubjectId);
-          setChapters(mockData);
-          setError(null);
-        } else {
-          setError('Lỗi khi tải dữ liệu chương');
-        }
-      }
+    } catch (error) {
+      console.error('Error fetching chapters:', error)
+      setError('Lỗi khi tải dữ liệu chương')
     } finally {
       setLoading(false)
     }
@@ -473,36 +354,17 @@ export function SubjectDetail() {
     setQuizError(null)
 
     try {
-      // Check if we're using mock data (classId is '1', '2', or '3')
-      if (['1', '2', '3'].includes(currentSubjectId)) {
-        // Use mock quizzes
-        const mockData = mockQuizzes.filter(q => q.classId === currentSubjectId);
-        setQuizzes(mockData);
-      } else {
-        // Fetch from API
-        const res = await axios.get(`http://localhost:9000/api/quizzes/class/${currentSubjectId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        })
-
-        // res.data.data.items là array quiz BE trả về
-        setQuizzes(res.data.data.items || [])
-      }
-    } catch (err: any) {
-      // If it's a 404, just set empty quizzes (class might not have any quizzes yet)
-      if (err.response?.status === 404) {
-        setQuizzes([]);
-      } else {
-        console.error('Error loading quizzes:', err)
-        // For other errors, fall back to mock data if using mock IDs
-        if (['1', '2', '3'].includes(currentSubjectId)) {
-          const mockData = mockQuizzes.filter(q => q.classId === currentSubjectId);
-          setQuizzes(mockData);
-        } else {
-          setQuizError(err?.response?.data?.message || 'Không thể tải danh sách quiz')
+      const res = await axios.get(`http://localhost:9000/api/quizzes/class/${currentSubjectId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
-      }
+      })
+
+      // res.data.data.items là array quiz BE trả về
+      setQuizzes(res.data.data.items || [])
+    } catch (err: any) {
+      console.error('Error loading quizzes:', err)
+      setQuizError(err?.response?.data?.message || 'Không thể tải danh sách quiz')
     } finally {
       setQuizLoading(false)
     }
@@ -510,7 +372,7 @@ export function SubjectDetail() {
 
   // Add new flashcard set to state for real-time updates
   const addFlashcardSet = (newSet: any) => {
-    setFlashcardList(prev => [newSet, ...prev])
+    setFlashcardList((prev) => [newSet, ...prev])
   }
 
   const getCurrentUserId = () => {
@@ -530,35 +392,28 @@ export function SubjectDetail() {
   // Function to load enrolled students for a class
   const loadEnrolledStudents = async (classId: string) => {
     if (!classId) {
-      console.log('No classId provided');
-      setEnrolledStudents([]);
-      return;
+      console.log('No classId provided')
+      setEnrolledStudents([])
+      return
     }
 
     try {
-      setLoadingStudents(true);
-      console.log(`Fetching students for class ${classId}...`);
-      setEnrolledStudents([]);
-
-      // Check if we're using mock data (classId is '1', '2', or '3')
-      if (['1', '2', '3'].includes(classId)) {
-        // Use mock students
-        setEnrolledStudents(mockStudents);
-        return;
-      }
+      setLoadingStudents(true)
+      console.log(`Fetching students for class ${classId}...`)
+      setEnrolledStudents([])
 
       // First try to get the class with populated students
-      console.log('Fetching class data with populated students for ID:', classId);
-      const classResponse = await classApi.getById(classId, { populate: 'students' });
+      console.log('Fetching class data with populated students for ID:', classId)
+      const classResponse = await classApi.getById(classId, { populate: 'students' })
 
       if (!classResponse.success || !classResponse.data) {
-        console.error('Class not found or error in response:', classResponse);
-        toast.error('Không tìm thấy thông tin lớp học');
-        return;
+        console.error('Class not found or error in response:', classResponse)
+        toast.error('Không tìm thấy thông tin lớp học')
+        return
       }
 
-      const classData = classResponse.data;
-      console.log('Class data received:', classData);
+      const classData = classResponse.data
+      console.log('Class data received:', classData)
 
       // Check if we have populated students in the response
       // The API might return students in different formats, so we need to check multiple possibilities
@@ -567,16 +422,16 @@ export function SubjectDetail() {
         classData.studentIds, // Sometimes student objects might be directly in studentIds
         classData.enrollments?.map((e: any) => e.studentId), // Check enrollments if they exist
         classData.enrollments?.map((e: any) => e.student) // Check for populated student objects in enrollments
-      ];
+      ]
 
       for (const studentArray of possibleStudentArrays) {
         if (Array.isArray(studentArray) && studentArray.length > 0) {
           // Get the first element to check its structure
-          const firstItem = studentArray[0];
+          const firstItem = studentArray[0]
 
           // If it's an object with _id, it's a student object
           if (firstItem && typeof firstItem === 'object' && (firstItem._id || firstItem.id)) {
-            console.log('Found populated students in class data');
+            console.log('Found populated students in class data')
             const students = studentArray.map((student: any) => ({
               id: student._id || student.id || '',
               name: student.fullName || student.name || 'Không tên',
@@ -584,48 +439,45 @@ export function SubjectDetail() {
               studentId: student.studentId || 'N/A',
               quizScore: Math.floor(Math.random() * 30) + 70,
               lastActive: new Date().toISOString().split('T')[0],
-              status: 'active',
-            }));
+              status: 'active'
+            }))
 
-            console.log(`Found ${students.length} students in class ${classId}`, students);
-            setEnrolledStudents(students);
-            return;
+            console.log(`Found ${students.length} students in class ${classId}`, students)
+            setEnrolledStudents(students)
+            return
           }
         }
       }
 
       // If we don't have populated students, try to get student IDs from studentIds
-      let studentIds: string[] = [];
+      let studentIds: string[] = []
 
       if (Array.isArray(classData.studentIds)) {
-        studentIds = classData.studentIds.map((id: any) =>
-          typeof id === 'object' ? (id._id || id.id || '') : String(id)
-        ).filter(Boolean);
+        studentIds = classData.studentIds
+          .map((id: any) => (typeof id === 'object' ? id._id || id.id || '' : String(id)))
+          .filter(Boolean)
       }
 
-      console.log('Extracted student IDs:', studentIds);
+      console.log('Extracted student IDs:', studentIds)
 
       if (studentIds.length === 0) {
-        console.log('No students found in class');
-        setEnrolledStudents([]);
-        return;
+        console.log('No students found in class')
+        setEnrolledStudents([])
+        return
       }
 
       // If we have student IDs but no populated data, try to fetch them using UsersService
       try {
-        console.log('Fetching students data...');
-        const studentsResponse = await Promise.allSettled(
-          studentIds.map((id: string) => UsersService.getById(id))
-        );
+        console.log('Fetching students data...')
+        const studentsResponse = await Promise.allSettled(studentIds.map((id: string) => UsersService.getById(id)))
 
         const students = studentsResponse
-          .filter((result): result is PromiseFulfilledResult<{ data: any }> =>
-            result.status === 'fulfilled' &&
-            result.value !== null &&
-            result.value.data
+          .filter(
+            (result): result is PromiseFulfilledResult<{ data: any }> =>
+              result.status === 'fulfilled' && result.value !== null && result.value.data
           )
-          .map(result => {
-            const userData = result.value.data;
+          .map((result) => {
+            const userData = result.value.data
             return {
               id: userData._id || '',
               name: userData.fullName || userData.name || 'Không tên',
@@ -633,70 +485,69 @@ export function SubjectDetail() {
               studentId: userData.studentId || 'N/A',
               quizScore: Math.floor(Math.random() * 30) + 70,
               lastActive: new Date().toISOString().split('T')[0],
-              status: 'active',
-            };
-          });
+              status: 'active'
+            }
+          })
 
-        console.log(`Fetched ${students.length} students`, students);
-        setEnrolledStudents(students);
-        return;
+        console.log(`Fetched ${students.length} students`, students)
+        setEnrolledStudents(students)
+        return
       } catch (error) {
-        console.error('Error fetching students:', error);
+        console.error('Error fetching students:', error)
       }
 
       // If we couldn't get the students, show an empty list
-      console.log('No students found or error fetching students');
-      setEnrolledStudents([]);
-      toast.error('Không thể tải danh sách học sinh. Vui lòng thử lại sau.');
-
+      console.log('No students found or error fetching students')
+      setEnrolledStudents([])
+      toast.error('Không thể tải danh sách học sinh. Vui lòng thử lại sau.')
     } catch (error: any) {
       console.error('Error in loadEnrolledStudents:', {
         message: error.message,
         response: error.response?.data,
         error: error
-      });
+      })
 
       if (error.message.includes('404') || error.response?.status === 404) {
-        console.error(`Class with ID ${classId} not found or no students enrolled`);
+        console.error(`Class with ID ${classId} not found or no students enrolled`)
         // For 404, just set empty students (class might not have any students yet)
-        setEnrolledStudents([]);
+        setEnrolledStudents([])
       } else if (error.message.includes('400') || error.response?.status === 400) {
-        console.error('Validation error for class ID:', classId);
-        toast.error('Lỗi dữ liệu: ID lớp học không hợp lệ');
+        console.error('Validation error for class ID:', classId)
+        toast.error('Lỗi dữ liệu: ID lớp học không hợp lệ')
       } else {
-        console.error('Unexpected error:', error);
-        toast.error(`Lỗi: ${error.message || 'Không thể tải thông tin lớp học'}`);
+        console.error('Unexpected error:', error)
+        toast.error(`Lỗi: ${error.message || 'Không thể tải thông tin lớp học'}`)
       }
 
-      setEnrolledStudents([]);
+      setEnrolledStudents([])
     } finally {
-      setLoadingStudents(false);
+      setLoadingStudents(false)
     }
-  };
+  }
 
   // Load real classes from API
   useEffect(() => {
     const loadClasses = async () => {
       try {
-        setLoading(true);
-        const teacherId = getCurrentUserId();
-        console.log('Current teacher ID:', teacherId);
+        setLoading(true)
+        const teacherId = getCurrentUserId()
+        console.log('Current teacher ID:', teacherId)
 
         if (!teacherId) {
-          console.error('No teacher ID found');
-          setLoading(false);
-          return;
+          console.error('No teacher ID found')
+          setLoading(false)
+          return
         }
 
         const response = await teacherApi.getClasses(teacherId, {
           populate: 'students' // Make sure to populate students to get accurate count
-        });
-        console.log('Classes API response:', response);
+        })
+        console.log('Classes API response:', response)
 
         if (response.success && response.data?.items) {
           const mappedSubjects = response.data.items.map((cls: any) => {
             // Ensure we have an accurate student count
-            const studentCount = Array.isArray(cls.students) ? cls.students.length : 0;
+            const studentCount = Array.isArray(cls.students) ? cls.students.length : 0
 
             return {
               id: cls._id,
@@ -704,23 +555,23 @@ export function SubjectDetail() {
               description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''}`,
               studentCount: studentCount,
               ...cls
-            };
-          });
+            }
+          })
 
-          console.log('Mapped subjects with student counts:', mappedSubjects);
-          setSubjects(mappedSubjects);
+          console.log('Mapped subjects with student counts:', mappedSubjects)
+          setSubjects(mappedSubjects)
           if (mappedSubjects.length > 0) {
-            setCurrentSubjectId(mappedSubjects[0].id);
+            setCurrentSubjectId(mappedSubjects[0].id)
           }
         } else {
-          console.error('Unexpected API response format:', response);
+          console.error('Unexpected API response format:', response)
           // Fall back to mock subjects when API response is unexpected
-          setSubjects(mockSubjects);
+          setSubjects(mockSubjects)
         }
       } catch (err) {
-        console.error('Failed to load classes:', err);
+        console.error('Failed to load classes:', err)
         // Fall back to mock subjects when API fails
-        setSubjects(mockSubjects);
+        setSubjects(mockSubjects)
       } finally {
         setLoading(false)
       }
@@ -732,41 +583,29 @@ export function SubjectDetail() {
   // Load enrolled students when current subject changes
   useEffect(() => {
     if (currentSubjectId) {
-      loadEnrolledStudents(currentSubjectId);
-      fetchChapters();
-      fetchQuizzes();
-      fetchFlashcards();
-      fetchMaterials();
+      loadEnrolledStudents(currentSubjectId)
+      fetchChapters()
+      fetchQuizzes()
+      fetchFlashcards()
+      fetchMaterials()
     }
-  }, [currentSubjectId]);
+  }, [currentSubjectId])
 
-  const currentSubject =
-    subjects.find((s) => s.id === currentSubjectId) ||
-    subjects[0] ||
-    { id: '1', name: 'Loading...', description: '' };
-  const currentSubjectIndex = subjects.findIndex(
-    (s) => s.id === currentSubjectId,
-  );
+  const currentSubject = subjects.find((s) => s.id === currentSubjectId) ||
+    subjects[0] || { id: '1', name: 'Loading...', description: '' }
+  const currentSubjectIndex = subjects.findIndex((s) => s.id === currentSubjectId)
 
   const refreshStudentCount = async (classId: string) => {
     try {
-      const response = await classApi.getById(classId, { populate: 'students' });
+      const response = await classApi.getById(classId, { populate: 'students' })
       if (response.success && response.data) {
-        const studentCount = Array.isArray(response.data.students)
-          ? response.data.students.length
-          : 0;
+        const studentCount = Array.isArray(response.data.students) ? response.data.students.length : 0
 
-        setSubjects(prev =>
-          prev.map(subj =>
-            subj.id === classId
-              ? { ...subj, studentCount }
-              : subj
-          )
-        );
+        setSubjects((prev) => prev.map((subj) => (subj.id === classId ? { ...subj, studentCount } : subj)))
 
         // Also update the enrolled students list
         if (currentSubjectId === classId) {
-          const students = Array.isArray(response.data.students) ? response.data.students : [];
+          const students = Array.isArray(response.data.students) ? response.data.students : []
           const formattedStudents = students.map((student: any) => ({
             id: student._id || student.id,
             name: student.fullName || student.name || 'Không tên',
@@ -775,14 +614,14 @@ export function SubjectDetail() {
             quizScore: Math.floor(Math.random() * 30) + 70,
             lastActive: new Date().toISOString().split('T')[0],
             status: 'active'
-          }));
-          setEnrolledStudents(formattedStudents);
+          }))
+          setEnrolledStudents(formattedStudents)
         }
       }
     } catch (error) {
-      console.error('Failed to refresh student count:', error);
+      console.error('Failed to refresh student count:', error)
     }
-  };
+  }
 
   const handleSubjectChange = (subjectId: string) => {
     setCurrentSubjectId(subjectId)
@@ -801,122 +640,110 @@ export function SubjectDetail() {
   // Update the loadPendingEnrollments function
   const loadPendingEnrollments = async (classId: string) => {
     if (!classId) {
-      console.log('No classId provided, skipping enrollment load');
-      return;
+      console.log('No classId provided, skipping enrollment load')
+      return
     }
 
     try {
-      setLoadingEnrollments(true);
-      console.log('Loading enrollments for class:', classId);
+      setLoadingEnrollments(true)
+      console.log('Loading enrollments for class:', classId)
 
       // Check if we're using mock data (classId is '1', '2', or '3')
       if (['1', '2', '3'].includes(classId)) {
         // Use mock pending enrollments (empty for demo)
-        setPendingEnrollments([]);
-        return;
+        setPendingEnrollments([])
+        return
       }
 
       // First verify the teacher has access to this class
-      const teacherId = getCurrentUserId();
-      const teacherClasses = await teacherApi.getClasses(teacherId);
+      const teacherId = getCurrentUserId()
+      const teacherClasses = await teacherApi.getClasses(teacherId)
 
-      const hasAccess = teacherClasses.data?.items?.some(
-        (cls: any) => cls._id === classId
-      );
+      const hasAccess = teacherClasses.data?.items?.some((cls: any) => cls._id === classId)
 
       if (!hasAccess) {
-        console.error('Teacher does not have access to this class');
-        return;
+        console.error('Teacher does not have access to this class')
+        return
       }
 
       // If they have access, fetch the enrollments
-      const response = await classApi.getPendingEnrollments(classId);
+      const response = await classApi.getPendingEnrollments(classId)
 
       if (response.success) {
-        console.log('Enrollments loaded:', response.data);
-        setPendingEnrollments(response.data || []);
+        console.log('Enrollments loaded:', response.data)
+        setPendingEnrollments(response.data || [])
       } else {
-        console.error('Failed to load enrollments:', response.message);
-        toast.error('Không thể tải danh sách đăng ký chờ duyệt');
-        setPendingEnrollments([]);
+        console.error('Failed to load enrollments:', response.message)
+        toast.error('Không thể tải danh sách đăng ký chờ duyệt')
+        setPendingEnrollments([])
       }
     } catch (error) {
-      console.error('Failed to load pending enrollments:', error);
-      toast.error('Có lỗi xảy ra khi tải danh sách đăng ký');
-      setPendingEnrollments([]);
+      console.error('Failed to load pending enrollments:', error)
+      toast.error('Có lỗi xảy ra khi tải danh sách đăng ký')
+      setPendingEnrollments([])
     } finally {
       setLoadingEnrollments(false)
     }
   }
 
-  // Update the loadClasses function
-  const loadClasses = async () => {
-    try {
-      setLoading(true);
-      const teacherId = getCurrentUserId();
-      console.log('Current teacher ID:', teacherId);
-
-      if (!teacherId) {
-        console.error('No teacher ID found');
-        setLoading(false);
-        return;
-      }
-
-      // Use the teacherApi with proper error handling
-      const response = await teacherApi.getClasses(teacherId);
-      console.log('Classes API response:', response);
-
-      if (response.success && response.data?.items) {
-        const mappedSubjects = response.data.items.map((cls: any) => ({
-          id: cls._id,
-          name: cls.name,
-          description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''}`,
-          studentCount: cls.students?.length || 0,
-        }));
-
-        console.log('Mapped subjects:', mappedSubjects);
-        setSubjects(mappedSubjects);
-        if (mappedSubjects.length > 0) {
-          setCurrentSubjectId(mappedSubjects[0].id);
+  useEffect(() => {
+    const loadClasses = async () => {
+      try {
+        const userId = getCurrentUserId()
+        if (!userId) {
+          setLoading(false)
+          return
         }
-      } else {
-        console.error('Unexpected API response format:', response);
-        // Fall back to mock subjects when API response is unexpected
-        setSubjects(mockSubjects);
+
+        const response = await teacherApi.getClasses(userId)
+        const classes = response.data.items
+
+        // Map classes to mockSubjects format
+        if (classes.length > 0) {
+          const mappedSubjects = classes.map((cls: Class) => ({
+            id: cls._id,
+            name: cls.name,
+            description: `Môn: ${cls.subject}${cls.grade ? ` - ${cls.grade}` : ''}`,
+            studentCount: cls.studentIds?.length || 0,
+            progress: 0
+          }))
+          setSubjects(mappedSubjects)
+          setCurrentSubjectId(mappedSubjects[0].id)
+        }
+      } catch (err) {
+        console.error('Failed to load classes:', err)
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      console.error('Failed to load classes:', err);
-      // Fall back to mock subjects when API fails
-      setSubjects(mockSubjects);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    loadClasses()
+  }, [])
 
   // Update the handleApproveEnrollment function
   const handleApproveEnrollment = async (enrollmentId: string) => {
-    const toastId = toast.loading('Đang xử lý...');
+    const toastId = toast.loading('Đang xử lý...')
     try {
-      const response = await classApi.approveEnrollment(enrollmentId);
-      console.log('Approve enrollment response:', response);
+      const response = await classApi.approveEnrollment(enrollmentId)
+      console.log('Approve enrollment response:', response)
 
       if (response.success) {
-        toast.success('Đã duyệt sinh viên thành công!', { id: toastId });
+        toast.success('Đã duyệt sinh viên thành công!', { id: toastId })
         // Refresh the student count after approval
         if (currentSubjectId) {
-          await refreshStudentCount(currentSubjectId);
+          await refreshStudentCount(currentSubjectId)
           // Also refresh the pending enrollments list
-          await loadPendingEnrollments(currentSubjectId);
+          await loadPendingEnrollments(currentSubjectId)
         }
       } else {
-        throw new Error(response.message || 'Có lỗi xảy ra khi duyệt đăng ký');
+        throw new Error(response.message || 'Có lỗi xảy ra khi duyệt đăng ký')
       }
     } catch (error: any) {
-      console.error('Approval error:', error);
+      console.error('Approval error:', error)
       toast.error(`Lỗi: ${error.message || 'Không thể xử lý yêu cầu'}`, {
         id: toastId,
         description: 'Vui lòng thử lại sau hoặc liên hệ quản trị viên nếu lỗi vẫn tiếp diễn'
-      });
+      })
     }
   }
 
@@ -926,54 +753,54 @@ export function SubjectDetail() {
       action: {
         label: 'Xác nhận',
         onClick: async () => {
-          const toastId = toast.loading('Đang xử lý...');
+          const toastId = toast.loading('Đang xử lý...')
           try {
             const response = await fetch(`http://localhost:9000/api/enrollments/${enrollmentId}/reject`, {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({ reason: 'Không đủ điều kiện' })
-            });
-            const data = await response.json();
+            })
+            const data = await response.json()
             if (data.success) {
-              toast.success('Đã từ chối sinh viên!', { id: toastId });
+              toast.success('Đã từ chối sinh viên!', { id: toastId })
               // Reload pending enrollments
-              loadPendingEnrollments(currentSubjectId);
+              loadPendingEnrollments(currentSubjectId)
             } else {
-              toast.error(`Lỗi: ${data.message}`, { id: toastId });
+              toast.error(`Lỗi: ${data.message}`, { id: toastId })
             }
           } catch (error: any) {
-            toast.error(`Lỗi: ${error.message}`, { id: toastId });
+            toast.error(`Lỗi: ${error.message}`, { id: toastId })
           }
-        },
+        }
       },
       cancel: {
         label: 'Hủy',
-        onClick: () => { }
+        onClick: () => {}
       },
       duration: 10000
-    });
-  };
+    })
+  }
 
   // Load pending enrollments when component mounts, class changes, or dialog opens
   useEffect(() => {
     // Load immediately
     if (currentSubjectId) {
-      loadPendingEnrollments(currentSubjectId);
+      loadPendingEnrollments(currentSubjectId)
     }
 
     // Set up polling every 30 seconds
     const intervalId = setInterval(() => {
       if (currentSubjectId) {
-        loadPendingEnrollments(currentSubjectId);
+        loadPendingEnrollments(currentSubjectId)
       }
-    }, 30000);
+    }, 30000)
 
     // Clean up interval on unmount
-    return () => clearInterval(intervalId);
-  }, [currentSubjectId]);
+    return () => clearInterval(intervalId)
+  }, [currentSubjectId])
 
   const handleOpenPendingStudents = () => {
     setIsPendingStudentsOpen(true)
@@ -1002,6 +829,7 @@ export function SubjectDetail() {
 
         // Mở tài liệu của chương này
         setExpandedChapter(chapterId)
+        fetchMaterials()
       } catch (error) {
         console.error('Error fetching documents:', error)
         toast.error('Lỗi khi tải tài liệu')
@@ -1041,6 +869,7 @@ export function SubjectDetail() {
       setIsUploadDocOpen(false) // Đóng dialog sau khi tải lên thành công
       toast.success('Tài liệu đã được tải lên thành công!')
       fetchChapters() // Cập nhật tài liệu mới
+      fetchMaterials()
     } catch (error) {
       console.error('Error uploading file:', error)
       toast.error('Lỗi khi tải lên tài liệu')
@@ -1094,9 +923,9 @@ export function SubjectDetail() {
       questions.map((q) =>
         q.id === questionId
           ? {
-            ...q,
-            answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
-          }
+              ...q,
+              answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
+            }
           : q
       )
     )
@@ -1109,20 +938,6 @@ export function SubjectDetail() {
       back: ''
     }
     setFlashcards([...flashcards, newFlashcard])
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0])
-      console.log('Selected file:', e.target.files[0]) // In ra tệp tin đã chọn
-    }
-  }
-
-  const removeFile = () => {
-    setAiFile(null)
-    // reset input value (optional, nếu muốn cho phép upload cùng file lần nữa)
-    const inp = document.getElementById('file-upload') as HTMLInputElement | null
-    if (inp) inp.value = ''
   }
 
   const removeFlashcard = (flashcardId: string) => {
@@ -1188,7 +1003,7 @@ export function SubjectDetail() {
         classId: currentSubjectId,
         chapters: selectedFlashcardChapters,
         isAIGenerated: false,
-        flashcards: flashcards.map(f => ({
+        flashcards: flashcards.map((f) => ({
           front: f.front.trim(),
           back: f.back.trim(),
           isAIGenerated: false
@@ -1282,21 +1097,16 @@ export function SubjectDetail() {
 
     try {
       setMaterialsLoading(true)
-      // Check if we're using mock data (classId is '1', '2', or '3')
-      if (['1', '2', '3'].includes(currentSubjectId)) {
-        // Use mock documents
-        setMaterials(mockDocuments);
-      } else {
-        // Fetch from API
-        const response = await axios.get(`http://localhost:9000/api/materials/class/${currentSubjectId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        })
 
-        const materialsData = response.data?.data?.items || []
-        setMaterials(Array.isArray(materialsData) ? materialsData : [])
-      }
+      // Fetch from API
+      const response = await axios.get(`http://localhost:9000/api/materials/class/${currentSubjectId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
+
+      const materialsData = response.data?.data?.items || []
+      setMaterials(Array.isArray(materialsData) ? materialsData : [])
     } catch (error) {
       console.error('Error fetching materials:', error)
       setMaterials([])
@@ -1337,7 +1147,8 @@ export function SubjectDetail() {
     }
 
     try {
-      await axios.put(`http://localhost:9000/api/materials/${editingMaterial._id || editingMaterial.id}`,
+      await axios.put(
+        `http://localhost:9000/api/materials/${editingMaterial._id || editingMaterial.id}`,
         { title: editMaterialTitle.trim() },
         {
           headers: {
@@ -1406,7 +1217,7 @@ export function SubjectDetail() {
       if (['1', '2', '3'].includes(currentSubjectId)) {
         // Use mock flashcards - create some mock data if needed
         const mockFlashcards: any[] = []
-        setFlashcardList(mockFlashcards);
+        setFlashcardList(mockFlashcards)
       } else {
         // Fetch from API
         const res = await axios.get(`http://localhost:9000/api/flashcard-sets/class/${currentSubjectId}`, {
@@ -1421,13 +1232,13 @@ export function SubjectDetail() {
     } catch (err: any) {
       // If it's a 404, just set empty flashcards (class might not have any flashcards yet)
       if (err.response?.status === 404) {
-        setFlashcardList([]);
+        setFlashcardList([])
       } else {
         console.error('Error loading flashcards:', err)
         // For other errors, fall back to mock data if using mock IDs
         if (['1', '2', '3'].includes(currentSubjectId)) {
           const mockFlashcards: any[] = []
-          setFlashcardList(mockFlashcards);
+          setFlashcardList(mockFlashcards)
         } else {
           toast.error('Lỗi khi tải flashcards')
         }
@@ -1451,6 +1262,8 @@ export function SubjectDetail() {
         return <FileText className='h-4 w-4 text-green-500' />
       case 'powerpoint':
         return <FileText className='h-4 w-4 text-orange-500' />
+      case 'audio':
+        return <Headphones className='h-4 w-4 text-blue-500' />
       default:
         return <FileText className='h-4 w-4 text-gray-500' />
     }
@@ -1470,6 +1283,8 @@ export function SubjectDetail() {
         return 'Hình ảnh'
       case 'powerpoint':
         return 'PowerPoint'
+      case 'audio':
+        return 'Âm thanh'
       default:
         return type.toUpperCase()
     }
@@ -1485,16 +1300,38 @@ export function SubjectDetail() {
         </Button>
 
         <div className='flex items-center gap-4'>
-          <span className='text-sm text-muted-foreground'>
+          <span className='text-sm text-muted-foreground font-semibold'>
             {currentSubjectIndex + 1} / {subjects.length}
           </span>
-          <Button
-            variant="outline"
-            className="gap-2 min-w-48 hover:bg-accent hover:text-accent-foreground"
-          >
-            <BookOpen className="h-4 w-4" />
-            {currentSubject.name}
-          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className='flex items-center gap-2 border rounded-md px-3 py-2 text-sm font-semibold'
+                style={{ background: 'white' }}
+              >
+                <BookOpen className='h-4 w-4' />
+                {currentSubject.name}
+                <ChevronDown className='h-4 w-4' />
+              </button>
+            </DropdownMenuTrigger>
+
+            {/* 💡 Thêm z-index để tránh bị che */}
+            <DropdownMenuContent className='w-64 z-[9999] space-y-1 rounded-xl'>
+              {subjects.map((subject) => (
+                <DropdownMenuItem
+                  key={subject.id}
+                  onClick={() => handleSubjectChange(subject.id)}
+                  className={currentSubject.id === subject.id ? 'bg-accent' : ''}
+                >
+                  <div className='flex flex-col'>
+                    <span className='font-medium'>{subject.name}</span>
+                    <span className='text-xs text-muted-foreground'>{subject.description}</span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <Button variant='ghost' size='sm' onClick={handleNextSubject} className='gap-2'>
@@ -1546,7 +1383,9 @@ export function SubjectDetail() {
                               <div className='flex items-center gap-2'>
                                 <h3 className='font-medium'>{student?.name || student?.username || 'Unknown'}</h3>
                               </div>
-                              <p className='text-sm text-muted-foreground'>Username: {student?.username || 'No username'}</p>
+                              <p className='text-sm text-muted-foreground'>
+                                Tên đăng nhập: {student?.username || 'No username'}
+                              </p>
                               <p className='text-sm text-muted-foreground'>
                                 Đăng ký: {new Date(enrollment.requestedAt).toLocaleDateString('vi-VN')}
                               </p>
@@ -1606,15 +1445,14 @@ export function SubjectDetail() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Tạo Chương mới</DialogTitle>
-              <DialogDescription>Thêm chương học cho môn học</DialogDescription>
+              <DialogDescription className='pb-6'>Thêm chương học cho môn học</DialogDescription>
             </DialogHeader>
             <div className='space-y-4'>
               <div className='space-y-2'>
                 <Label>Tên chương</Label>
                 <Input placeholder='Nhập tên chương' value={title} onChange={(e) => setTitle(e.target.value)} />
               </div>
-              <div className="space-y-4">
-
+              <div className='space-y-4'>
                 <div className='flex justify-end gap-2'>
                   <Button variant='outline' onClick={() => setIsCreateChapterOpen(false)}>
                     Hủy
@@ -1635,7 +1473,7 @@ export function SubjectDetail() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className='gap-2'>
+            <Button className='gap-2' variant='outline'>
               <Plus className='h-4 w-4' />
               Tạo Quiz
             </Button>
@@ -1643,7 +1481,7 @@ export function SubjectDetail() {
           <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
               <DialogTitle>Tạo Quiz mới</DialogTitle>
-              <DialogDescription>Tạo quiz từ nhiều chương học</DialogDescription>
+              <DialogDescription className='pb-6'>Tạo quiz từ nhiều chương học</DialogDescription>
             </DialogHeader>
             <div className='space-y-6'>
               <div className='space-y-2'>
@@ -1731,39 +1569,8 @@ export function SubjectDetail() {
                           aria-label='Prompt cho AI'
                           className='w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400'
                         />
-
-                        {/* hidden file input */}
-                        <input
-                          id='file-upload'
-                          type='file'
-                          className='hidden'
-                          onChange={handleFileChange}
-                          aria-label='Upload document'
-                        />
                       </div>
                     </div>
-
-                    {/* file đã chọn (tách hẳn, không dính sát icon) */}
-                    {aiFile && (
-                      <div className='mt-2 flex items-center gap-3'>
-                        <div className='inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm'>
-                          <span>📄</span>
-                          <span className='max-w-[40ch] truncate font-medium text-gray-700'>{aiFile.name}</span>
-                        </div>
-
-                        <div className='ml-auto flex items-center gap-2 text-sm'>
-                          <span className='text-gray-500 text-xs'>{(aiFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                          <button
-                            type='button'
-                            onClick={removeFile}
-                            className='inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50'
-                          >
-                            <X className='h-4 w-4' />
-                            Xóa
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               ) : (
@@ -1875,7 +1682,7 @@ export function SubjectDetail() {
           <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
               <DialogTitle>Tạo Flashcard mới</DialogTitle>
-              <DialogDescription>Tạo bộ flashcard từ nhiều chương học</DialogDescription>
+              <DialogDescription className='pb-6'>Tạo bộ flashcard từ nhiều chương học</DialogDescription>
             </DialogHeader>
             <div className='space-y-6'>
               <div className='space-y-2'>
@@ -1939,7 +1746,7 @@ export function SubjectDetail() {
                       onChange={(e) => setAiFlashcardCount(e.target.value)}
                     />
                   </div>
-                  {/* UI prompt + paperclip */}
+                  {/* UI prompt*/}
                   <div className='space-y-2'>
                     <label className='block text-sm font-medium text-gray-700'>Prompt cho AI</label>
 
@@ -1955,49 +1762,8 @@ export function SubjectDetail() {
                           aria-label='Prompt cho AI'
                           className='w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400'
                         />
-
-                        {/* icon paperclip nằm BÊN TRONG khung (absolute, phía phải) */}
-                        {/* label sẽ trigger input[type=file] */}
-                        <label
-                          htmlFor='file-upload'
-                          className='absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-blue-600 hover:scale-105 transition cursor-pointer'
-                          title='Đính kèm tài liệu'
-                        >
-                          <Paperclip className='h-5 w-5' />
-                        </label>
-
-                        {/* hidden file input */}
-                        <input
-                          id='file-upload'
-                          type='file'
-                          className='hidden'
-                          onChange={handleFileChange}
-                          aria-label='Upload document'
-                        />
                       </div>
                     </div>
-
-                    {/* file đã chọn (tách hẳn, không dính sát icon) */}
-                    {aiFile && (
-                      <div className='mt-2 flex items-center gap-3'>
-                        <div className='inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm'>
-                          <span>📄</span>
-                          <span className='max-w-[40ch] truncate font-medium text-gray-700'>{aiFile.name}</span>
-                        </div>
-
-                        <div className='ml-auto flex items-center gap-2 text-sm'>
-                          <span className='text-gray-500 text-xs'>{(aiFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                          <button
-                            type='button'
-                            onClick={removeFile}
-                            className='inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50'
-                          >
-                            <X className='h-4 w-4' />
-                            Xóa
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               ) : (
@@ -2015,7 +1781,7 @@ export function SubjectDetail() {
                       <Card key={flashcard.id}>
                         <CardHeader className='pb-3'>
                           <div className='flex items-center justify-between'>
-                            <CardTitle className='text-base'>Flashcard {fIndex + 1}</CardTitle>
+                            <CardTitle className='text-base font-semibold'>Flashcard {fIndex + 1}</CardTitle>
                             {flashcards.length > 1 && (
                               <Button
                                 type='button'
@@ -2060,10 +1826,7 @@ export function SubjectDetail() {
                 <Button variant='outline' onClick={() => setIsCreateFlashcardOpen(false)}>
                   Hủy
                 </Button>
-                <Button
-                  disabled={flashcardLoading}
-                  onClick={handleCreateFlashcard}
-                >
+                <Button disabled={flashcardLoading} onClick={handleCreateFlashcard}>
                   {flashcardLoading && <Spinner />}
                   {flashcardLoading ? 'Đang tạo...' : 'Tạo Flashcard'}
                 </Button>
@@ -2124,14 +1887,12 @@ export function SubjectDetail() {
         </div>
 
         {/* Chapters Tab */}
-        <TabsContent value='chapters' className='space-y-4'>
+        <TabsContent value='chapters' className='space-y-4' style={{ paddingTop: '32px' }}>
           {chapters.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">Chưa có chương học nào trong lớp</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Chương học sẽ xuất hiện ở đây sau khi giáo viên tạo
-              </p>
+            <div className='flex flex-col items-center justify-center py-12 text-center'>
+              <BookOpen className='h-12 w-12 text-muted-foreground mb-4' />
+              <h3 className='text-lg font-medium'>Chưa có chương học nào trong lớp</h3>
+              <p className='text-sm text-muted-foreground mt-1'>Chương học sẽ xuất hiện ở đây sau khi giáo viên tạo</p>
             </div>
           ) : (
             chapters.map((chapter) => (
@@ -2139,8 +1900,10 @@ export function SubjectDetail() {
                 <CardHeader>
                   <div className='flex items-center justify-between'>
                     <div>
-                      <CardTitle className='text-lg'>{chapter.title}</CardTitle>
-                      <CardDescription className='text-sm pt-2'>{chapter.documents?.length || 0} tài liệu</CardDescription>
+                      <CardTitle className='text-lg font-semibold'>{chapter.title}</CardTitle>
+                      <CardDescription className='text-sm pt-2'>
+                        {chapter.documents?.length || 0} tài liệu
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -2165,7 +1928,9 @@ export function SubjectDetail() {
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Thêm tài liệu mới</DialogTitle>
-                            <DialogDescription>Đăng tải tài liệu cho {chapterTitle}</DialogDescription>{' '}
+                            <DialogDescription className='pb-6'>
+                              Đăng tải tài liệu cho {chapterTitle}
+                            </DialogDescription>{' '}
                             {/* Sử dụng chapterTitle */}
                           </DialogHeader>
                           <div className='space-y-4'>
@@ -2188,7 +1953,7 @@ export function SubjectDetail() {
                               <Input
                                 placeholder='Nhập ID chương' // Trường này vẫn còn, nhưng ẩn đi
                                 value={chapterId}
-                                onChange={() => { }} // Không cần thay đổi giá trị của nó
+                                onChange={() => {}} // Không cần thay đổi giá trị của nó
                               />
                             </div>
 
@@ -2246,11 +2011,14 @@ export function SubjectDetail() {
                                 </div>
                               </div>
                               <div className='flex items-center gap-2'>
-                                <Button size='sm' variant='outline'>
-                                  <Eye className='h-4 w-4' />
+                                <Button variant='outline' size='sm' onClick={() => handleEditMaterial(doc)}>
+                                  <Edit className='h-4 w-4' />
                                 </Button>
-                                <Button size='sm' variant='outline'>
+                                <Button size='sm' variant='outline' onClick={() => handleDownloadMaterial(doc)}>
                                   <Download className='h-4 w-4' />
+                                </Button>
+                                <Button variant='outline' size='sm' onClick={() => handleDeleteMaterial(doc)}>
+                                  <Trash2 className='h-4 w-4 text-destructive' />
                                 </Button>
                               </div>
                             </div>
@@ -2275,78 +2043,54 @@ export function SubjectDetail() {
         </TabsContent>
 
         {/* Students Tab */}
-        <TabsContent value="students" className="space-y-4">
-          <Card className="flex-1 min-w-0">
+        <TabsContent value='students' className='space-y-4'>
+          <Card className='flex-1 min-w-0'>
             <CardHeader>
-              <CardTitle>
-                Danh sách học sinh ({enrolledStudents.length})
-              </CardTitle>
-              <CardDescription>
-                Theo dõi tiến độ học tập của từng học sinh
-              </CardDescription>
+              <CardTitle>Danh sách học sinh ({enrolledStudents.length})</CardTitle>
+              <CardDescription>Theo dõi tiến độ học tập của từng học sinh</CardDescription>
             </CardHeader>
             <CardContent>
               {loadingStudents ? (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Đang tải danh sách học sinh...</p>
+                <div className='flex flex-col items-center justify-center py-8'>
+                  <Loader2 className='h-8 w-8 animate-spin text-primary mb-4' />
+                  <p className='text-muted-foreground'>Đang tải danh sách học sinh...</p>
                 </div>
               ) : enrolledStudents.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">Chưa có học sinh nào trong lớp</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                <div className='flex flex-col items-center justify-center py-12 text-center'>
+                  <Users className='h-12 w-12 text-muted-foreground mb-4' />
+                  <h3 className='text-lg font-medium'>Chưa có học sinh nào trong lớp</h3>
+                  <p className='text-sm text-muted-foreground mt-1'>
                     Học sinh sẽ xuất hiện ở đây sau khi đăng ký và được duyệt
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className='space-y-4'>
                   {enrolledStudents.map((student) => (
-                    <div
-                      key={student.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-4 flex-1">
+                    <div key={student.id} className='flex items-center justify-between p-4 border rounded-lg'>
+                      <div className='flex items-center gap-4 flex-1'>
                         <Avatar>
                           <AvatarFallback>
                             {(student.name?.charAt(0) || student.username?.charAt(0) || 'U').toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="space-y-1 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium">
-                              {student.name || student.username || 'Không tên'}
-                            </h3>
-                            <Badge
-                              variant={
-                                student.status === "active"
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                            >
-                              {student.status === "active"
-                                ? "Hoạt động"
-                                : "Không hoạt động"}
+                        <div className='space-y-1 flex-1'>
+                          <div className='flex items-center gap-2'>
+                            <h3 className='font-medium'>{student.name || student.username || 'Không tên'}</h3>
+                            <Badge variant={student.status === 'active' ? 'secondary' : 'outline'}>
+                              {student.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {student.email}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                            <span>Username: {student.username}</span>
+                          <p className='text-sm text-muted-foreground'>{student.email}</p>
+                          <div className='flex items-center gap-4 text-sm text-muted-foreground flex-wrap'>
+                            <span>Tên đăng nhập: {student.username}</span>
                             <span>•</span>
-                            <span>
-                              Hoạt động cuối:{" "}
-                              {new Date(
-                                student.lastActive
-                              ).toLocaleDateString("vi-VN")}
-                            </span>
+                            <span>Hoạt động cuối: {new Date(student.lastActive).toLocaleDateString('vi-VN')}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button variant="outline" size="sm">
-                          <MessageSquare className="h-4 w-4" />
+                      <div className='flex items-center gap-2 ml-4'>
+                        <Button variant='outline' size='sm'>
+                          <MessageSquare className='h-4 w-4' />
                         </Button>
                       </div>
                     </div>
@@ -2366,10 +2110,6 @@ export function SubjectDetail() {
                   <CardTitle>Tài liệu học tập</CardTitle>
                   <CardDescription>Quản lý tài liệu cho môn học</CardDescription>
                 </div>
-                <Button className='gap-2'>
-                  <Upload className='h-4 w-4' />
-                  Đăng tải tài liệu
-                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -2429,65 +2169,57 @@ export function SubjectDetail() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Chỉnh sửa tài liệu</DialogTitle>
-            <DialogDescription>Thay đổi tên tài liệu</DialogDescription>
+            <DialogDescription className='pb-6'>Thay đổi tên tài liệu</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
+          <div className='space-y-4 py-4'>
+            <div className='space-y-2'>
               <Input
-                id="edit-title"
+                id='edit-title'
                 value={editMaterialTitle}
                 onChange={(e) => setEditMaterialTitle(e.target.value)}
-                placeholder="Nhập tên tài liệu"
+                placeholder='Nhập tên tài liệu'
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancelEditMaterial}>
+          <DialogFooter className='pt-6'>
+            <Button variant='outline' onClick={handleCancelEditMaterial}>
               Hủy
             </Button>
-            <Button onClick={handleSaveEditMaterial}>
-              Lưu thay đổi
-            </Button>
+            <Button onClick={handleSaveEditMaterial}>Lưu thay đổi</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Material Confirmation Dialog */}
       <Dialog open={isDeleteMaterialDialogOpen} onOpenChange={setIsDeleteMaterialDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className='max-w-md'>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
+            <DialogTitle className='flex items-center gap-2'>
+              <AlertTriangle className='h-5 w-5 text-destructive' />
               Xác nhận xóa tài liệu
             </DialogTitle>
-            <DialogDescription className="space-y-2">
+            <DialogDescription className='space-y-2'>
               <p>Bạn có chắc chắn muốn xóa tài liệu này?</p>
               {materialToDelete && (
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="font-medium">{materialToDelete.title || materialToDelete.fileName || 'Không có tên'}</p>
-                  <p className="text-sm text-muted-foreground">
+                <div className='p-3 bg-muted rounded-lg'>
+                  <p className='font-medium'>{materialToDelete.title || materialToDelete.fileName || 'Không có tên'}</p>
+                  <p className='text-sm text-muted-foreground'>
                     {materialToDelete.chapter?.title || 'Không có chương'}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className='text-sm text-muted-foreground'>
                     Kích thước: {(materialToDelete.size / 1024 / 1024).toFixed(1)} MB
                   </p>
                 </div>
               )}
-              <p className="text-sm text-destructive font-medium">
-                Hành động này không thể hoàn tác!
-              </p>
+              <p className='text-sm text-destructive font-medium'>Hành động này không thể hoàn tác!</p>
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={cancelDeleteMaterial}>
+          <div className='flex justify-end gap-2'>
+            <Button variant='outline' onClick={cancelDeleteMaterial}>
               Hủy
             </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeleteMaterial}
-              className="gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
+            <Button variant='destructive' onClick={confirmDeleteMaterial} className='gap-2'>
+              <Trash2 className='h-4 w-4' />
               Xóa tài liệu
             </Button>
           </div>

@@ -1,10 +1,10 @@
 // src/middlewares/roles.ts
 import { Request, Response, NextFunction } from 'express'
 import { Types } from 'mongoose'
-import { RoleName } from '../models/Role'
-import { Class } from '../models/class.model'        
-import { Chapter } from '../models/Chapter'
-import { cleanupUploadedFile } from './upload'
+import { RoleName } from '../models/Role.js'
+import { Class } from '../models/class.model.js'        
+import { Chapter } from '../models/Chapter.js'
+import { cleanupUploadedFile } from './upload.js'
 
 type IdSourceKey = 'classId' | 'class' | 'chapterId' | 'chapter'
 

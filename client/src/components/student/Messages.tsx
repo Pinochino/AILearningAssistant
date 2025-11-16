@@ -806,7 +806,7 @@ export function Messages() {
             </>
           ) : (
             <CardContent className="flex items-center justify-center h-96">
-              <div className="text-center">
+              <div className="text-center" style={{paddingTop: '64px'}}>
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn cuộc trò chuyện</h3>
                 <p className="text-muted-foreground">

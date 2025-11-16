@@ -1,5 +1,5 @@
 import cron from 'node-cron'
-import authService from '~/services/authService'
+import authService from '~/services/authService.js'
 
 console.log('ForgotPassword cron file loaded')
 

@@ -1,5 +1,5 @@
 import { model, Query, Schema, Types } from 'mongoose'
-import { hashedText } from '~/utils/BcryptUtils'
+import { hashedText } from '~/utils/BcryptUtils.js'
 import MongooseDelete, { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete'
 
 export interface IUser extends SoftDeleteDocument {

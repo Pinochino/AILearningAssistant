@@ -1,5 +1,3 @@
-import { UserProviderType } from '~/models/UserProvider'
-
 export interface UserInterface {
   id: string
   name: string

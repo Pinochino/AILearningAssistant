@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import * as fc from '../controllers/FlashcardController'
+import * as fc from '../controllers/FlashcardController.js'
 
 const r = Router()
 

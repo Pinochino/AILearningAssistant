@@ -1,9 +1,8 @@
-import { Message } from "../models/message.model";
-import { Conversation } from "../models/conversation.model";
-import { User } from "../models/User";
-import AiBridgeService from "./ai-bridge.service";
-import NotificationsService from "./notifications.service";
-import { Types } from "mongoose";
+import { Message } from "../models/message.model.js";
+import { Conversation } from "../models/conversation.model.js";
+import { User } from "../models/User.js";
+import AiBridgeService from "./ai-bridge.service.js";
+import NotificationsService from "./notifications.service.js";
 
 interface SendMessageData {
     conversationId: string;
@@ -212,8 +211,7 @@ class MessagesService {
             aiTutorId,
             metadata: {
                 confidence: aiResponse.confidence,
-                sources: aiResponse.sources,
-                suggestions: aiResponse.suggestions
+                sources: aiResponse.source,
             }
         });
 

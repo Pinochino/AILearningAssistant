@@ -1,7 +1,7 @@
-import { User } from '~/models/User'
-import { Role } from '~/models/Role'
-import { QueryInterface } from '~/types/QueryInterface'
-import { EditUserInterface, UserInterface } from '~/types/UserInterface'
+import { User } from '~/models/User.js'
+import { Role } from '~/models/Role.js'
+import { QueryInterface } from '~/types/QueryInterface.js'
+import { EditUserInterface, UserInterface } from '~/types/UserInterface.js'
 import mongoose from 'mongoose'
 
 const userService = {

@@ -5,11 +5,10 @@ import { GoogleAIFileManager } from '@google/generative-ai/server'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
-import { Material } from '../models/Material'
-import { Flashcard } from '../models/Flashcard'
-import { FlashcardSet } from '../models/FlashcardSet'
-import { responseUtils } from '../utils/ResponseUtils'
-import { Quiz } from '~/models/Quiz'
+import { Material } from '../models/Material.js'
+import { FlashcardSet } from '../models/FlashcardSet.js'
+import { responseUtils } from '../utils/ResponseUtils.js'
+import { Quiz } from '~/models/Quiz.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

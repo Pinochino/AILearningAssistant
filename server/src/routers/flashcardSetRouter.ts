@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware'
-import * as fsc from '../controllers/FlashcardSetController'
+import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware.js'
+import * as fsc from '../controllers/FlashcardSetController.js'
 
 const r = Router()
 

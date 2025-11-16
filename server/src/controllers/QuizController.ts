@@ -1,9 +1,9 @@
 // AILearningAssistant\server\src\controllers\QuizController.ts
 import { RequestHandler } from 'express'
 import { Types } from 'mongoose'
-import { responseUtils } from '../utils/ResponseUtils'
-import { Quiz, IQuizQuestion } from '../models/Quiz'
-import quizService from '../services/quizService'
+import { responseUtils } from '../utils/ResponseUtils.js'
+import { Quiz, IQuizQuestion } from '../models/Quiz.js'
+import quizService from '../services/quizService.js'
 
 const isId = (v?: string) => !!v && Types.ObjectId.isValid(v)
 const getUserId = (req: any): string | undefined => {

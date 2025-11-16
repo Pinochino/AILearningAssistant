@@ -10,7 +10,7 @@ PORT=9000
 NODE_ENV=development
 
 # Database
-MONGO_URI=mongodb://localhost:27017/atiui
+MONGO_URL=mongodb://localhost:27017/atiui
 
 # Redis
 REDIS_URL=redis://localhost:6379

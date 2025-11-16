@@ -1,11 +1,10 @@
-import { User } from '~/models/User'
-import { LoginType, RegisterType } from '~/types/UserInterface'
-import { compareHashed } from '~/utils/BcryptUtils'
-import { ValidatedToken, ValidatedTokenStatus } from '~/models/ValidatedToken'
-import { Role, RoleName } from '~/models/Role'
-import emailService from './emailService'
-import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils'
-import { ForgotPassword } from '~/models/ForgotPassword'
+import { User } from '~/models/User.js'
+import { LoginType, RegisterType } from '~/types/UserInterface.js'
+import { compareHashed } from '~/utils/BcryptUtils.js'
+import { ValidatedToken, ValidatedTokenStatus } from '~/models/ValidatedToken.js'
+import { Role, RoleName } from '~/models/Role.js'
+import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils.js'
+import { ForgotPassword } from '~/models/ForgotPassword.js'
 
 const authService = {
   authenticate: async ({ username, password }: LoginType) => {
@@ -15,7 +14,7 @@ const authService = {
       const user = await User.findOne({ username }).populate('roles', 'name')
 
       if (!user) {
-        console.log(' User not found:', username)
+        console.log('User not found:', username)
         throw new Error('Invalid credentials')
       }
 
@@ -32,13 +31,21 @@ const authService = {
         console.log('Invalid password for:', username)
         throw new Error('Invalid credentials')
       }
+
       await User.updateOne({ _id: user._id }, { $set: { isActive: true, lastLogin: Date.now() } })
 
       console.log('Password valid, creating login response')
-      return createLoginResponse(user)
+      return await createLoginResponse(user)
     } catch (error: any) {
-      console.error('Login error:', error.message)
-      throw new Error('Error in login: ' + error?.message)
+      console.error('Login error (authService.authenticate):', error)
+
+      // Sai tài khoản / mật khẩu → ném đúng message đó cho controller xử lý 401
+      if (error?.message === 'Invalid credentials') {
+        throw error
+      }
+
+      // Các lỗi khác (JWT, DB, v.v.) → để controller trả 500
+      throw new Error('Internal login error')
     }
   },
 

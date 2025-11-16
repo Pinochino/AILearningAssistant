@@ -1,8 +1,8 @@
 // src/routers/chapterRouter.ts
 import { Router } from 'express'
-import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware'
-import { create, listByClassId, update, remove, restore } from '../controllers/ChapterController'
-import { getOne } from '~/controllers/ChapterController'
+import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware.js'
+import { create, listByClassId, update, remove, restore } from '../controllers/ChapterController.js'
+import { getOne } from '~/controllers/ChapterController.js'
 
 const chapterRouter = Router()
 

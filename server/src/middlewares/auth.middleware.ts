@@ -79,19 +79,21 @@ export const authMiddleware: RequestHandler = async (req: any, res: Response, ne
     }
 };
 
-export const requireRole = (roles: string[]) => {
-    return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        if (!req.user) {
-            return res.status(401).json({ error: "Authentication required" });
-        }
+export const requireRole = (roles: string[]): RequestHandler => {
+  return (req, res, next) => {
+    const authReq = req as AuthenticatedRequest
 
-        const allowed = roles.map(r => String(r).toLowerCase());
-        if (!allowed.includes(String(req.user.role).toLowerCase())) {
-            return res.status(403).json({ error: "Insufficient permissions" });
-        }
+    if (!authReq.user) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
 
-        next();
-    };
+    const allowed = roles.map(r => String(r).toLowerCase());
+    if (!allowed.includes(String(authReq.user.role).toLowerCase())) {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+
+    next();
+  };
 };
 
 export const requireTeacherOrAdmin = requireRole(['teacher', 'admin']);

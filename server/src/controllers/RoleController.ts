@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import roleService from '~/services/roleService'
-import { responseUtils } from '~/utils/ResponseUtils'
+import roleService from '~/services/roleService.js'
+import { responseUtils } from '~/utils/ResponseUtils.js'
 
 const roleController = {
   getRoles: async (req: Request, res: Response) => {

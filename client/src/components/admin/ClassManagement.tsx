@@ -8,7 +8,7 @@ import { useNavigation } from '../../hooks/useNavigation';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { classApi, subjectApi, type Class, type Subject } from '../../services/api';
+import { classApi, type Class } from '../../services/api';
 import { handleApi } from '../../api/handleApi';
 import { toast } from 'sonner';
 import { ClassDetail } from './ClassDetail';
@@ -24,7 +24,6 @@ export function ClassManagement() {
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [classes, setClasses] = useState<Class[]>([]);
   const [totalClasses, setTotalClasses] = useState(0);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -96,7 +95,6 @@ export function ClassManagement() {
   // Load classes and subjects from API
   useEffect(() => {
     loadClasses();
-    loadSubjects();
   }, [currentPage, searchTerm]);
 
   const loadClasses = async () => {
@@ -144,20 +142,6 @@ export function ClassManagement() {
       setTotalClasses(0);
     } finally {
       setLoading(false);
-    }
-  };
-
-
-  const loadSubjects = async () => {
-    try {
-      console.log('🔍 Loading subjects for class management...');
-      const response = await subjectApi.getAll();
-      console.log('📚 Subjects response:', response);
-      console.log('📚 Subjects data:', response.data);
-      setSubjects(response.data || []);
-    } catch (err: any) {
-      console.error('❌ Error loading subjects:', err);
-      setSubjects([]);
     }
   };
 
@@ -404,135 +388,137 @@ export function ClassManagement() {
 
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
+            <Button className='gap-2'>
+              <Plus className='h-4 w-4' />
               Tạo lớp học mới
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
-              <DialogTitle>Tạo lớp học mới</DialogTitle>
+              <DialogTitle className='pb-6'>Tạo lớp học mới</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="subject">Môn học</Label>
+            <div className='space-y-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='subject'>Môn học</Label>
                 <Input
-                  id="subject"
-                  placeholder="Nhập môn học"
+                  id='subject'
+                  placeholder='Nhập môn học'
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="grade">Lớp/Ngành (không bắt buộc)</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='grade'>Lớp/Ngành (không bắt buộc)</Label>
                 <Input
-                  id="grade"
-                  placeholder="Nhập lớp ngành( có thể bỏ trống)"
+                  id='grade'
+                  placeholder='Nhập lớp ngành (có thể bỏ trống)'
                   value={formData.grade}
                   onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Nhập lớp cụ thể hoặc ngành. Để trống nếu áp dụng chung.
-                </p>
+                <p className='text-xs text-muted-foreground'>Nhập lớp cụ thể hoặc ngành. Để trống nếu áp dụng chung.</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="teacherId">Giáo viên</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='teacherId'>Giáo viên</Label>
                 <Input
-                  id="teacherId"
-                  placeholder="Nhập tên đăng nhập của giáo viên"
+                  id='teacherId'
+                  placeholder='Nhập tên đăng nhập của giáo viên'
                   value={formData.teacherId}
                   onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
                 />
-
+                <p className='text-xs text-muted-foreground'>Nhập tên đăng nhập chính xác của giáo viên từ hệ thống</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="maxStudents">Số học sinh tối đa</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='maxStudents'>Số học sinh tối đa</Label>
                 <Input
-                  id="maxStudents"
-                  type="number"
-                  min="1"
-                  max="100"
+                  id='maxStudents'
+                  type='number'
+                  min='1'
+                  max='100'
                   value={formData.maxStudents}
                   onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
                 />
               </div>
 
               {/* Schedule */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between pb-2'>
                   <Label>Lịch học</Label>
                   <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      addScheduleSlot();
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={(e: { preventDefault: () => void; stopPropagation: () => void }) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      addScheduleSlot()
                     }}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
+                    <Plus className='h-4 w-4 mr-1' />
                     Thêm buổi học
                   </Button>
                 </div>
                 {formData.schedule.map((slot, index) => (
-                  <Card key={index} className="p-4">
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="col-span-2">
-                        <Label className="text-xs">Thứ</Label>
+                  <Card key={index} className='p-4'>
+                    <div className='grid grid-cols-3 gap-3 w-full'>
+                      <div>
+                        <Label className='text-xs p-2'>Thứ</Label>
                         <Select
                           value={slot.dayOfWeek.toString()}
-                          onValueChange={(val) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val))}
+                          onValueChange={(val: string) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val))}
                         >
-                          <SelectTrigger>
-                            <SelectValue />
+                          <SelectTrigger className='w-full h-9 text-sm'>
+                            <SelectValue placeholder='Chọn thứ' />
                           </SelectTrigger>
                           <SelectContent>
                             {DAYS_OF_WEEK.map((day, i) => (
-                              <SelectItem key={i} value={i.toString()}>{day}</SelectItem>
+                              <SelectItem key={i} value={i.toString()}>
+                                {day}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
+
                       <div>
-                        <Label className="text-xs">Bắt đầu</Label>
+                        <Label className='text-xs p-2'>Bắt đầu</Label>
                         <Input
-                          type="time"
+                          type='time'
                           value={slot.startTime}
                           onChange={(e) => updateScheduleSlot(index, 'startTime', e.target.value)}
+                          className='w-full h-9 text-sm border rounded-md px-3'
                         />
                       </div>
+
                       <div>
-                        <Label className="text-xs">Kết thúc</Label>
+                        <Label className='text-xs p-2'>Kết thúc</Label>
                         <Input
-                          type="time"
+                          type='time'
                           value={slot.endTime}
                           onChange={(e) => updateScheduleSlot(index, 'endTime', e.target.value)}
+                          className='w-full h-9 text-sm border rounded-md px-3'
                         />
                       </div>
                     </div>
                     {formData.schedule.length > 1 && (
                       <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="mt-2 w-full text-destructive"
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        className='mt-2 w-full text-destructive'
                         onClick={() => removeScheduleSlot(index)}
                       >
-                        Xóa buổi học này
+                        <Trash2 className='h-4 w-4' />
                       </Button>
                     )}
                   </Card>
                 ))}
               </div>
 
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              <div className='flex justify-end gap-2'>
+                <Button variant='outline' onClick={() => setIsCreateDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button onClick={handleCreateClass}>
-                  Tạo lớp học
-                </Button>
+                <Button onClick={handleCreateClass}>Tạo lớp học</Button>
               </div>
             </div>
           </DialogContent>
@@ -540,99 +526,99 @@ export function ClassManagement() {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
               <DialogTitle>Chỉnh sửa lớp học</DialogTitle>
-              <DialogDescription>
-                Cập nhật thông tin lớp học
-              </DialogDescription>
+              <DialogDescription className='pb-6'>Cập nhật thông tin lớp học</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-subject">Môn học</Label>
+            <div className='space-y-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='edit-subject'>Môn học</Label>
                 <Input
-                  id="edit-subject"
-                  placeholder="VD: Toán học, Vật lý, Hóa học..."
+                  id='edit-subject'
+                  placeholder='VD: Toán học, Vật lý, Hóa học...'
                   value={editFormData.subject}
                   onChange={(e) => setEditFormData({ ...editFormData, subject: e.target.value })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-grade">Lớp/Ngành (không bắt buộc)</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='edit-grade'>Lớp/Ngành (không bắt buộc)</Label>
                 <Input
-                  id="edit-grade"
-                  placeholder="VD: 12A1, IT, MME, K65... (có thể để trống)"
+                  id='edit-grade'
+                  placeholder='VD: 12A1, IT, MME, K65... (có thể để trống)'
                   value={editFormData.grade}
                   onChange={(e) => setEditFormData({ ...editFormData, grade: e.target.value })}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className='text-xs text-muted-foreground'>
                   Nhập lớp cụ thể (12A1, 10B...) hoặc ngành (IT, MME...). Để trống nếu áp dụng chung.
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-teacherId">Giáo viên</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='edit-teacherId'>Giáo viên</Label>
                 <Input
-                  id="edit-teacherId"
-                  placeholder="Nhập tên đăng nhập giáo viên (VD: teacher1, teacher2...)"
+                  id='edit-teacherId'
+                  placeholder='Nhập username giáo viên (VD: teacher1, admin, teacher2...)'
                   value={editFormData.teacherId}
                   onChange={(e) => setEditFormData({ ...editFormData, teacherId: e.target.value })}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Nhập tên đăng nhập giáo viên mới (để trống nếu không muốn thay đổi)
+                <p className='text-xs text-muted-foreground'>
+                  Nhập username giáo viên mới (để trống nếu không muốn thay đổi)
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-maxStudents">Số học sinh tối đa</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='edit-maxStudents'>Số học sinh tối đa</Label>
                 <Input
-                  id="edit-maxStudents"
-                  type="number"
-                  min="1"
-                  max="100"
+                  id='edit-maxStudents'
+                  type='number'
+                  min='1'
+                  max='100'
                   value={editFormData.maxStudents}
                   onChange={(e) => setEditFormData({ ...editFormData, maxStudents: parseInt(e.target.value) })}
                 />
               </div>
 
               {/* Schedule */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between pb-2'>
                   <Label>Lịch học</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={() => addScheduleSlot(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
+                  <Button type='button' variant='outline' size='sm' onClick={() => addScheduleSlot(true)}>
+                    <Plus className='h-4 w-4 mr-1' />
                     Thêm buổi học
                   </Button>
                 </div>
                 {editFormData.schedule.map((slot, index) => (
-                  <Card key={index} className="p-4">
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="col-span-2">
-                        <Label className="text-xs">Thứ</Label>
+                  <Card key={index} className='p-4'>
+                    <div className='grid grid-cols-3 gap-3 w-full'>
+                      <div className='col-span-2'>
+                        <Label className='text-xs p-2'>Thứ</Label>
                         <Select
                           value={slot.dayOfWeek.toString()}
-                          onValueChange={(val) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val), true)}
+                          onValueChange={(val: string) => updateScheduleSlot(index, 'dayOfWeek', parseInt(val), true)}
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             {DAYS_OF_WEEK.map((day, i) => (
-                              <SelectItem key={i} value={i.toString()}>{day}</SelectItem>
+                              <SelectItem key={i} value={i.toString()}>
+                                {day}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-xs">Bắt đầu</Label>
+                        <Label className='text-xs p-2'>Bắt đầu</Label>
                         <Input
-                          type="time"
+                          type='time'
                           value={slot.startTime}
                           onChange={(e) => updateScheduleSlot(index, 'startTime', e.target.value, true)}
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Kết thúc</Label>
+                        <Label className='text-xs p-2'>Kết thúc</Label>
                         <Input
-                          type="time"
+                          type='time'
                           value={slot.endTime}
                           onChange={(e) => updateScheduleSlot(index, 'endTime', e.target.value, true)}
                         />
@@ -640,10 +626,10 @@ export function ClassManagement() {
                     </div>
                     {editFormData.schedule.length > 1 && (
                       <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="mt-2 w-full text-destructive"
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        className='mt-2 w-full text-destructive'
                         onClick={() => removeScheduleSlot(index, true)}
                       >
                         Xóa buổi học này
@@ -653,23 +639,24 @@ export function ClassManagement() {
                 ))}
               </div>
 
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => {
-                  setIsEditDialogOpen(false);
-                  setEditingClass(null);
-                  setEditFormData({
-                    subject: '',
-                    grade: '',
-                    teacherId: '',
-                    maxStudents: 30,
-                    schedule: [{ dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }],
-                  });
-                }}>
+              <div className='flex justify-end gap-2'>
+                <Button
+                  variant='outline'
+                  onClick={() => {
+                    setIsEditDialogOpen(false)
+                    setEditingClass(null)
+                    setEditFormData({
+                      subject: '',
+                      grade: '',
+                      teacherId: '',
+                      maxStudents: 30,
+                      schedule: [{ dayOfWeek: 1, startTime: '08:00', endTime: '10:00' }]
+                    })
+                  }}
+                >
                   Hủy
                 </Button>
-                <Button onClick={handleUpdateClass}>
-                  Cập nhật
-                </Button>
+                <Button onClick={handleUpdateClass}>Cập nhật</Button>
               </div>
             </div>
           </DialogContent>
@@ -678,7 +665,7 @@ export function ClassManagement() {
 
       {/* Search */}
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-4">
+        <CardContent className="p-4" style={{paddingLeft: 0, paddingRight: 0}}>
           <div className="relative max-w-2xl mx-auto">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -793,7 +780,7 @@ export function ClassManagement() {
       {/* Empty State */}
       {!loading && !error && filteredClasses.length === 0 && (
         <Card>
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-12 text-center" style={{paddingTop: '24px'}}>
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
               {searchTerm ? 'Không tìm thấy lớp học nào' : 'Chưa có lớp học nào'}
@@ -827,7 +814,7 @@ export function ClassManagement() {
 
       {/* Summary Stats */}
       {!loading && !error && classes.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">{totalClasses}</p>

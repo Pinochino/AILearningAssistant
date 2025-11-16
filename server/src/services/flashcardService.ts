@@ -1,6 +1,6 @@
-import { Chapter } from '../models/Chapter'
-import { Flashcard } from '../models/Flashcard'
-import AIService from './aiService'
+import { Chapter } from '../models/Chapter.js'
+import { Flashcard } from '../models/Flashcard.js'
+import AIService from './aiService.js'
 import { Types } from 'mongoose'
 
 interface INextInterval {

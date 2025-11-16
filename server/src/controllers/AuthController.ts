@@ -1,6 +1,6 @@
 import { Response, Request } from 'express'
-import authService from '~/services/authService'
-import { responseUtils } from '~/utils/ResponseUtils'
+import authService from '~/services/authService.js'
+import { responseUtils } from '~/utils/ResponseUtils.js'
 
 const authController = {
   login: async (req: Request, res: Response) => {

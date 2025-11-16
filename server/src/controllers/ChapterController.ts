@@ -1,8 +1,8 @@
 // src/controllers/ChapterController.ts
 import { RequestHandler } from 'express'
 import { Types } from 'mongoose'
-import { responseUtils } from '../utils/ResponseUtils'
-import { Chapter } from '../models/Chapter'
+import { responseUtils } from '../utils/ResponseUtils.js'
+import { Chapter } from '../models/Chapter.js'
 
 // Helper an toàn: lấy userId nếu middleware JWT có gắn req.user
 function getUserIdFromReq(req: any): string | undefined {

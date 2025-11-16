@@ -1,10 +1,10 @@
 // src/routers/materialRouter.ts
 import { Router } from 'express'
-import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware'
-import authorizationMiddleware from '../middlewares/auth/authorizationMiddleware'
-import { upload } from '../middlewares/upload'
-import { requireTeacherInClass, requireMemberInClass } from '../middlewares/roles'
-import * as mat from '../controllers/MaterialController'
+import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware.js'
+import authorizationMiddleware from '../middlewares/auth/authorizationMiddleware.js'
+import { upload } from '../middlewares/upload.js'
+import { requireTeacherInClass, requireMemberInClass } from '../middlewares/roles.js'
+import * as mat from '../controllers/MaterialController.js'
 
 const router = Router()
 
@@ -49,7 +49,7 @@ router.put(
   '/:id',
   authenticationMiddleware,
   authorizationMiddleware,
-  requireTeacherInClass('id'),
+  requireTeacherInClass('classId'),
   mat.update
 )
 

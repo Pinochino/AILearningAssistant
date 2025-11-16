@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { ArrowLeft, Clock, FileText } from 'lucide-react'
+import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Clock, FileText } from 'lucide-react'
 
 interface QuizViewProps {
     quiz: {
@@ -27,8 +27,7 @@ const QuizView: React.FC<QuizViewProps> = ({ quiz, onClose }) => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Button variant="outline" size="sm" onClick={onClose}>
-                        <ArrowLeft className="h-4 w-4 mr-1" />
-                        Quay lại
+                        <ChevronLeft className="h-4 w-4 mr-1" />
                     </Button>
                     <div>
                         <h2 className="text-xl font-semibold">{quiz.title}</h2>
@@ -42,12 +41,12 @@ const QuizView: React.FC<QuizViewProps> = ({ quiz, onClose }) => {
             {/* Quiz Info */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
+                    <CardContent className="p-4" style={{paddingBottom: '16px'}} >
+                        <div className="flex items-center gap-4">
+                            <FileText className="h-6 w-6 text-green-600" />
                             <div>
-                                <p className="text-sm font-medium">Số câu hỏi</p>
-                                <p className="text-2xl font-bold">{quiz.questions.length}</p>
+                                <p className="text-sm text-muted-foreground">Số câu hỏi</p>
+                                <p className="text-xl font-semibold">{quiz.questions.length}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -56,11 +55,11 @@ const QuizView: React.FC<QuizViewProps> = ({ quiz, onClose }) => {
                 {quiz.durationMinutes && (
                     <Card>
                         <CardContent className="p-4">
-                            <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex items-center gap-4">
+                                <Clock className="h-6 w-6 text-blue-600" />
                                 <div>
-                                    <p className="text-sm font-medium">Thời gian</p>
-                                    <p className="text-2xl font-bold">{quiz.durationMinutes} phút</p>
+                                    <p className="text-sm text-muted-foreground">Thời gian</p>
+                                    <p className="text-xl font-semibold">{quiz.durationMinutes} phút</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -69,11 +68,11 @@ const QuizView: React.FC<QuizViewProps> = ({ quiz, onClose }) => {
 
                 <Card>
                     <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-4">
+                            <BookOpen className="h-6 w-6 text-black-600" />
                             <div>
-                                <p className="text-sm font-medium">Số chương</p>
-                                <p className="text-2xl font-bold">{quiz.chapters.length}</p>
+                                <p className="text-sm text-muted-foreground">Số chương</p>
+                                <p className="text-xl font-semibold">{quiz.chapters.length}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -128,7 +127,7 @@ const QuizView: React.FC<QuizViewProps> = ({ quiz, onClose }) => {
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className={`font-medium ${aIndex === question.correctAnswer ? 'text-green-700' : 'text-gray-700'
+                                            <span className={` ${aIndex === question.correctAnswer ? 'text-green-700' : 'text-gray-700'
                                                 }`}>
                                                 {String.fromCharCode(65 + aIndex)}. {answer}
                                             </span>

@@ -5,7 +5,7 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
-import { ArrowLeft, Save, } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, Save, } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigation } from '../../hooks/useNavigation'
 import { GetUserInfor } from '../../hooks/getUserInfor'
@@ -84,7 +84,7 @@ export function UserDetailPage() {
 
   console.log('id: ', userId)
 
-  const { isLoading: editUserLoading, mutate: updateUser, error: editUserError } = useMutation({
+  const { isPending: editUserLoading, mutate: updateUser, error: editUserError } = useMutation({
     mutationFn: async () => {
       const res = await handleApi({
         url: `/users/update/${userId}`,
@@ -201,7 +201,7 @@ export function UserDetailPage() {
         <h2 className='text-2xl font-bold mb-4'>Không tìm thấy người dùng</h2>
         <p className='text-muted-foreground mb-4'>Người dùng này không tồn tại hoặc đã bị xóa.</p>
         <Button onClick={() => navigateTo('users')}>
-          <ArrowLeft className='h-4 w-4 mr-2' />
+          <ChevronLeft className='h-4 w-4 mr-2' />
           Quay lại danh sách
         </Button>
       </div>
@@ -214,7 +214,7 @@ export function UserDetailPage() {
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-4'>
           <Button variant='outline' size='sm' onClick={() => navigateTo('users')}>
-            <ArrowLeft className='h-4 w-4 mr-2' />
+            <ChevronLeft className='h-4 w-4 mr-2' />
             Quay lại
           </Button>
           <div>
@@ -222,13 +222,7 @@ export function UserDetailPage() {
           </div>
         </div>
 
-        <div className='flex items-center gap-2'>
 
-          <Button onClick={handleEditUser} disabled={!hasChanges || isSaving} className='gap-2'>
-            <Save className='h-4 w-4' />
-            {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-          </Button>
-        </div>
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
@@ -245,7 +239,7 @@ export function UserDetailPage() {
                   <AvatarFallback className='text-lg '>
                     {user?.name
                       .split(' ')
-                      .map((n) => n[0])
+                      .map((n: any[]) => n[0])
                       .join('')
                       .toUpperCase()}
                   </AvatarFallback>
@@ -317,32 +311,6 @@ export function UserDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Subjects Card (for teachers and students) */}
-          {(formData.role === 'teacher' || formData.role === 'student') && (
-            <Card className='mt-6'>
-              <CardHeader>
-                <CardTitle>Môn học</CardTitle>
-                <CardDescription>
-                  {formData.role === 'teacher'
-                    ? 'Các môn học mà giáo viên này giảng dạy'
-                    : 'Các môn học mà học sinh này đang theo học'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='flex flex-wrap gap-2'>
-                  {user.subjects?.map((subject: string, index: number) => (
-                    <Badge key={index} variant='outline'>
-                      {subject}
-                    </Badge>
-                  ))}
-                </div>
-                <p className='text-sm text-muted-foreground mt-2'>
-                  Để thay đổi môn học, vui lòng liên hệ quản trị viên hệ thống.
-                </p>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
 

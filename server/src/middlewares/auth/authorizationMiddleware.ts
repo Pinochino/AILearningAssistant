@@ -1,6 +1,6 @@
 import { NextFunction, Response } from 'express'
-import { RoleName } from '~/models/Role'
-import { User } from '~/models/User'
+import { RoleName } from '~/models/Role.js'
+import { User } from '~/models/User.js'
 
 export default function authorizationMiddleware(req: any, res: Response, next: NextFunction) {
   try {

@@ -853,7 +853,7 @@ export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, add
                       <Checkbox
                         id={`edit-chapter-${chapter._id}`}
                         checked={selectedChapters.includes(chapter._id)}
-                        onCheckedChange={(checked) => handleChapterSelect(chapter._id, !!checked, false)}
+                        onCheckedChange={(checked: any) => handleChapterSelect(chapter._id, !!checked, false)}
                       />
                       <Label htmlFor={`edit-chapter-${chapter._id}`}>{chapter.title}</Label>
                     </div>
@@ -969,7 +969,7 @@ export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, add
                       <Checkbox
                         id={`edit-flashcard-chapter-${chapter._id}`}
                         checked={selectedFlashcardChapters.includes(chapter._id)}
-                        onCheckedChange={(checked) => handleChapterSelect(chapter._id, !!checked, true)}
+                        onCheckedChange={(checked: any) => handleChapterSelect(chapter._id, !!checked, true)}
                       />
                       <Label htmlFor={`edit-flashcard-chapter-${chapter._id}`}>{chapter.title}</Label>
                     </div>

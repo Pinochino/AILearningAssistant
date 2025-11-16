@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { JwtPayloadInterface } from '~/types/JwtPayload'
+import { JwtPayloadInterface } from '~/types/JwtPayload.js'
 
 export default function authenticationMiddleware(req: any, res: Response, next: NextFunction) {
   try {

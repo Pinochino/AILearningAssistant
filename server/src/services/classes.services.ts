@@ -1,6 +1,6 @@
-import { Class, Subject, type IClass, type ISubject } from "../models/class.model"
-import { ClassEnrollment, type IClassEnrollment } from "../models/ClassEnrollment"
-import { User } from "../models/User"
+import { Class, Subject, type IClass, type ISubject } from "../models/class.model.js"
+import { ClassEnrollment, type IClassEnrollment } from "../models/ClassEnrollment.js"
+import { User } from "../models/User.js"
 import mongoose, { Types } from "mongoose"
 
 export class ClassesService {

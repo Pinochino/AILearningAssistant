@@ -1,7 +1,7 @@
 // AILearningAssistant\server\src\routers\quizRouter.ts
 import { Router } from 'express'
-import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware'
-import * as qz from '../controllers/QuizController'
+import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware.js'
+import * as qz from '../controllers/QuizController.js'
 
 const r = Router()
 

@@ -220,7 +220,6 @@ export function AdminDashboard() {
         const full = `${first} ${last}`.trim();
         if (full) return full;
         if (typeof a.name === 'string' && a.name.trim()) return a.name.trim();
-        if (typeof a.email === 'string' && a.email.trim()) return a.email.trim();
       }
       if (typeof n.author === 'string' && n.author.trim()) return n.author.trim();
       return 'Hệ thống';

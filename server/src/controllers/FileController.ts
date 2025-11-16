@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import path from 'path'
-import { uploadFolder } from '~/configs/multerConfig'
+import { uploadFolder } from '~/configs/multerConfig.js'
 
 const fileController = {
   downloadFile: async (req: Request, res: Response) => {

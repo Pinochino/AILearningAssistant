@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
-import { runSeed } from '~/data/seed'
+import { runSeed } from '~/data/seed.js'
 
 dotenv.config()
 

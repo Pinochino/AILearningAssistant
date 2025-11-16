@@ -201,14 +201,6 @@ export function TeacherDashboard() {
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
         const userId = user?.id || currentUser?._id || currentUser?.id;
 
-        if (!userId) {
-          console.error('No user ID found');
-          // Fallback to mock data
-          setTotalClasses(mySubjects.length);
-          setTotalStudents(mySubjects.reduce((sum, subj) => sum + (subj.students || 0), 0));
-          return;
-        }
-
         console.log('Fetching classes for teacher ID:', userId);
 
         // Fetch all classes for the teacher using classApi with teacherId filter
@@ -259,9 +251,6 @@ export function TeacherDashboard() {
 
       } catch (error) {
         console.error('Error fetching teacher data:', error);
-        // Fallback to mock data
-        setTotalClasses(mySubjects.length);
-        setTotalStudents(mySubjects.reduce((sum, subj) => sum + (subj.students || 0), 0));
       } finally {
         setIsLoading(false);
       }

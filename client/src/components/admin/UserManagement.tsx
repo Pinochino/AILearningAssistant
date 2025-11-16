@@ -18,7 +18,19 @@ import { useGetUsers } from '../../services/UserService'
 import { useFetchCountUserByRole } from '../../hooks/getAllData'
 import GetRoleCountByName from '../../hooks/getRoleCount'
 
-const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, onDeleteClick }) => {
+const DisplayUsers = ({
+  users,
+  navigateTo,
+  getRoleBadgeVariant,
+  getRoleLabel,
+  onDeleteClick
+}: {
+  users: any[]
+  navigateTo: (path: string, params?: any) => void
+  getRoleBadgeVariant: (role: string) => string
+  getRoleLabel: (role: string) => string
+  onDeleteClick: (userId: string, user: any) => void
+}) => {
   console.log('User: ', users)
 
   return (
@@ -28,7 +40,7 @@ const DisplayUsers = ({ users, navigateTo, getRoleBadgeVariant, getRoleLabel, on
           <div className='flex items-center gap-4'>
             <Avatar>
               <AvatarFallback>
-                {(user?.username || user?.name || user?.email || 'U')
+                {(user?.username || user?.name || 'U')
                   .split(' ')
                   .map((n: string) => n && n[0] ? n[0] : '')
                   .join('')
@@ -111,89 +123,102 @@ export function UserManagement() {
     setUserToDelete(null);
   };
 
-  const { mutate: handleDeleteUser } = useMutation({
-    mutationFn: async (userId: string) => {
-      try {
-        const response = await handleApi({
-          url: `/users/delete/${userId}`,
-          method: 'DELETE',
-          data: { userId }
-        });
-        return response;
-      } catch (error) {
-        console.error('Delete user error:', error);
-        throw error;
-      }
-    },
-    onMutate: async (userId: string) => {
-      await queryClient.cancelQueries({ queryKey: ['users'] });
-      if (selectedRole) {
-        await queryClient.cancelQueries({ queryKey: ['usersByRoleId', selectedRole] });
-      }
-
-      const getUsersData = (key: string) => {
-        const data = queryClient.getQueryData<any>(key);
-        if (Array.isArray(data)) return data;
-        if (data?.data?.users) return data.data.users;
-        if (data?.data) return data.data;
-        return [];
-      };
-
-      const previousUsers = getUsersData('users');
-      const previousFilteredUsers = selectedRole
-        ? getUsersData(['usersByRoleId', selectedRole].join('-'))
-        : null;
-
-      const updateQueryData = (key: string, userId: string) => {
-        queryClient.setQueryData<any>(key, (old: any) => {
-          const data = Array.isArray(old) ? old :
-            old?.data?.users ? old.data.users :
-              old?.data ? old.data : [];
-          return data.filter((user: any) => user?._id !== userId);
-        });
-      };
-
-      updateQueryData('users', userId);
-
-      if (selectedRole) {
-        updateQueryData(['usersByRoleId', selectedRole].join('-'), userId);
-      }
-
-      return {
-        previousUsers: { data: { users: previousUsers } },
-        previousFilteredUsers: previousFilteredUsers ? { data: { users: previousFilteredUsers } } : null
-      };
-    },
-    onError: (error: any, userId, context) => {
-      console.error('Error deleting user:', error);
-
-      const rollbackQueryData = (key: string, data: any) => {
-        if (!data) return;
-        queryClient.setQueryData(key, data);
-      };
-
-      if (context?.previousUsers) {
-        rollbackQueryData('users', context.previousUsers);
-      }
-      if (selectedRole && context?.previousFilteredUsers) {
-        rollbackQueryData(['usersByRoleId', selectedRole].join('-'), context.previousFilteredUsers);
-      }
-
-      const errorMessage = error.response?.data?.message || 'Xóa người dùng thất bại';
-      toast.error(errorMessage);
-    },
-    onSuccess: () => {
-      toast.success('Đã xóa người dùng thành công');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      if (selectedRole) {
-        queryClient.invalidateQueries({ queryKey: ['usersByRoleId', selectedRole] });
-      }
-      queryClient.invalidateQueries({ queryKey: ['count-role-USER'] });
-      queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] });
+const { mutate: handleDeleteUser } = useMutation({
+  mutationFn: async (userId: string) => {
+    try {
+      const response = await handleApi({
+        url: `/users/delete/${userId}`,
+        method: 'DELETE',
+        data: { userId }
+      });
+      return response;
+    } catch (error) {
+      console.error('Delete user error:', error);
+      throw error;
     }
-  })
+  },
+
+  onMutate: async (userId: string) => {
+    // 🔹 dùng queryKey dạng mảng
+    await queryClient.cancelQueries({ queryKey: ['users'] });
+    if (selectedRole) {
+      await queryClient.cancelQueries({ queryKey: ['usersByRoleId', selectedRole] });
+    }
+
+    // 🔹 key: readonly unknown[] + cast any cho đỡ bị TS bắt lỗi
+    const getUsersData = (key: readonly unknown[]) => {
+      const data = queryClient.getQueryData<any>(key as any);
+      if (Array.isArray(data)) return data;
+      if (data?.data?.users) return data.data.users;
+      if (data?.data) return data.data;
+      return [];
+    };
+
+    const previousUsers = getUsersData(['users']);
+    const previousFilteredUsers = selectedRole
+      ? getUsersData(['usersByRoleId', selectedRole])
+      : null;
+
+    const updateQueryData = (key: readonly unknown[], userId: string) => {
+      queryClient.setQueryData<any>(key as any, (old: any) => {
+        const data = Array.isArray(old)
+          ? old
+          : old?.data?.users
+            ? old.data.users
+            : old?.data
+              ? old.data
+              : [];
+        return data.filter((user: any) => user?._id !== userId);
+      });
+    };
+
+    updateQueryData(['users'], userId);
+
+    if (selectedRole) {
+      updateQueryData(['usersByRoleId', selectedRole], userId);
+    }
+
+    return {
+      previousUsers: { data: { users: previousUsers } },
+      previousFilteredUsers: previousFilteredUsers
+        ? { data: { users: previousFilteredUsers } }
+        : null
+    };
+  },
+
+  onError: (error: any, userId, context) => {
+    console.error('Error deleting user:', error);
+
+    const rollbackQueryData = (key: readonly unknown[], data: any) => {
+      if (!data) return;
+      queryClient.setQueryData(key as any, data);
+    };
+
+    if (context?.previousUsers) {
+      rollbackQueryData(['users'], context.previousUsers);
+    }
+    if (selectedRole && context?.previousFilteredUsers) {
+      rollbackQueryData(['usersByRoleId', selectedRole], context.previousFilteredUsers);
+    }
+
+    const errorMessage = error?.response?.data?.message || 'Xóa người dùng thất bại';
+    toast.error(errorMessage);
+  },
+
+  onSuccess: () => {
+    toast.success('Đã xóa người dùng thành công');
+  },
+
+  onSettled: () => {
+    queryClient.invalidateQueries({ queryKey: ['users'] });
+    if (selectedRole) {
+      queryClient.invalidateQueries({ queryKey: ['usersByRoleId', selectedRole] });
+    }
+    queryClient.invalidateQueries({ queryKey: ['count-role-USER'] });
+    queryClient.invalidateQueries({ queryKey: ['count-role-TEACHER'] });
+  }
+});
+
 
 
   const fetchRoles = async () => {
@@ -233,7 +258,7 @@ export function UserManagement() {
   const {
     mutate: createUser,
     error: createUserError,
-    isLoading: createUserLoading
+    isPending: createUserLoading
   } = useMutation({
     mutationFn: createUserFn,
     onSuccess: (data) => {
@@ -295,7 +320,6 @@ export function UserManagement() {
 
     const matchesSearch = searchTerm ? (
       (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (user.username?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     ) : true;
 

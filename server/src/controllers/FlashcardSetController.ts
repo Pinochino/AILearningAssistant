@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express'
 import { Types } from 'mongoose'
-import { responseUtils } from '../utils/ResponseUtils'
-import { FlashcardSet } from '../models/FlashcardSet'
+import { responseUtils } from '../utils/ResponseUtils.js'
+import { FlashcardSet } from '../models/FlashcardSet.js'
 
 const isId = (v?: string) => !!v && Types.ObjectId.isValid(v)
 const getUserId = (req: any): string | undefined => req.user?.id || req.user?._id

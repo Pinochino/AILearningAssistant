@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { transporter } from '~/configs/emailConfig'
+import { transporter } from '~/configs/emailConfig.js'
 import express from 'express'
 
 const emailController = {

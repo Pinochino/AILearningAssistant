@@ -1,978 +1,899 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Checkbox } from '../ui/checkbox';
-import { Paperclip, X } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
+import { Label } from '../ui/label'
+import { Input } from '../ui/input'
+import { Textarea } from '../ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { Checkbox } from '../ui/checkbox'
+import { Paperclip, X } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import {
-    Plus,
-    Target,
-    BookOpen,
-    Users,
-    Eye,
-    Edit,
-    Trash2,
-    Play,
-    BarChart3,
-    Clock,
-    Star,
-    Globe,
-    Lock
-} from 'lucide-react';
-import { EditQuizDialog } from './EditQuizDialog';
-import { EditFlashcardDialog } from './EditFlashcardDialog';
-
-const mockChapters = [
-    {
-        id: '1',
-        title: 'Chương 1: Hàm số và đồ thị',
-        order: 1,
-        documents: 5,
-        quizzes: 3,
-        flashcards: 15,
-        completion: 85,
-    },
-    {
-        id: '2',
-        title: 'Chương 2: Đạo hàm',
-        order: 2,
-        documents: 4,
-        quizzes: 2,
-        flashcards: 12,
-        completion: 70,
-    },
-    {
-        id: '3',
-        title: 'Chương 3: Ứng dụng đạo hàm',
-        order: 3,
-        documents: 3,
-        quizzes: 1,
-        flashcards: 8,
-        completion: 45,
-    },
-];
-
-const mockPublicQuizzes = [
-    {
-        id: '1',
-        title: 'Quiz: Hàm số bậc nhất',
-        description: 'Bài quiz về hàm số bậc nhất và đồ thị',
-        creator: 'Nguyễn Văn A',
-        subject: 'Toán học 12A1',
-        chapterIds: ['1'],
-        chapterNames: ['Chương 1: Hàm số và đồ thị'],
-        questions: 15,
-        attempts: 45,
-        avgScore: 85.2,
-        createdDate: '2024-09-15',
-        difficulty: 'Trung bình',
-    },
-    {
-        id: '2',
-        title: 'Kiểm tra: Đạo hàm cơ bản',
-        description: 'Bài kiểm tra về các quy tắc đạo hàm cơ bản',
-        creator: 'Trần Thị B',
-        subject: 'Toán học 12A1',
-        chapterIds: ['2'],
-        chapterNames: ['Chương 2: Đạo hàm'],
-        questions: 20,
-        attempts: 38,
-        avgScore: 78.9,
-        createdDate: '2024-09-13',
-        difficulty: 'Khó',
-    },
-];
-
-const mockPublicFlashcards = [
-    {
-        id: '1',
-        title: 'Flashcard: Công thức đạo hàm',
-        description: 'Bộ flashcard về các công thức đạo hàm cơ bản',
-        creator: 'Lê Minh C',
-        subject: 'Toán học 12A1',
-        chapterIds: ['2'],
-        chapterNames: ['Chương 2: Đạo hàm'],
-        cards: 25,
-        reviews: 156,
-        avgRetention: 89.5,
-        createdDate: '2024-09-14',
-        difficulty: 'Trung bình',
-    },
-    {
-        id: '2',
-        title: 'Flashcard: Hàm số lượng giác',
-        description: 'Bộ flashcard về hàm số lượng giác và các tính chất',
-        creator: 'Phạm Thị D',
-        subject: 'Toán học 12A1',
-        chapterIds: ['1'],
-        chapterNames: ['Chương 1: Hàm số và đồ thị'],
-        cards: 18,
-        reviews: 98,
-        avgRetention: 85.2,
-        createdDate: '2024-09-12',
-        difficulty: 'Khó',
-    },
-];
-
-const mockPrivateQuizzes = [
-    {
-        id: '3',
-        title: 'Quiz cá nhân: Tích phân',
-        description: 'Quiz tự tạo để ôn tập tích phân',
-        creator: 'Bạn',
-        subject: 'Toán học 12A1',
-        chapterIds: ['3'],
-        chapterNames: ['Chương 3: Ứng dụng đạo hàm'],
-        questions: 12,
-        attempts: 5,
-        avgScore: 90.0,
-        createdDate: '2024-09-16',
-        difficulty: 'Trung bình',
-    },
-];
-
-const mockPrivateFlashcards = [
-    {
-        id: '3',
-        title: 'Flashcard cá nhân: Vật lý cơ bản',
-        description: 'Bộ flashcard tự tạo để ôn tập vật lý',
-        creator: 'Bạn',
-        subject: 'Vật lý 11B1',
-        chapterIds: ['1'],
-        chapterNames: ['Chương 1: Cơ học cơ bản'],
-        cards: 15,
-        reviews: 25,
-        avgRetention: 92.0,
-        createdDate: '2024-09-17',
-        difficulty: 'Dễ',
-    },
-];
+  Plus,
+  Target,
+  BookOpen,
+  Users,
+  Eye,
+  Edit,
+  Trash2,
+  Play,
+  BarChart3,
+  Clock,
+  Star,
+  Globe,
+  Lock
+} from 'lucide-react'
+import { EditQuizDialog } from './EditQuizDialog'
+import { EditFlashcardDialog } from './EditFlashcardDialog'
+import Spinner from '../layout/spinner/Spinner'
+import axios from 'axios'
+import { toast } from 'sonner'
 
 interface StudentQuizFlashcardProps {
-    quizzesData?: any[];
-    flashcardsData?: any[];
-    quizzesLoading?: boolean;
-    flashcardsLoading?: boolean;
+  quizzesData?: any[]
+  flashcardsData?: any[]
+  quizzesLoading?: boolean
+  flashcardsLoading?: boolean
 }
 
-export function StudentQuizFlashcard({
-    quizzesData = [],
-    flashcardsData = [],
-    quizzesLoading = false,
-    flashcardsLoading = false
-}: StudentQuizFlashcardProps) {
-    const [aiPrompt, setAiPrompt] = useState("");   // giữ nội dung text prompt
-    const [aiFile, setAiFile] = useState<File | null>(null);  // giữ file upload
+export function StudentQuizFlashcard({ quizzesData = [], flashcardsData = [] }: StudentQuizFlashcardProps) {
+  const [currentSubjectId, setCurrentSubjectId] = useState('1')
+  const [quizLoading, setQuizLoading] = useState(false)
+  const [quizError, setQuizError] = useState<string | null>(null)
+  const [quizzes, setQuizzes] = useState<any[]>([])
 
-    const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false);
-    const [isCreateFlashcardOpen, setIsCreateFlashcardOpen] = useState(false);
-    const [quizTitle, setQuizTitle] = useState('');
-    const [quizDescription, setQuizDescription] = useState('');
-    const [quizSubject, setQuizSubject] = useState('');
-    const [quizDifficulty, setQuizDifficulty] = useState('');
-    const [quizIsPublic, setQuizIsPublic] = useState(false);
-    const [quizDuration, setQuizDuration] = useState('');
-    const [flashcardTitle, setFlashcardTitle] = useState('');
-    const [flashcardDescription, setFlashcardDescription] = useState('');
-    const [flashcardSubject, setFlashcardSubject] = useState('');
-    const [flashcardDifficulty, setFlashcardDifficulty] = useState('');
-    const [flashcardIsPublic, setFlashcardIsPublic] = useState(false);
-    const [visibility, setVisibility] = useState<'private' | 'public'>('private');
+  const [quizDescription, setQuizDescription] = useState('')
+  const [quizSubject, setQuizSubject] = useState('')
+  const [quizDifficulty, setQuizDifficulty] = useState('')
+  const [quizIsPublic, setQuizIsPublic] = useState(false)
+  const [flashcardDescription, setFlashcardDescription] = useState('')
+  const [flashcardSubject, setFlashcardSubject] = useState('')
+  const [flashcardDifficulty, setFlashcardDifficulty] = useState('')
+  const [flashcardIsPublic, setFlashcardIsPublic] = useState(false)
 
-    // Quiz form states
-    const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
-    const [questions, setQuestions] = useState<QuizQuestion[]>([
-        { id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }
-    ]);
-    const [quizMode, setQuizMode] = useState<'manual' | 'ai'>('manual');
-    // Flashcard form states
-    const [selectedFlashcardChapters, setSelectedFlashcardChapters] = useState<string[]>([]);
-    const [flashcards, setFlashcards] = useState<FlashcardItem[]>([
-        { id: '1', front: '', back: '' }
-    ]);
-    const [flashcardMode, setFlashcardMode] = useState<'manual' | 'ai'>('manual');
+  // Edit states
+  const [isEditQuizOpen, setIsEditQuizOpen] = useState(false)
+  const [isEditFlashcardOpen, setIsEditFlashcardOpen] = useState(false)
+  const [editingQuiz, setEditingQuiz] = useState<any>(null)
+  const [editingFlashcard, setEditingFlashcard] = useState<any>(null)
 
-    // Edit states
-    const [isEditQuizOpen, setIsEditQuizOpen] = useState(false);
-    const [isEditFlashcardOpen, setIsEditFlashcardOpen] = useState(false);
-    const [editingQuiz, setEditingQuiz] = useState<any>(null);
-    const [editingFlashcard, setEditingFlashcard] = useState<any>(null);
-    const [privateQuizzes, setPrivateQuizzes] = useState(mockPrivateQuizzes);
-    const [privateFlashcards, setPrivateFlashcards] = useState(mockPrivateFlashcards);
+  // Real data states
+  const [quizzesLoading, setQuizzesLoading] = useState(false)
+  const [flashcardsLoading, setFlashcardsLoading] = useState(false)
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] ?? null;
-        if (file) setAiFile(file);
-    };
+  const [quizDuration, setQuizDuration] = useState('')
+  const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false)
+  const [isCreateFlashcardOpen, setIsCreateFlashcardOpen] = useState(false)
+  const [quizMode, setQuizMode] = useState<'manual' | 'ai'>('manual')
+  const [flashcardMode, setFlashcardMode] = useState<'manual' | 'ai'>('manual')
+  const [flashcardLoading, setFlashcardLoading] = useState(false)
+  const [aiPrompt, setAiPrompt] = useState<string>('')
+  const [chapters, setChapters] = useState<any[]>([])
+  const [chLoading, setChLoading] = useState(false)
+  const [chError, setChError] = useState<string | null>(null)
+  const [aiQuestionCount, setAiQuestionCount] = useState('10')
+  const [creatingQuiz, setCreatingQuiz] = useState(false)
 
-    const removeFile = () => {
-        setAiFile(null);
-        // reset input value (optional, nếu muốn cho phép upload cùng file lần nữa)
-        const inp = document.getElementById("file-upload") as HTMLInputElement | null;
-        if (inp) inp.value = "";
-    };
-    const getDifficultyColor = (difficulty: string) => {
-        switch (difficulty) {
-            case 'Dễ': return 'bg-green-100 text-green-800';
-            case 'Trung bình': return 'bg-yellow-100 text-yellow-800';
-            case 'Khó': return 'bg-orange-100 text-orange-800';
-            case 'Rất khó': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
+  // Flashcard state variables
+  const [flashcardTitle, setFlashcardTitle] = useState('')
+  const [selectedFlashcardChapters, setSelectedFlashcardChapters] = useState<string[]>([])
+  const [flashcards, setFlashcards] = useState<FlashcardItem[]>([{ id: '1', front: '', back: '' }])
+  const [aiFlashcardCount, setAiFlashcardCount] = useState('10')
+
+  // Quiz state variables
+  const [selectedChapters, setSelectedChapters] = useState<string[]>([])
+  const [quizTitle, setQuizTitle] = useState('')
+  const [questions, setQuestions] = useState<
+    { id: string; question: string; answers: string[]; correctAnswer: number }[]
+  >([{ id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }])
+
+  const getMaterialsBySelectedChapters = async (chapterIds: string[]) => {
+    let allMaterialIds: string[] = []
+
+    for (const chapterId of chapterIds) {
+      const res = await axios.get(
+        `http://localhost:9000/api/materials/class/${currentSubjectId}/chapter/${chapterId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         }
-    };
+      )
 
-    const handleCreateQuiz = () => {
-        console.log('Creating quiz:', {
-            title: quizTitle,
-            description: quizDescription,
-            subject: quizSubject,
-            difficulty: quizDifficulty,
-            isPublic: quizIsPublic,
-        });
-        setIsCreateQuizOpen(false);
-        setQuizTitle('');
-        setQuizDescription('');
-        setQuizSubject('');
-        setQuizDifficulty('');
-        setQuizIsPublic(false);
-    };
+      const docs = res.data.data || []
 
-    const handleChapterSelect = (chapterId: string, checked: boolean) => {
-        if (checked) {
-            setSelectedChapters([...selectedChapters, chapterId]);
-        } else {
-            setSelectedChapters(selectedChapters.filter(id => id !== chapterId));
-        }
-    };
+      // Lấy ID của tất cả tài liệu
+      const ids = docs.map((d: any) => d._id)
 
-    const handleFlashcardChapterSelect = (chapterId: string, checked: boolean) => {
-        if (checked) {
-            setSelectedFlashcardChapters([...selectedFlashcardChapters, chapterId]);
-        } else {
-            setSelectedFlashcardChapters(selectedFlashcardChapters.filter(id => id !== chapterId));
-        }
-    };
-    const handleCreateFlashcard = () => {
-        console.log('Creating flashcard:', {
-            title: flashcardTitle,
-            description: flashcardDescription,
-            subject: flashcardSubject,
-            difficulty: flashcardDifficulty,
-            isPublic: flashcardIsPublic,
-        });
-        setIsCreateFlashcardOpen(false);
-        setFlashcardTitle('');
-        setFlashcardDescription('');
-        setFlashcardSubject('');
-        setFlashcardDifficulty('');
-        setFlashcardIsPublic(false);
-    };
-
-    interface QuizQuestion {
-        id: string;
-        question: string;
-        answers: string[];
-        correctAnswer: number;
+      allMaterialIds = [...allMaterialIds, ...ids]
     }
 
-    interface FlashcardItem {
-        id: string;
-        front: string;
-        back: string;
+    return allMaterialIds
+  }
+
+  const createAIQuiz = async () => {
+    setCreatingQuiz(true)
+
+    try {
+      // 1. Lấy chương đã chọn
+      const chapterIds = selectedChapters
+      if (chapterIds.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương!')
+        return
+      }
+
+      // 2. Lấy tất cả tài liệu của các chương đã chọn
+      const materialIds = await getMaterialsBySelectedChapters(chapterIds)
+      if (materialIds.length === 0) {
+        toast.error('Các chương này chưa có tài liệu. Không thể tạo quiz AI.')
+        return
+      }
+
+      // 3. Build payload
+      const payload = {
+        title: quizTitle,
+        classId: currentSubjectId,
+        chapterIds,
+        materialIds,
+        count: Number(aiQuestionCount),
+        prompt: aiPrompt,
+        durationMinutes: Number(quizDuration)
+      }
+
+      // 4. CALL API
+      const res = await axios.post('http://localhost:9000/api/ai/generate-quiz', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      toast.success('Tạo quiz thành công!')
+
+      // 5. Đóng dialog + Refresh quiz list
+      setIsCreateQuizOpen(false)
+      resetQuizForm()
+      fetchQuizzes()
+    } catch (err: any) {
+      console.error('Create AI Quiz Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo quiz')
+    } finally {
+      setCreatingQuiz(false)
     }
-    const addQuestion = () => {
-        const newQuestion: QuizQuestion = {
-            id: Date.now().toString(),
-            question: '',
-            answers: ['', '', '', ''],
-            correctAnswer: 0
-        };
-        setQuestions([...questions, newQuestion]);
-    };
+  }
 
-    const removeQuestion = (questionId: string) => {
-        if (questions.length > 1) {
-            setQuestions(questions.filter(q => q.id !== questionId));
+  const createManualQuiz = async () => {
+    setCreatingQuiz(true)
+
+    try {
+      // Validate
+      if (!quizTitle.trim()) {
+        toast.error('Bạn phải nhập tiêu đề quiz')
+        return
+      }
+
+      if (selectedChapters.length === 0) {
+        toast.error('Bạn phải chọn ít nhất 1 chương')
+        return
+      }
+
+      if (questions.length === 0) {
+        toast.error('Bạn phải có ít nhất 1 câu hỏi')
+        return
+      }
+
+      for (const q of questions) {
+        if (!q.question.trim()) {
+          toast.error('Một câu hỏi chưa có nội dung')
+          return
         }
-    };
-
-    const updateQuestion = (questionId: string, field: keyof QuizQuestion, value: any) => {
-        setQuestions(questions.map(q =>
-            q.id === questionId ? { ...q, [field]: value } : q
-        ));
-    };
-
-    const updateAnswer = (questionId: string, answerIndex: number, value: string) => {
-        setQuestions(questions.map(q =>
-            q.id === questionId
-                ? { ...q, answers: q.answers.map((ans, idx) => idx === answerIndex ? value : ans) }
-                : q
-        ));
-    };
-    const addFlashcard = () => {
-        const newFlashcard: FlashcardItem = {
-            id: Date.now().toString(),
-            front: '',
-            back: ''
-        };
-        setFlashcards([...flashcards, newFlashcard]);
-    };
-
-    const removeFlashcard = (flashcardId: string) => {
-        if (flashcards.length > 1) {
-            setFlashcards(flashcards.filter(f => f.id !== flashcardId));
+        if (q.answers.some((a) => !a.trim())) {
+          toast.error('Một câu hỏi có đáp án bị trống')
+          return
         }
-    };
+      }
 
-    const updateFlashcard = (flashcardId: string, field: keyof FlashcardItem, value: string) => {
-        setFlashcards(flashcards.map(f =>
-            f.id === flashcardId ? { ...f, [field]: value } : f
-        ));
-    };
+      const payload = {
+        title: quizTitle,
+        classId: currentSubjectId,
+        chapters: selectedChapters,
+        durationMinutes: Number(quizDuration),
+        isAIGenerated: false,
+        questions: questions.map((q) => ({
+          question: q.question.trim(),
+          answers: q.answers.map((a) => a.trim()),
+          correctAnswer: q.correctAnswer
+        }))
+      }
 
-    const resetQuizForm = () => {
-        setQuizTitle('');
-        setSelectedChapters([]);
-        setQuestions([{ id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }]);
-        setQuizMode('manual');
-    };
+      await axios.post('http://localhost:9000/api/quizzes', payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      })
 
-    const resetFlashcardForm = () => {
-        setFlashcardTitle('');
-        setSelectedFlashcardChapters([]);
-        setFlashcards([{ id: '1', front: '', back: '' }]);
-        setFlashcardMode('manual');
-    };
+      toast.success('Tạo quiz thủ công thành công!')
 
-    // Edit handlers
-    const handleEditQuiz = (quiz: any) => {
-        setEditingQuiz(quiz);
-        setIsEditQuizOpen(true);
-    };
+      setIsCreateQuizOpen(false)
+      resetQuizForm()
+      fetchQuizzes()
+    } catch (err: any) {
+      console.error('Create Manual Quiz Error:', err)
+      toast.error(err?.response?.data?.message || 'Lỗi khi tạo quiz')
+    } finally {
+      setCreatingQuiz(false)
+    }
+  }
 
-    const handleEditFlashcard = (flashcard: any) => {
-        setEditingFlashcard(flashcard);
-        setIsEditFlashcardOpen(true);
-    };
+  const fetchQuizzes = async () => {
+    if (!currentSubjectId) return
 
-    const handleSaveQuiz = (updatedQuiz: any) => {
-        setPrivateQuizzes(privateQuizzes.map(quiz =>
-            quiz.id === updatedQuiz.id ? updatedQuiz : quiz
-        ));
-        console.log('Quiz updated:', updatedQuiz);
-    };
+    setQuizLoading(true)
+    setQuizError(null)
 
-    const handleSaveFlashcard = (updatedFlashcard: any) => {
-        setPrivateFlashcards(privateFlashcards.map(flashcard =>
-            flashcard.id === updatedFlashcard.id ? updatedFlashcard : flashcard
-        ));
-        console.log('Flashcard updated:', updatedFlashcard);
-    };
+    try {
+      const res = await axios.get(`http://localhost:9000/api/quizzes/class/${currentSubjectId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
 
-    const handleDeleteQuiz = (quizId: string) => {
-        setPrivateQuizzes(privateQuizzes.filter(quiz => quiz.id !== quizId));
-        console.log('Quiz deleted:', quizId);
-    };
+      // res.data.data.items là array quiz BE trả về
+      setQuizzes(res.data.data.items || [])
+    } catch (err: any) {
+      console.error('Error loading quizzes:', err)
+      setQuizError(err?.response?.data?.message || 'Không thể tải danh sách quiz')
+    } finally {
+      setQuizLoading(false)
+    }
+  }
 
-    const handleDeleteFlashcard = (flashcardId: string) => {
-        setPrivateFlashcards(privateFlashcards.filter(flashcard => flashcard.id !== flashcardId));
-        console.log('Flashcard deleted:', flashcardId);
-    };
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Dễ':
+        return 'bg-green-100 text-green-800'
+      case 'Trung bình':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'Khó':
+        return 'bg-orange-100 text-orange-800'
+      case 'Rất khó':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
 
+  const handleCreateQuiz = () => {
+    console.log('Creating quiz:', {
+      title: quizTitle,
+      description: quizDescription,
+      subject: quizSubject,
+      difficulty: quizDifficulty,
+      isPublic: quizIsPublic
+    })
+    setIsCreateQuizOpen(false)
+    setQuizTitle('')
+    setQuizDescription('')
+    setQuizSubject('')
+    setQuizDifficulty('')
+    setQuizIsPublic(false)
+  }
 
+  const handleChapterSelect = (chapterId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedChapters([...selectedChapters, chapterId])
+    } else {
+      setSelectedChapters(selectedChapters.filter((id) => id !== chapterId))
+    }
+  }
 
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1>Quiz & Flashcard</h1>
-                    <p className="text-muted-foreground">
-                        Tạo quiz, flashcard với bạn bè
-                    </p>
-                </div>
+  const handleFlashcardChapterSelect = (chapterId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedFlashcardChapters([...selectedFlashcardChapters, chapterId])
+    } else {
+      setSelectedFlashcardChapters(selectedFlashcardChapters.filter((id) => id !== chapterId))
+    }
+  }
+  const handleCreateFlashcard = () => {
+    console.log('Creating flashcard:', {
+      title: flashcardTitle,
+      description: flashcardDescription,
+      subject: flashcardSubject,
+      difficulty: flashcardDifficulty,
+      isPublic: flashcardIsPublic
+    })
+    setIsCreateFlashcardOpen(false)
+    setFlashcardTitle('')
+    setFlashcardDescription('')
+    setFlashcardSubject('')
+    setFlashcardDifficulty('')
+    setFlashcardIsPublic(false)
+  }
 
-                <div className="flex gap-2">
-                    <Dialog open={isCreateQuizOpen} onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
-                        setIsCreateQuizOpen(open);
-                        if (!open) resetQuizForm();
-                    }}>
-                        <DialogTrigger asChild>
-                            <Button className="gap-2">
-                                <Plus className="h-4 w-4" />
-                                Tạo Quiz
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>Tạo Quiz mới</DialogTitle>
-                                <DialogDescription>
-                                    Tạo quiz từ nhiều chương học
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label>Tiêu đề quiz</Label>
-                                    <Input
-                                        placeholder="Nhập tiêu đề quiz"
-                                        value={quizTitle}
-                                        onChange={(e) => setQuizTitle(e.target.value)}
-                                    />
-                                </div>
+  interface QuizQuestion {
+    id: string
+    question: string
+    answers: string[]
+    correctAnswer: number
+  }
 
-                                <div className="space-y-2">
-                                    <Label>Chọn chương học</Label>
-                                    <div className="grid grid-cols-1 gap-2 border rounded p-3">
-                                        {mockChapters.map((chapter) => (
-                                            <div key={chapter.id} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={`chapter-${chapter.id}`}
-                                                    checked={selectedChapters.includes(chapter.id)}
-                                                    onCheckedChange={(checked: boolean) => handleChapterSelect(chapter.id, checked as boolean)}
-                                                />
-                                                <Label htmlFor={`chapter-${chapter.id}`}>{chapter.title}</Label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Thời gian (phút)</Label>
-                                    <Input
-                                        type="number"
-                                        placeholder="30"
-                                        value={quizDuration}
-                                        onChange={(e) => setQuizDuration(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Chế độ tạo</Label>
-                                    <Select value={quizMode} onValueChange={(value: 'manual' | 'ai') => setQuizMode(value)}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="manual">Thủ công</SelectItem>
-                                            <SelectItem value="ai">AI tự động</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+  interface FlashcardItem {
+    id: string
+    front: string
+    back: string
+  }
+  const addQuestion = () => {
+    const newQuestion: QuizQuestion = {
+      id: Date.now().toString(),
+      question: '',
+      answers: ['', '', '', ''],
+      correctAnswer: 0
+    }
+    setQuestions([...questions, newQuestion])
+  }
 
-                                {quizMode === 'ai' ? (
-                                    <div className="space-y-2">
-                                        <div className="space-y-2">
-                                            <Label>Số câu hỏi</Label>
-                                            <Input type="number" placeholder="Nhập số lượng câu hỏi" />
-                                        </div>
-                                        {/* UI prompt + paperclip */}
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700">Prompt cho AI</label>
+  const removeQuestion = (questionId: string) => {
+    if (questions.length > 1) {
+      setQuestions(questions.filter((q) => q.id !== questionId))
+    }
+  }
 
-                                            {/* wrapper có viền: textarea + icon nằm bên trong viền */}
-                                            <div className="relative">
-                                                <div className="relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400">
-                                                    {/* textarea thực sự nằm trong container (không có border riêng) */}
-                                                    <textarea
-                                                        value={aiPrompt}
-                                                        onChange={(e) => setAiPrompt(e.target.value)}
-                                                        rows={4}
-                                                        placeholder="Mô tả nội dung quiz bạn muốn AI tạo..."
-                                                        aria-label="Prompt cho AI"
-                                                        className="w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400"
-                                                    />
+  const updateQuestion = (questionId: string, field: keyof QuizQuestion, value: any) => {
+    setQuestions(questions.map((q) => (q.id === questionId ? { ...q, [field]: value } : q)))
+  }
 
-                                                    {/* icon paperclip nằm BÊN TRONG khung (absolute, phía phải) */}
-                                                    {/* label sẽ trigger input[type=file] */}
-                                                    <label
-                                                        htmlFor="file-upload"
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-blue-600 hover:scale-105 transition cursor-pointer"
-                                                        title="Đính kèm tài liệu"
-                                                    >
-                                                        <Paperclip className="h-5 w-5" />
-                                                    </label>
+  const updateAnswer = (questionId: string, answerIndex: number, value: string) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId ? { ...q, answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans)) } : q
+      )
+    )
+  }
+  const addFlashcard = () => {
+    const newFlashcard: FlashcardItem = {
+      id: Date.now().toString(),
+      front: '',
+      back: ''
+    }
+    setFlashcards([...flashcards, newFlashcard])
+  }
 
-                                                    {/* hidden file input */}
-                                                    <input
-                                                        id="file-upload"
-                                                        type="file"
-                                                        className="hidden"
-                                                        onChange={handleFileChange}
-                                                        aria-label="Upload document"
-                                                    />
-                                                </div>
-                                            </div>
+  const removeFlashcard = (flashcardId: string) => {
+    if (flashcards.length > 1) {
+      setFlashcards(flashcards.filter((f) => f.id !== flashcardId))
+    }
+  }
 
-                                            {/* file đã chọn (tách hẳn, không dính sát icon) */}
-                                            {aiFile && (
-                                                <div className="mt-2 flex items-center gap-3">
-                                                    <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm">
-                                                        <span>📄</span>
-                                                        <span className="max-w-[40ch] truncate font-medium text-gray-700">{aiFile.name}</span>
-                                                    </div>
+  const updateFlashcard = (flashcardId: string, field: keyof FlashcardItem, value: string) => {
+    setFlashcards(flashcards.map((f) => (f.id === flashcardId ? { ...f, [field]: value } : f)))
+  }
 
-                                                    <div className="ml-auto flex items-center gap-2 text-sm">
-                                                        <span className="text-gray-500 text-xs">{(aiFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={removeFile}
-                                                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                            Xóa
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
+  const resetQuizForm = () => {
+    setQuizTitle('')
+    setSelectedChapters([])
+    setQuestions([{ id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }])
+    setQuizMode('manual')
+  }
 
+  const resetFlashcardForm = () => {
+    setFlashcardTitle('')
+    setSelectedFlashcardChapters([])
+    setFlashcards([{ id: '1', front: '', back: '' }])
+    setFlashcardMode('manual')
+  }
 
-
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <Label>Câu hỏi</Label>
-                                            <Button type="button" variant="outline" size="sm" onClick={addQuestion}>
-                                                <Plus className="h-4 w-4 mr-1" />
-                                                Thêm câu hỏi
-                                            </Button>
-                                        </div>
-
-                                        <div className="space-y-6">
-                                            {questions.map((question, qIndex) => (
-                                                <Card key={question.id}>
-                                                    <CardHeader className="pb-3">
-                                                        <div className="flex items-center justify-between">
-                                                            <CardTitle className="text-base">Câu hỏi {qIndex + 1}</CardTitle>
-                                                            {questions.length > 1 && (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => removeQuestion(question.id)}
-                                                                >
-                                                                    <X className="h-4 w-4" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </CardHeader>
-                                                    <CardContent className="space-y-4">
-                                                        <div className="space-y-2">
-                                                            <Label>Nội dung câu hỏi</Label>
-                                                            <Textarea
-                                                                placeholder="Nhập câu hỏi..."
-                                                                value={question.question}
-                                                                onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
-                                                                rows={2}
-                                                            />
-                                                        </div>
-
-                                                        <div className="space-y-3">
-                                                            <Label>Các đáp án</Label>
-                                                            {question.answers.map((answer, ansIndex) => (
-                                                                <div key={ansIndex} className="flex items-center gap-3">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <input
-                                                                            type="radio"
-                                                                            name={`correct-${question.id}`}
-                                                                            checked={question.correctAnswer === ansIndex}
-                                                                            onChange={() => updateQuestion(question.id, 'correctAnswer', ansIndex)}
-                                                                            className="w-4 h-4"
-                                                                        />
-                                                                        <Label className="text-sm">Đáp án {String.fromCharCode(65 + ansIndex)}</Label>
-                                                                    </div>
-                                                                    <Input
-                                                                        placeholder={`Nhập đáp án ${String.fromCharCode(65 + ansIndex)}`}
-                                                                        value={answer}
-                                                                        onChange={(e) => updateAnswer(question.id, ansIndex, e.target.value)}
-                                                                        className="flex-1"
-                                                                    />
-                                                                </div>
-                                                            ))}
-                                                            <p className="text-xs text-muted-foreground">
-                                                                * Chọn radio button để đánh dấu đáp án đúng
-                                                            </p>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="outline" onClick={() => setIsCreateQuizOpen(false)}>
-                                        Hủy
-                                    </Button>
-                                    <Button onClick={() => setIsCreateQuizOpen(false)}>
-                                        Tạo Quiz
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* Global Flashcard Button */}
-                    <Dialog open={isCreateFlashcardOpen} onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
-                        setIsCreateFlashcardOpen(open);
-                        if (!open) resetFlashcardForm();
-                    }}>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" className="gap-2">
-                                <Plus className="h-4 w-4" />
-                                Tạo Flashcard
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>Tạo Flashcard mới</DialogTitle>
-                                <DialogDescription>
-                                    Tạo bộ flashcard từ nhiều chương học
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label>Tiêu đề bộ flashcard</Label>
-                                    <Input
-                                        placeholder="Nhập tiêu đề bộ flashcard"
-                                        value={flashcardTitle}
-                                        onChange={(e) => setFlashcardTitle(e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Chọn chương học</Label>
-                                    <div className="grid grid-cols-1 gap-2 border rounded p-3">
-                                        {mockChapters.map((chapter) => (
-                                            <div key={chapter.id} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={`flashcard-chapter-${chapter.id}`}
-                                                    checked={selectedFlashcardChapters.includes(chapter.id)}
-                                                    onCheckedChange={(checked: boolean) => handleFlashcardChapterSelect(chapter.id, checked as boolean)}
-                                                />
-                                                <Label htmlFor={`flashcard-chapter-${chapter.id}`}>{chapter.title}</Label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Chế độ tạo</Label>
-                                    <Select value={flashcardMode} onValueChange={(value: 'manual' | 'ai') => setFlashcardMode(value)}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="manual">Thủ công</SelectItem>
-                                            <SelectItem value="ai">AI tự động</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {flashcardMode === 'ai' ? (
-                                    <div className="space-y-2">
-                                        <div className="space-y-2">
-                                            <Label>Số cards</Label>
-                                            <Input type="number" placeholder="Nhập số lượng cards" />
-                                        </div>
-                                        {/* UI prompt + paperclip */}
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700">Prompt cho AI</label>
-
-                                            {/* wrapper có viền: textarea + icon nằm bên trong viền */}
-                                            <div className="relative">
-                                                <div className="relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400">
-                                                    {/* textarea thực sự nằm trong container (không có border riêng) */}
-                                                    <textarea
-                                                        value={aiPrompt}
-                                                        onChange={(e) => setAiPrompt(e.target.value)}
-                                                        rows={4}
-                                                        placeholder="Mô tả nội dung quiz bạn muốn AI tạo..."
-                                                        aria-label="Prompt cho AI"
-                                                        className="w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400"
-                                                    />
-
-                                                    {/* icon paperclip nằm BÊN TRONG khung (absolute, phía phải) */}
-                                                    {/* label sẽ trigger input[type=file] */}
-                                                    <label
-                                                        htmlFor="file-upload"
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/80 p-1 text-gray-500 shadow-sm hover:text-blue-600 hover:scale-105 transition cursor-pointer"
-                                                        title="Đính kèm tài liệu"
-                                                    >
-                                                        <Paperclip className="h-5 w-5" />
-                                                    </label>
-
-                                                    {/* hidden file input */}
-                                                    <input
-                                                        id="file-upload"
-                                                        type="file"
-                                                        className="hidden"
-                                                        onChange={handleFileChange}
-                                                        aria-label="Upload document"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* file đã chọn (tách hẳn, không dính sát icon) */}
-                                            {aiFile && (
-                                                <div className="mt-2 flex items-center gap-3">
-                                                    <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm">
-                                                        <span>📄</span>
-                                                        <span className="max-w-[40ch] truncate font-medium text-gray-700">{aiFile.name}</span>
-                                                    </div>
-
-                                                    <div className="ml-auto flex items-center gap-2 text-sm">
-                                                        <span className="text-gray-500 text-xs">{(aiFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={removeFile}
-                                                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                            Xóa
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <Label>Flashcard</Label>
-                                            <Button type="button" variant="outline" size="sm" onClick={addFlashcard}>
-                                                <Plus className="h-4 w-4 mr-1" />
-                                                Thêm flashcard
-                                            </Button>
-                                        </div>
-
-                                        <div className="space-y-6">
-                                            {flashcards.map((flashcard, fIndex) => (
-                                                <Card key={flashcard.id}>
-                                                    <CardHeader className="pb-3">
-                                                        <div className="flex items-center justify-between">
-                                                            <CardTitle className="text-base">Flashcard {fIndex + 1}</CardTitle>
-                                                            {flashcards.length > 1 && (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => removeFlashcard(flashcard.id)}
-                                                                >
-                                                                    <X className="h-4 w-4" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </CardHeader>
-                                                    <CardContent className="space-y-4">
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <Label>Mặt trước (Câu hỏi)</Label>
-                                                                <Textarea
-                                                                    placeholder="Nhập nội dung mặt trước..."
-                                                                    value={flashcard.front}
-                                                                    onChange={(e) => updateFlashcard(flashcard.id, 'front', e.target.value)}
-                                                                    rows={3}
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <Label>Mặt sau (Câu trả lời)</Label>
-                                                                <Textarea
-                                                                    placeholder="Nhập nội dung mặt sau..."
-                                                                    value={flashcard.back}
-                                                                    onChange={(e) => updateFlashcard(flashcard.id, 'back', e.target.value)}
-                                                                    rows={3}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="outline" onClick={() => setIsCreateFlashcardOpen(false)}>
-                                        Hủy
-                                    </Button>
-                                    <Button onClick={() => setIsCreateFlashcardOpen(false)}>
-                                        Tạo Flashcard
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <Tabs defaultValue="quizzes" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="quizzes">Quiz</TabsTrigger>
-                    <TabsTrigger value="flashcards">Flashcard</TabsTrigger>
-                </TabsList>
-
-                {/* Quizzes Tab */}
-                <TabsContent value="quizzes" className="space-y-4">
-                    {quizzesLoading ? (
-                        <div className="flex items-center justify-center h-32">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                        </div>
-                    ) : quizzesData.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-4">
-                            {quizzesData.map((quiz) => (
-                                <Card key={quiz.id}>
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-2 bg-purple-100 rounded-lg">
-                                                    <Target className="h-5 w-5 text-purple-600" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="font-medium">{quiz.title}</h3>
-                                                        <Badge className={getDifficultyColor(quiz.difficulty)}>
-                                                            {quiz.difficulty}
-                                                        </Badge>
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground">{quiz.description}</p>
-
-                                                    {/* Chapters */}
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {quiz.chapterNames?.map((chapter: string, index: number) => (
-                                                            <Badge key={index} variant="secondary" className="text-xs">
-                                                                {chapter}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-
-                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                        <span>{quiz.questions?.length || 0} câu hỏi</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Button size="sm">
-                                                        <Play className="h-4 w-4 mr-2" />
-                                                        Làm quiz
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <Target className="h-12 w-12 text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-medium">Chưa có quiz nào cho lớp này</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Quiz sẽ xuất hiện ở đây sau khi giáo viên tạo
-                            </p>
-                        </div>
-                    )}
-                </TabsContent>
-
-                {/* Flashcards Tab */}
-                <TabsContent value="flashcards" className="space-y-4">
-                    {flashcardsLoading ? (
-                        <div className="flex items-center justify-center h-32">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                        </div>
-                    ) : flashcardsData.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-4">
-                            {flashcardsData.map((flashcard) => (
-                                <Card key={flashcard.id}>
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-2 bg-orange-100 rounded-lg">
-                                                    <BookOpen className="h-5 w-5 text-orange-600" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="font-medium">{flashcard.title}</h3>
-                                                        <Badge className={getDifficultyColor(flashcard.difficulty)}>
-                                                            {flashcard.difficulty}
-                                                        </Badge>
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground">{flashcard.description}</p>
-
-                                                    {/* Chapters */}
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {flashcard.chapterNames && flashcard.chapterNames.map((chapter: string, index: number) => (
-                                                            <Badge key={index} variant="secondary" className="text-xs">
-                                                                {chapter}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-
-                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                        <span>{flashcard.totalCards || flashcard.flashcards?.length || 0} thẻ</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleEditFlashcard(flashcard)}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleDeleteFlashcard(flashcard.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                                <Button size="sm">
-                                                    <Play className="h-4 w-4 mr-2" />
-                                                    Ôn tập
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-medium">Chưa có flashcard nào cho lớp này</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Flashcard sẽ xuất hiện ở đây sau khi giáo viên tạo
-                            </p>
-                        </div>
-                    )}
-                </TabsContent>
-            </Tabs>
-
-            {/* Edit Dialogs */}
-            <EditQuizDialog
-                isOpen={isEditQuizOpen}
-                onOpenChange={setIsEditQuizOpen}
-                quiz={editingQuiz}
-                onSave={handleSaveQuiz}
-            />
-
-            <EditFlashcardDialog
-                isOpen={isEditFlashcardOpen}
-                onOpenChange={setIsEditFlashcardOpen}
-                flashcard={editingFlashcard}
-                onSave={handleSaveFlashcard}
-            />
+  return (
+    <div className='space-y-6'>
+      {/* Header */}
+      <div className='flex items-center justify-between'>
+        <div>
+          <h1>Quiz & Flashcard</h1>
+          <p className='text-muted-foreground'>Tạo quiz, flashcard với bạn bè</p>
         </div>
-    );
+
+        <div className='flex gap-2'>
+          {/* Global Quiz Button */}
+          <Dialog
+            open={isCreateQuizOpen}
+            onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
+              setIsCreateQuizOpen(open)
+              if (!open) resetQuizForm()
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button className='gap-2' variant='outline'>
+                <Plus className='h-4 w-4' />
+                Tạo Quiz
+              </Button>
+            </DialogTrigger>
+            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+              <DialogHeader>
+                <DialogTitle>Tạo Quiz mới</DialogTitle>
+                <DialogDescription className='pb-6'>Tạo quiz từ nhiều chương học</DialogDescription>
+              </DialogHeader>
+              <div className='space-y-6'>
+                <div className='space-y-2'>
+                  <Label>Tiêu đề quiz</Label>
+                  <Input
+                    placeholder='Nhập tiêu đề quiz'
+                    value={quizTitle}
+                    onChange={(e) => setQuizTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <Label>Chọn chương học</Label>
+                  {chLoading && (
+                    <div>
+                      <Spinner />
+                      <p className='text-sm text-muted-foreground'>Đang tải chương…</p>
+                    </div>
+                  )}
+                  {chError && <p className='text-sm text-red-600'>{chError}</p>}
+
+                  <div className='grid grid-cols-1 gap-2 border rounded-lg p-3'>
+                    {chapters.map((c) => (
+                      <div key={c._id} className='flex items-center space-x-2'>
+                        <Checkbox
+                          id={`chapter-${c._id}`}
+                          checked={selectedChapters.includes(c._id)}
+                          onCheckedChange={(checked: boolean) => handleChapterSelect(c._id, !!checked)}
+                        />
+                        <Label htmlFor={`chapter-${c._id}`}>{c.title}</Label>
+                      </div>
+                    ))}
+                    {!chLoading && !chError && chapters.length === 0 && (
+                      <p className='text-sm text-muted-foreground'>Chưa có chương nào</p>
+                    )}
+                  </div>
+                </div>
+                <div className='space-y-2'>
+                  <Label>Thời gian (phút)</Label>
+                  <Input
+                    type='number'
+                    placeholder='Nhập thời gian làm quiz'
+                    value={quizDuration}
+                    onChange={(e) => setQuizDuration(e.target.value)}
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <Label>Chế độ tạo</Label>
+                  <Select value={quizMode} onValueChange={(value: 'manual' | 'ai') => setQuizMode(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='manual'>Thủ công</SelectItem>
+                      <SelectItem value='ai'>AI tự động</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {quizMode === 'ai' ? (
+                  <div className='space-y-2'>
+                    <div className='space-y-2 pb-2'>
+                      <Label>Số câu hỏi</Label>
+                      <Input
+                        type='number'
+                        placeholder='Nhập số lượng câu hỏi'
+                        value={aiQuestionCount}
+                        onChange={(e) => setAiQuestionCount(e.target.value)}
+                      />
+                    </div>
+
+                    {/* UI prompt */}
+                    <div className='space-y-2'>
+                      <label className='block text-sm font-medium text-gray-700 pt-2'>Prompt cho AI</label>
+
+                      {/* wrapper có viền: textarea + icon nằm bên trong viền */}
+                      <div className='relative'>
+                        <div className='relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400'>
+                          {/* textarea thực sự nằm trong container (không có border riêng) */}
+                          <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            rows={4}
+                            placeholder='Mô tả nội dung quiz bạn muốn AI tạo...'
+                            aria-label='Prompt cho AI'
+                            className='w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400'
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className='space-y-4'>
+                    <div className='flex items-center justify-between'>
+                      <Label>Câu hỏi</Label>
+                      <Button type='button' variant='outline' size='sm' onClick={addQuestion}>
+                        <Plus className='h-4 w-4 mr-1' />
+                        Thêm câu hỏi
+                      </Button>
+                    </div>
+
+                    <div className='space-y-4'>
+                      {questions.map((question, qIndex) => (
+                        <Card key={question.id}>
+                          <CardHeader className='pb-3'>
+                            <div className='flex items-center justify-between'>
+                              <CardTitle className='text-base font-semibold'>Câu hỏi {qIndex + 1}</CardTitle>
+                              {questions.length > 1 && (
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => removeQuestion(question.id)}
+                                >
+                                  <X className='h-4 w-4' />
+                                </Button>
+                              )}
+                            </div>
+                          </CardHeader>
+                          <CardContent className='space-y-4'>
+                            <div className='space-y-2'>
+                              <Label className='pb-2'>Nội dung câu hỏi</Label>
+                              <Textarea
+                                placeholder='Nhập câu hỏi...'
+                                value={question.question}
+                                onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
+                                rows={2}
+                              />
+                            </div>
+
+                            <div className='space-y-3'>
+                              <Label className='pt-2'>Các đáp án</Label>
+                              {question.answers.map((answer, ansIndex) => (
+                                <div key={ansIndex} className='flex items-center gap-3'>
+                                  <div className='flex items-center gap-2'>
+                                    <input
+                                      type='radio'
+                                      name={`correct-${question.id}`}
+                                      checked={question.correctAnswer === ansIndex}
+                                      onChange={() => updateQuestion(question.id, 'correctAnswer', ansIndex)}
+                                      className='w-4 h-4'
+                                    />
+                                    <Label className='text-sm'>Đáp án {String.fromCharCode(65 + ansIndex)}</Label>
+                                  </div>
+                                  <Input
+                                    placeholder={`Nhập đáp án ${String.fromCharCode(65 + ansIndex)}`}
+                                    value={answer}
+                                    onChange={(e) => updateAnswer(question.id, ansIndex, e.target.value)}
+                                    className='flex-1'
+                                  />
+                                </div>
+                              ))}
+                              <p className='p-2 text-xs text-muted-foreground'>
+                                * Chọn radio button để đánh dấu đáp án đúng
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    <div className='flex items-center justify-between'>
+                      <Button type='button' variant='outline' size='sm' onClick={addQuestion} className='w-full'>
+                        <Plus className='h-4 w-4 mr-1' />
+                        Thêm câu hỏi
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className='flex justify-end gap-2'>
+                  <Button variant='outline' onClick={() => setIsCreateQuizOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button disabled={creatingQuiz} onClick={quizMode === 'ai' ? createAIQuiz : createManualQuiz}>
+                    {creatingQuiz && <Spinner />}
+                    {creatingQuiz ? 'Đang tạo...' : 'Tạo Quiz'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Global Flashcard Button */}
+          <Dialog
+            open={isCreateFlashcardOpen}
+            onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
+              setIsCreateFlashcardOpen(open)
+              if (!open) resetFlashcardForm()
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button variant='outline' className='gap-2'>
+                <Plus className='h-4 w-4' />
+                Tạo Flashcard
+              </Button>
+            </DialogTrigger>
+            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+              <DialogHeader>
+                <DialogTitle>Tạo Flashcard mới</DialogTitle>
+                <DialogDescription className='pb-6'>Tạo bộ flashcard từ nhiều chương học</DialogDescription>
+              </DialogHeader>
+              <div className='space-y-6'>
+                <div className='space-y-2'>
+                  <Label>Tiêu đề bộ flashcard</Label>
+                  <Input
+                    placeholder='Nhập tiêu đề bộ flashcard'
+                    value={flashcardTitle}
+                    onChange={(e) => setFlashcardTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <Label>Chọn chương học</Label>
+                  {chLoading && (
+                    <div>
+                      <Spinner />
+                      <p className='text-sm text-muted-foreground'>Đang tải chương...</p>
+                    </div>
+                  )}
+                  {chError && <p className='text-sm text-red-600'>{chError}</p>}
+                  <div className='grid grid-cols-1 gap-2 border rounded p-3'>
+                    {chapters.map((chapter) => (
+                      <div key={chapter._id} className='flex items-center space-x-2'>
+                        <Checkbox
+                          id={`flashcard-chapter-${chapter._id}`}
+                          checked={selectedFlashcardChapters.includes(chapter._id)}
+                          onCheckedChange={(checked: boolean) =>
+                            handleFlashcardChapterSelect(chapter._id, checked as boolean)
+                          }
+                        />
+                        <Label htmlFor={`flashcard-chapter-${chapter._id}`}>{chapter.title}</Label>
+                      </div>
+                    ))}
+                  </div>
+                  {!chLoading && !chError && chapters.length === 0 && (
+                    <p className='text-sm text-muted-foreground'>Chưa có chương nào trong lớp học này</p>
+                  )}
+                </div>
+
+                <div className='space-y-2'>
+                  <Label>Chế độ tạo</Label>
+                  <Select value={flashcardMode} onValueChange={(value: 'manual' | 'ai') => setFlashcardMode(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='manual'>Thủ công</SelectItem>
+                      <SelectItem value='ai'>AI tự động</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {flashcardMode === 'ai' ? (
+                  <div className='space-y-2'>
+                    <div className='space-y-2'>
+                      <Label>Số thẻ</Label>
+                      <Input
+                        type='number'
+                        placeholder='Nhập số lượng thẻ'
+                        value={aiFlashcardCount}
+                        onChange={(e) => setAiFlashcardCount(e.target.value)}
+                      />
+                    </div>
+                    {/* UI prompt*/}
+                    <div className='space-y-2'>
+                      <label className='block text-sm font-medium text-gray-700'>Prompt cho AI</label>
+
+                      {/* wrapper có viền: textarea + icon nằm bên trong viền */}
+                      <div className='relative'>
+                        <div className='relative rounded-lg border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-400'>
+                          {/* textarea thực sự nằm trong container (không có border riêng) */}
+                          <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            rows={4}
+                            placeholder='Mô tả nội dung quiz bạn muốn AI tạo...'
+                            aria-label='Prompt cho AI'
+                            className='w-full min-h-[6rem] resize-none bg-transparent px-4 py-3 pr-12 text-sm outline-none placeholder:text-gray-400'
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className='space-y-4'>
+                    <div className='flex items-center justify-between'>
+                      <Label>Flashcard</Label>
+                      <Button type='button' variant='outline' size='sm' onClick={addFlashcard}>
+                        <Plus className='h-4 w-4 mr-1' />
+                        Thêm flashcard
+                      </Button>
+                    </div>
+
+                    <div className='space-y-6'>
+                      {flashcards.map((flashcard, fIndex) => (
+                        <Card key={flashcard.id}>
+                          <CardHeader className='pb-3'>
+                            <div className='flex items-center justify-between'>
+                              <CardTitle className='text-base font-semibold'>Flashcard {fIndex + 1}</CardTitle>
+                              {flashcards.length > 1 && (
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => removeFlashcard(flashcard.id)}
+                                >
+                                  <X className='h-4 w-4' />
+                                </Button>
+                              )}
+                            </div>
+                          </CardHeader>
+                          <CardContent className='space-y-4'>
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                              <div className='space-y-2'>
+                                <Label>Mặt trước (Câu hỏi)</Label>
+                                <Textarea
+                                  placeholder='Nhập nội dung mặt trước...'
+                                  value={flashcard.front}
+                                  onChange={(e) => updateFlashcard(flashcard.id, 'front', e.target.value)}
+                                  rows={3}
+                                />
+                              </div>
+                              <div className='space-y-2'>
+                                <Label>Mặt sau (Câu trả lời)</Label>
+                                <Textarea
+                                  placeholder='Nhập nội dung mặt sau...'
+                                  value={flashcard.back}
+                                  onChange={(e) => updateFlashcard(flashcard.id, 'back', e.target.value)}
+                                  rows={3}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className='flex justify-end gap-2'>
+                  <Button variant='outline' onClick={() => setIsCreateFlashcardOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button disabled={flashcardLoading} onClick={handleCreateFlashcard}>
+                    {flashcardLoading && <Spinner />}
+                    {flashcardLoading ? 'Đang tạo...' : 'Tạo Flashcard'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue='quizzes' className='space-y-4'>
+        <TabsList>
+          <TabsTrigger value='quizzes'>Quiz</TabsTrigger>
+          <TabsTrigger value='flashcards'>Flashcard</TabsTrigger>
+        </TabsList>
+
+        {/* Quizzes Tab */}
+        <TabsContent value='quizzes' className='space-y-4'>
+          {quizzesLoading ? (
+            <div className='flex items-center justify-center h-32'>
+              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900'></div>
+            </div>
+          ) : quizzesData.length > 0 ? (
+            <div className='grid grid-cols-1 gap-4'>
+              {quizzesData.map((quiz) => (
+                <Card key={quiz.id}>
+                  <CardContent className='p-4'>
+                    <div className='flex items-center justify-between gap-4'>
+                      {/* BÊN TRÁI: icon + info */}
+                      <div className='flex items-center gap-4'>
+                        <div className='p-2 bg-purple-100 rounded-lg'>
+                          <Target className='h-5 w-5 text-purple-600' />
+                        </div>
+
+                        <div className='space-y-1'>
+                          <div className='flex items-center gap-2'>
+                            <h3 className='font-medium'>{quiz.title}</h3>
+                            <Badge className={getDifficultyColor(quiz.difficulty)}>{quiz.difficulty}</Badge>
+                          </div>
+
+                          <p className='text-sm text-muted-foreground'>{quiz.description}</p>
+
+                          {/* Chapters */}
+                          <div className='flex flex-wrap gap-1'>
+                            {quiz.chapterNames?.map((chapter: string, index: number) => (
+                              <Badge key={index} variant='secondary' className='text-xs'>
+                                {chapter}
+                              </Badge>
+                            ))}
+                          </div>
+
+                          <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                            <span>{quiz.questions?.length || 0} câu hỏi</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BÊN PHẢI: nút làm quiz */}
+                      <div className='flex items-center gap-2'>
+                        <Button size='sm'>
+                          <Play className='h-4 w-4 mr-2' />
+                          Làm quiz
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className='flex flex-col items-center justify-center py-12 text-center'>
+              <Target className='h-12 w-12 text-muted-foreground mb-4' />
+              <h3 className='text-lg font-medium'>Chưa có quiz nào cho lớp này</h3>
+              <p className='text-sm text-muted-foreground mt-1'>Quiz sẽ xuất hiện ở đây sau khi giáo viên tạo</p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Flashcards Tab */}
+        <TabsContent value='flashcards' className='space-y-4'>
+          {flashcardsLoading ? (
+            <div className='flex items-center justify-center h-32'>
+              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900'></div>
+            </div>
+          ) : flashcardsData.length > 0 ? (
+            <div className='grid grid-cols-1 gap-4'>
+              {flashcardsData.map((flashcard) => (
+                <Card key={flashcard.id}>
+                  <CardContent className='p-4'>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center gap-4'>
+                        <div className='p-2 bg-orange-100 rounded-lg'>
+                          <BookOpen className='h-5 w-5 text-orange-600' />
+                        </div>
+                        <div className='space-y-1'>
+                          <div className='flex items-center gap-2'>
+                            <h3 className='font-medium'>{flashcard.title}</h3>
+                            <Badge className={getDifficultyColor(flashcard.difficulty)}>{flashcard.difficulty}</Badge>
+                          </div>
+                          <p className='text-sm text-muted-foreground'>{flashcard.description}</p>
+
+                          {/* Chapters */}
+                          <div className='flex flex-wrap gap-1'>
+                            {flashcard.chapterNames &&
+                              flashcard.chapterNames.map((chapter: string, index: number) => (
+                                <Badge key={index} variant='secondary' className='text-xs'>
+                                  {chapter}
+                                </Badge>
+                              ))}
+                          </div>
+
+                          <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                            <span>{flashcard.totalCards || flashcard.flashcards?.length || 0} thẻ</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className='flex items-center gap-2'>
+                        <Button size='sm'>
+                          <Play className='h-4 w-4 mr-2' />
+                          Ôn tập
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className='flex flex-col items-center justify-center py-12 text-center'>
+              <BookOpen className='h-12 w-12 text-muted-foreground mb-4' />
+              <h3 className='text-lg font-medium'>Chưa có flashcard nào cho lớp này</h3>
+              <p className='text-sm text-muted-foreground mt-1'>Flashcard sẽ xuất hiện ở đây sau khi giáo viên tạo</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
 }

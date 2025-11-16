@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { responseUtils } from '~/utils/ResponseUtils'
+import { responseUtils } from '~/utils/ResponseUtils.js'
 import * as XLSX from 'xlsx'
 import fs from 'fs'
 

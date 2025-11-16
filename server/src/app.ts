@@ -9,7 +9,7 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import { create } from "express-handlebars";
-import classRoutes from './routes/class.routes'
+import classRoutes from './routes/class.routes.js'
 // import passport from "./configs/passport";
 
 // Register mongoose models first (must happen before routes/controllers import)
@@ -19,7 +19,6 @@ import "./models/announcement.model.js";
 import messagesRoutes from "./routes/messages.routes.js";
 import notificationsRoutes from "./routes/notifications.routes.js";
 import announcementsRoutes from "./routes/announcements.routes.js";
-import classesRoutes from "./routes/class.routes.js";
 import authRouter from "./routers/authRouter.js";
 import userRouter from "./routers/userRouter.js";
 import roleRouter from "./routers/roleRouter.js";
@@ -30,15 +29,6 @@ import flashcardSetRouter from "./routers/flashcardSetRouter.js";
 import materialRouter from "./routers/materialRouter.js";
 import aiRouter from "./routers/aiRouter.js";
 
-// Import server-1 routes
-// import authRouter from "./routers/authRouter";
-// import userRouter from "./routers/userRouter";
-// import fileRouter from "./routers/fileRouter";
-// import emailRouter from "./routers/emailRouter";
-// import xlsxRouter from "./routers/xlsxRouter";
-// import roleRouter from "./routers/roleRouter";
-
-// ESM-compatible __filename/__dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -142,14 +132,9 @@ app.use("/api/messages", messagesRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/announcements", announcementsRoutes);
 app.use('/api', classRoutes)
-// Server-1 API routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
-// app.use("/api/files", fileRouter);
-// app.use("/api/email", emailRouter);
-// app.use("/api/excel", xlsxRouter);
-app.use("/api", classesRoutes);
-// Compatibility: also accept requests without '/api' prefix
+app.use("/api", classRoutes);
 app.use("/", classRoutes);
 app.use("/api/roles", roleRouter);
 app.use("/api/chapters", chapterRouter);

@@ -1,9 +1,9 @@
 import { Router } from 'express'
-import { upload } from '~/configs/multerConfig'
-import fileController from '~/controllers/FileController'
-import fileExtLimiter from '~/middlewares/files/fileExtLimiter'
-import filePayloadExists from '~/middlewares/files/filePayloadExists'
-import fileSizeLimiter from '~/middlewares/files/fileSizeLimiter'
+import { upload } from '~/configs/multerConfig.js'
+import fileController from '~/controllers/FileController.js'
+import fileExtLimiter from '~/middlewares/files/fileExtLimiter.js'
+import filePayloadExists from '~/middlewares/files/filePayloadExists.js'
+import fileSizeLimiter from '~/middlewares/files/fileSizeLimiter.js'
 
 const fileRouter = Router()
 fileRouter.post(

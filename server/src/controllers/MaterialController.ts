@@ -3,10 +3,10 @@ import { RequestHandler } from 'express'
 import { Types } from 'mongoose'
 import path from 'path'
 import fs from 'fs'
-import { Material } from '../models/Material'
-import { Chapter } from '../models/Chapter'
-import { responseUtils } from '../utils/ResponseUtils'
-import docxConverter from '../services/docxConverterService'
+import { Material } from '../models/Material.js'
+import { Chapter } from '../models/Chapter.js'
+import { responseUtils } from '../utils/ResponseUtils.js'
+import docxConverter from '../services/docxConverterService.js'
 
 const isId = (v?: string) => !!v && Types.ObjectId.isValid(v)
 

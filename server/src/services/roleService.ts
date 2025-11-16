@@ -1,4 +1,4 @@
-import { Role, RoleName } from '~/models/Role'
+import { Role, RoleName } from '~/models/Role.js'
 
 const roleService = {
   getRoles: async () => {

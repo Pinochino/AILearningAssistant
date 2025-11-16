@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { GoogleAIFileManager } from '@google/generative-ai/server' // ✅ đúng
 import fs from 'fs'
 import path from 'path'
-import docxConverter from '../services/docxConverterService'
+import docxConverter from '../services/docxConverterService.js'
 
 type MaterialLike = {
   _id?: any

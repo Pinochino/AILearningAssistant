@@ -1,6 +1,6 @@
-import { Notification } from "../models/notification.model";
-import { User } from "../models/User";
-import { OnlineService } from "./online.service";
+import { Notification } from "../models/notification.model.js";
+import { User } from "../models/User.js";
+import { OnlineService } from "./online.service.js";
 import { Server } from "socket.io";
 
 interface CreateNotificationData {

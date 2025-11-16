@@ -1,8 +1,8 @@
 // AILearningAssistant\server\src\services\quizService.ts
-import { Chapter } from '../models/Chapter'
-import { Quiz, IQuizQuestion } from '../models/Quiz'
-import { QuizAttempt } from '../models/QuizAttempt'
-import AIService from './aiService'
+import { Chapter } from '../models/Chapter.js'
+import { Quiz, IQuizQuestion } from '../models/Quiz.js'
+import { QuizAttempt } from '../models/QuizAttempt.js'
+import AIService from './aiService.js'
 import { Types } from 'mongoose'
 
 export class QuizService {

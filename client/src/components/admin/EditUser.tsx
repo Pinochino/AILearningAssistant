@@ -6,7 +6,7 @@ import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Badge } from '../ui/badge'
 import { Avatar, AvatarFallback } from '../ui/avatar'
-import { ArrowLeft, Save, X, UserCheck, UserX, Users } from 'lucide-react'
+import { ArrowLeft, Save, X, UserCheck, UserX, Users, ChevronLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigation } from '../../hooks/useNavigation'
 import { GetUserInfor } from '../../hooks/getUserInfor'
@@ -19,6 +19,7 @@ import { useAuth } from '../../hooks/useAuth'
 interface IRole {
   id: string;
   name: string;
+  _id: string
 }
 
 export function EditUser() {
@@ -62,7 +63,8 @@ export function EditUser() {
 
   const [roles, setRoles] = useState<IRole[]>([{
     id: '',
-    name: ''
+    name: '',
+    _id: ''
   }])
 
   const { data: roleList, isLoading: rolesListLoading } = GetAllData({ url: '/roles/list', name: 'RoleList' })
@@ -87,7 +89,7 @@ export function EditUser() {
 
   console.log('id: ', userId)
 
-  const { isLoading: editUserLoading, mutate: updateUser } = useMutation({
+  const { isPending: editUserLoading, mutate: updateUser } = useMutation({
     mutationFn: async (payload: any) => {
       const res = await handleApi({
         url: `/users/update/${userId}`,
@@ -142,21 +144,6 @@ export function EditUser() {
     updateUser(payload);
   }
 
-  const handleToggleStatus = async () => {
-    const newStatus = formData.status === 'active' ? 'inactive' : 'active'
-    handleInputChange('status', newStatus)
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      toast.success(`Đã ${newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hóa'} tài khoản`)
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi thay đổi trạng thái')
-    }
-  }
-
-
-
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'ADMIN':
@@ -202,7 +189,7 @@ export function EditUser() {
         <h2 className='text-2xl font-bold mb-4'>Không tìm thấy người dùng</h2>
         <p className='text-muted-foreground mb-4'>Người dùng này không tồn tại hoặc đã bị xóa.</p>
         <Button onClick={() => navigateTo('users')}>
-          <ArrowLeft className='h-4 w-4 mr-2' />
+          <ChevronLeft className='h-4 w-4 mr-2' />
           Quay lại danh sách
         </Button>
       </div>
@@ -215,7 +202,7 @@ export function EditUser() {
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-4'>
           <Button variant='outline' size='sm' onClick={() => navigateTo('users')}>
-            <ArrowLeft className='h-4 w-4 mr-2' />
+            <ChevronLeft className='h-4 w-4 mr-2' />
             Quay lại
           </Button>
           <div>
@@ -248,7 +235,7 @@ export function EditUser() {
                   <AvatarFallback className='text-lg '>
                     {user?.name
                       .split(' ')
-                      .map((n) => n[0])
+                      .map((n: any[]) => n[0])
                       .join('')
                       .toUpperCase()}
                   </AvatarFallback>
@@ -321,7 +308,7 @@ export function EditUser() {
 
                 <div className='space-y-2'>
                   <Label htmlFor='role'>Vai trò *</Label>
-                  <Select value={formData.addRoleId} onValueChange={(value: string) => handleInputChange('addRoleId', value)}>
+                  <Select value={formData.addRoleId || formData.removeRoleId} onValueChange={(value: string) => handleInputChange('addRoleId', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder='Chọn vai trò' />
                     </SelectTrigger>
@@ -338,40 +325,9 @@ export function EditUser() {
                     </SelectContent>
                   </Select>
                 </div>
-
-
               </div>
-
-
-
             </CardContent>
           </Card>
-
-          {/* Subjects Card (for teachers and students) */}
-          {((user?.roles?.[0]?.name || '').toLowerCase() === 'teacher' || (user?.roles?.[0]?.name || '').toLowerCase() === 'student') && (
-            <Card className='mt-6'>
-              <CardHeader>
-                <CardTitle>Môn học</CardTitle>
-                <CardDescription>
-                  {(user?.roles?.[0]?.name || '').toLowerCase() === 'teacher'
-                    ? 'Các môn học mà giáo viên này giảng dạy'
-                    : 'Các môn học mà học sinh này đang theo học'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='flex flex-wrap gap-2'>
-                  {user.subjects?.map((subject: string, index: number) => (
-                    <Badge key={index} variant='outline'>
-                      {subject}
-                    </Badge>
-                  ))}
-                </div>
-                <p className='text-sm text-muted-foreground mt-2'>
-                  Để thay đổi môn học, vui lòng liên hệ quản trị viên hệ thống.
-                </p>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
-import { OnlineService } from "./online.service";
-import MessagesService from "./messages.service";
-import NotificationsService from "./notifications.service";
+import { OnlineService } from "./online.service.js";
+import MessagesService from "./messages.service.js";
+import NotificationsService from "./notifications.service.js";
 
 interface SocketData {
     user: {
@@ -233,7 +233,7 @@ export default function handleSocket(io: Server, socket: Socket) {
 
             // Broadcast status change to all user's conversations
             const conversations = await MessagesService.getConversationsForUser(userId);
-            conversations.forEach(conv => {
+            conversations.forEach((conv: { _id: any; }) => {
                 io.to(`conversation:${conv._id}`).emit('user_status_changed', {
                     userId,
                     status: data.status,
@@ -253,7 +253,7 @@ export default function handleSocket(io: Server, socket: Socket) {
 
             // Broadcast offline status to conversations
             const conversations = await MessagesService.getConversationsForUser(userId);
-            conversations.forEach(conv => {
+            conversations.forEach((conv: { _id: any; }) => {
                 io.to(`conversation:${conv._id}`).emit('user_status_changed', {
                     userId,
                     status: 'offline',

@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import userController from '~/controllers/UserController'
-import authenticationMiddleware from '~/middlewares/auth/authenticationMiddleware'
-import authorizationMiddleware from '~/middlewares/auth/authorizationMiddleware'
+import userController from '~/controllers/UserController.js'
+import authenticationMiddleware from '~/middlewares/auth/authenticationMiddleware.js'
+import authorizationMiddleware from '~/middlewares/auth/authorizationMiddleware.js'
 
 const userRouter = Router()
 userRouter.get('/list', authenticationMiddleware, authorizationMiddleware, userController.getAllUsers)

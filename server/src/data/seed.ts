@@ -3,11 +3,12 @@ import { User } from '../models/User.js'
 import { Conversation } from '../models/conversation.model.js'
 import { Message } from '../models/message.model.js'
 import { Notification } from '../models/notification.model.js'
-import Announcement from '../models/announcement.model.js'
-import mongoose from 'mongoose'
+import { IAnnouncement, Announcement } from '../models/announcement.model.js'
+
+import mongoose, { Model } from 'mongoose'
 import dotenv from 'dotenv'
 import { pathToFileURL } from 'url'
-import { Class, Subject, type IClass, type ISubject } from '~/models/class.model'
+import { Class, Subject, type IClass, type ISubject } from '~/models/class.model.js'
 
 dotenv.config()
 
@@ -82,12 +83,15 @@ export async function runSeed() {
     User.findOne({ username: 'student2' }),
   ])
 
+const AnnouncementModel = Announcement as Model<IAnnouncement>
+
+
   // Clean sample collections (keep users/roles)
   await Promise.all([
     Conversation.deleteMany({}),
     Message.deleteMany({}),
     Notification.deleteMany({}),
-    Announcement.deleteMany({}),
+    AnnouncementModel.deleteMany({}).exec(),
   ])
 
   // Conversations: direct, group, ai
@@ -165,20 +169,20 @@ export async function runSeed() {
   ])
 
   // Announcements
-  await Announcement.create({
+  await (Announcement as any).create({
     title: 'Chào mừng năm học mới',
     content: 'Chúc mừng các em bước vào năm học mới đầy hứng khởi!',
     author: admin?._id,
     pinned: true,
   })
 
-  await Announcement.create({
+  await (Announcement as any).create({
     title: 'Lịch kiểm tra giữa kỳ',
     content: 'Tuần tới sẽ có kiểm tra giữa kỳ cho các môn Toán và Vật lý.',
     author: teacher1?._id,
   })
 
-  await Announcement.create({
+  await (Announcement as any).create({
     title: 'Thông báo lớp Toán 10A',
     content: 'Buổi học ngày mai chuyển sang phòng 201.',
     author: teacher1?._id,
@@ -248,9 +252,9 @@ export async function runSeed() {
 
 // Allow running the seed directly: `npx tsx src/data/seed.ts`
 async function main() {
-  const uri = process.env.MONGO_URI
+  const uri = process.env.MONGO_URL
   if (!uri) {
-    console.error('❌ MONGO_URI chưa được cấu hình trong .env')
+    console.error('❌ MONGO_URL chưa được cấu hình trong .env')
     process.exit(1)
   }
   try {

@@ -1,4 +1,4 @@
-import { React, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -110,7 +110,7 @@ export function SystemSettings() {
                   <Select
                     disabled
                     value={settings.general.language}
-                    onValueChange={(value) => updateSetting('general', 'language', value)}
+                    onValueChange={(value: any) => updateSetting('general', 'language', value)}
                   >
                     <SelectTrigger>
                       <SelectValue />

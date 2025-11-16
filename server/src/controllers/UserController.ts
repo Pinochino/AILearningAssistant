@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
-import { User } from '~/models/User'
-import userService from '~/services/userService'
-import { responseUtils } from '~/utils/ResponseUtils'
+import userService from '~/services/userService.js'
+import { responseUtils } from '~/utils/ResponseUtils.js'
 
 const userController = {
   getAllUsers: async (req: Request, res: Response) => {
@@ -89,25 +88,6 @@ const userController = {
       const { roleName } = req.params as { roleName: string }
       const count = await userService.countUsersByRole(roleName)
       responseUtils({ req, res, code: 200, message: `Get count by role successfully`, data: count })
-    } catch (error: any) {
-      responseUtils({ req, res, code: 400, message: error.message })
-    }
-  },
-
-  countUsesByActive: async (req: Request, res: Response) => {
-    try {
-      const userCount = await userService.countUsersByActive()
-      responseUtils({ req, res, code: 200, message: `Count users by isActive successfully`, data: { userCount } })
-    } catch (error: any) {
-      responseUtils({ req, res, code: 400, message: error.message })
-    }
-  },
-
-  filterUserByRoleId: async (req: Request, res: Response) => {
-    try {
-      const { roleId } = req.params
-      const users = await userService.getUsersByRoleId(roleId)
-      responseUtils({ req, res, code: 200, message: `Filter users by roleId successfully`, data: { users } })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

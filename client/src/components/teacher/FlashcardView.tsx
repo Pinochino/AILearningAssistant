@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { ArrowLeft, FileText } from 'lucide-react'
+import { ArrowLeft, BookOpen, ChevronLeft, FileText } from 'lucide-react'
 
 interface FlashcardViewProps {
     flashcardSet: {
@@ -38,8 +38,7 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcardSet, onClose }) 
             {/* Header */}
             <div className="flex items-center gap-3">
                 <Button variant="outline" size="sm" onClick={onClose}>
-                    <ArrowLeft className="h-4 w-4 mr-1" />
-                    Quay lại
+                    <ChevronLeft className="h-4 w-4 mr-1" />
                 </Button>
                 <div>
                     <h2 className="text-xl font-semibold">{flashcardSet.title}</h2>
@@ -53,11 +52,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcardSet, onClose }) 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
                     <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-4">
+                            <FileText className="h-6 w-6 text-blue-600" />
                             <div>
-                                <p className="text-sm font-medium">Số thẻ</p>
-                                <p className="text-2xl font-bold">{flashcards.length}</p>
+                                <p className="text-sm text-muted-foreground">Số thẻ</p>
+                                <p className="text-xl font-semibold">{flashcards.length}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -65,11 +64,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({ flashcardSet, onClose }) 
 
                 <Card>
                     <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-4">
+                            <BookOpen className="h-6 w-6 text-green-600" />
                             <div>
-                                <p className="text-sm font-medium">Số chương</p>
-                                <p className="text-2xl font-bold">{flashcardSet.chapters.length}</p>
+                                <p className="text-sm text-muted-foreground">Số chương</p>
+                                <p className="text-xl font-semibold">{flashcardSet.chapters.length}</p>
                             </div>
                         </div>
                     </CardContent>

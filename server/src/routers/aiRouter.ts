@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware'
-import authorizationMiddleware from '../middlewares/auth/authorizationMiddleware'
-import { requireTeacherInClass } from '../middlewares/roles'
-import * as aiController from '../controllers/AiController'
+import authenticationMiddleware from '../middlewares/auth/authenticationMiddleware.js'
+import authorizationMiddleware from '../middlewares/auth/authorizationMiddleware.js'
+import { requireMemberInClass, requireTeacherInClass } from '../middlewares/roles.js'
+import * as aiController from '../controllers/AiController.js'
 
 const aiRouter = Router()
 
@@ -13,7 +13,7 @@ aiRouter.post(
   '/generate-flashcards',
   authenticationMiddleware,
   authorizationMiddleware,
-  requireTeacherInClass('classId'),
+  requireMemberInClass('classId'),
   aiController.generateFlashcards
 )
 
@@ -24,7 +24,7 @@ aiRouter.post(
   '/generate-quiz',
   authenticationMiddleware,
   authorizationMiddleware,
-  requireTeacherInClass('classId'),
+  requireMemberInClass('classId'),
   aiController.generateQuiz
 )
 

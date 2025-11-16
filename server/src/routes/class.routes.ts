@@ -1,9 +1,9 @@
 import { Router, type Request, type Response } from 'express'
-import { ClassesService } from '../services/classes.services'
-import { ClassEnrollment } from '../models/ClassEnrollment'
+import { ClassesService } from '../services/classes.services.js'
+import { ClassEnrollment } from '../models/ClassEnrollment.js'
 import { body, param, query, validationResult } from 'express-validator'
-import authenticationMiddleware from '~/middlewares/auth/authenticationMiddleware'
-import authorizationMiddleware from '~/middlewares/auth/authorizationMiddleware'
+import authenticationMiddleware from '~/middlewares/auth/authenticationMiddleware.js'
+import authorizationMiddleware from '~/middlewares/auth/authorizationMiddleware.js'
 
 const router = Router()
 
