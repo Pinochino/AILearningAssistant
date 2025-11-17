@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
+// Add Web Audio API type declarations
+declare global {
+    interface Window {
+        webkitAudioContext: typeof AudioContext;
+    }
+}
 import axios from 'axios';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Progress } from '../ui/progress';
 import { useNavigation } from '../../hooks/useNavigation';
-import { ChevronLeft, ChevronRight, Shuffle, ArrowLeft, RotateCcw, Check, X, Eye, EyeOff, Zap, Star, Trophy, Award, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Eye, EyeOff, Maximize2, Minimize2, RotateCcw, Star, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface FlashcardData {
@@ -15,6 +22,7 @@ interface FlashcardData {
 
 export function PlayFlashcard() {
     const { navigateTo, currentParams } = useNavigation();
+    const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
     const [flashcard, setFlashcard] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -26,6 +34,100 @@ export function PlayFlashcard() {
     const [showSummary, setShowSummary] = useState(false);
     const [startTime] = useState(Date.now());
     const [flashcardAttempt, setFlashcardAttempt] = useState<any>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // Initialize audio context on first user interaction
+    useEffect(() => {
+        const handleInitAudio = () => {
+            if (!audioContext) {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                setAudioContext(context);
+            }
+        };
+
+        // Add event listener for first interaction
+        document.addEventListener('click', handleInitAudio, { once: true });
+
+        return () => {
+            document.removeEventListener('click', handleInitAudio);
+        };
+    }, [audioContext]);
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+        setIsFullscreen(!isFullscreen);
+    };
+
+    // Sound effect function
+    const playSound = (type: 'flip' | 'correct' | 'wrong' | 'complete' | 'click' | 'next' | 'back') => {
+        if (!audioContext) return;
+
+        const context = audioContext;
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+
+        // Different sound patterns for different actions
+        switch (type) {
+            case 'flip':
+                // Upward slide sound for flip
+                oscillator.frequency.setValueAtTime(240, context.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(580, context.currentTime + 0.2);
+                break;
+            case 'correct':
+                // Happy chime for correct answer
+                oscillator.frequency.setValueAtTime(523.25, context.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, context.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, context.currentTime + 0.2); // G5
+                break;
+            case 'wrong':
+                // Sad sound for wrong answer
+                oscillator.frequency.setValueAtTime(349.23, context.currentTime); // F4
+                oscillator.frequency.setValueAtTime(293.66, context.currentTime + 0.1); // D4
+                break;
+            case 'complete':
+                // Victory sound for completion
+                oscillator.frequency.setValueAtTime(523.25, context.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, context.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, context.currentTime + 0.2); // G5
+                oscillator.frequency.setValueAtTime(1046.50, context.currentTime + 0.3); // C6
+                break;
+            case 'click':
+                // Short click sound
+                oscillator.frequency.setValueAtTime(1000, context.currentTime);
+                break;
+            case 'next':
+            case 'back':
+                // Navigation sound
+                const baseFreq = type === 'next' ? 440 : 350; // Higher for next, lower for back
+                oscillator.frequency.setValueAtTime(baseFreq, context.currentTime);
+                break;
+        }
+
+        gainNode.gain.setValueAtTime(0.3, context.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
+
+        oscillator.start(context.currentTime);
+        oscillator.stop(context.currentTime + 0.5);
+    };
 
     // Fetch flashcard data from API
     useEffect(() => {
@@ -90,8 +192,12 @@ export function PlayFlashcard() {
     const currentCardData = cards[currentCard] || { id: '', front: '', back: '' };
     const progress = cards.length > 0 ? Math.round(((currentCard + 1) / cards.length) * 100) : 0;
 
-    const handleFlip = () => setIsFlipped(!isFlipped);
+    const handleFlip = () => {
+        playSound('flip');
+        setIsFlipped(!isFlipped);
+    };
     const handleNext = () => {
+        playSound('next');
         if (currentCard < cards.length - 1) {
             setCurrentCard(currentCard + 1);
             setIsFlipped(false);
@@ -101,25 +207,26 @@ export function PlayFlashcard() {
     };
     const handlePrev = () => {
         if (currentCard > 0) {
-            setCurrentCard(currentCard - 1);
-            setIsFlipped(false);
+            playSound('back');
+        } else {
+            playSound('click');
         }
-    };
-    const handleShuffle = () => {
-        const shuffled = [...cards].sort(() => Math.random() - 0.5);
-        setCards(shuffled);
-        setCurrentCard(0);
+        setCurrentCard(currentCard - 1);
         setIsFlipped(false);
     };
+
     const handleMastered = () => {
+        playSound('correct');
         setMasteredCards(new Set([...masteredCards, currentCardData.id]));
         handleNext();
     };
     const handleDifficult = () => {
+        playSound('wrong');
         setDifficultCards(new Set([...difficultCards, currentCardData.id]));
         handleNext();
     };
     const handleReset = () => {
+        playSound('click');
         setCurrentCard(0);
         setIsFlipped(false);
         setMasteredCards(new Set());
@@ -195,6 +302,7 @@ export function PlayFlashcard() {
 
     useEffect(() => {
         if (showSummary && !flashcardAttempt) {
+            playSound('complete');
             submitFlashcardAttempt();
         }
     }, [showSummary]);
@@ -352,114 +460,242 @@ export function PlayFlashcard() {
 
     // ===== MAIN FLASHCARD UI =====
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4">
-            {/* 🟦 Header */}
-            <div className="w-full max-w-4xl mx-auto border-6 border-black rounded-2xl bg-white p-8 flex flex-col gap-4 shadow-md">
-                {/* Nút điều khiển */}
-                <div className="flex justify-between items-center">
-                    <Button
-                        onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'flashcard' })}
-                        className="flex items-center gap-2 text-black bg-gray-100 hover:bg-gray-200 border-2 border-black rounded-lg px-3 py-2"
-                    >
-                        <ArrowLeft className="w-5 h-5" /> Quay lại
-                    </Button>
+        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #fda085 100%)' }} className={`${isFullscreen ? 'fixed inset-0 z-50' : 'min-h-screen'} p-4`}>
+            <div className={`${isFullscreen ? 'h-full flex items-center justify-center' : 'max-w-4xl mx-auto'}`}>
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+                    className="rounded-2xl p-6 mb-6 text-white"
+                >
+                    <div className="flex items-center justify-between mb-4">
 
-                    <Button
-                        onClick={handleReset}
-                        className="flex items-center gap-2 text-black bg-gray-100 hover:bg-gray-300 border-4 border-black rounded-lg px-3 py-2"
-                    >
-                        <RotateCcw className="w-4 h-4" /> Làm lại
-                    </Button>
-                </div>
+                        <h1 className="text-2xl font-bold text-white">{flashcard?.title}</h1>
 
-                {/* Tiêu đề flashcard */}
-                <h1 className="text-2xl font-semibold text-center text-gray-900 mb-12">
-                    Flashcard: {flashcard?.title}
-                </h1>
 
-                {/* Thanh tiến độ */}
-                <div className="w-full border-2 border-black rounded-xl p-3 bg-gray-50">
-                    <div className="flex justify-between text-sm text-gray-700 mb-2">
-                        <span>Tiến độ: {currentCard + 1}/{cards.length}</span>
-                        <span className="font-semibold text-indigo-600">{progress}%</span>
+                        <div className="relative">
+                            <button
+                                onClick={toggleFullscreen}
+                                className="p-2 rounded-full text-white hover:bg-white hover:bg-opacity-30 transition-all z-50"
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    backdropFilter: 'blur(10px)',
+                                    position: isFullscreen ? 'fixed' : 'relative',
+                                    top: isFullscreen ? '20px' : '0',
+                                    right: isFullscreen ? '20px' : '0'
+                                }}
+                                title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+                            >
+                                {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        <div style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)', color: 'white', padding: '8px 16px', borderRadius: '20px', display: 'inline-block', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} className="text-sm">
+                            {flashcard?.difficulty || 'Trung bình'}
+                        </div>
                     </div>
 
-                    <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500 ease-out"
-                            style={{ width: `${progress}%` }}
-                        />
+                    {/* Progress */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-sm text-white text-opacity-90">
+                            <span>Thẻ {currentCard + 1} của {cards.length}</span>
+                            <span>{progress}%</span>
+                        </div>
+                        <div style={{ background: 'rgba(255,255,255,0.2)' }} className="w-full rounded-full h-2">
+                            <motion.div
+                                style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #f97316 100%)' }}
+                                className="h-2 rounded-full"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.5 }}
+                            />
+                        </div>
                     </div>
-                </div>
-            </div>
+                </motion.div>
 
-            {/* 🟧 Flashcard */}
-            <div className="w-full max-w-4xl mx-auto border-4 border-black rounded-2xl bg-white p-8 flex flex-col items-center justify-center shadow-md">
-                <div
-                    className="w-full bg-gradient-to-br from-white to-indigo-50 border-2 border-gray-300 rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:shadow-xl transition-all duration-300"
-                    onClick={handleFlip}
-                    style={{ minHeight: "280px" }}
-                >
-                    <h2 className="text-2xl font-semibold text-gray-900 leading-relaxed text-center">
-                        {isFlipped ? currentCardData.back : currentCardData.front}
-                    </h2>
-                    <p className="mt-6 text-base text-indigo-600 font-medium flex items-center justify-center gap-2">
-                        {isFlipped ? (
-                            <>
-                                <Eye className="w-4 h-4" />
-                                Xem câu hỏi
-                            </>
-                        ) : (
-                            <>
-                                <EyeOff className="w-4 h-4" />
-                                Xem đáp án
-                            </>
-                        )}
-                    </p>
-                </div>
-            </div>
-
-            {/* 🔹 Nút điều hướng nằm ngoài khung flashcard */}
-            <div className="w-full max-w-4xl mx-auto flex flex-wrap justify-center gap-4 mt-6">
-                <Button
-                    onClick={handlePrev}
-                    disabled={currentCard === 0}
-                    className="px-6 py-3 bg-blue-100 text-black border-2 border-black rounded-xl flex items-center justify-center gap-2 hover:bg-blue-200 active:scale-95 transition-all disabled:opacity-50"
-                >
-                    <ChevronLeft className="w-5 h-5" /> Trước
-                </Button>
-
-                {isFlipped && (
-                    <>
-                        <Button
-                            onClick={handleDifficult}
-                            className="px-6 py-3 bg-orange-100 text-black border-2 border-black rounded-xl flex items-center justify-center gap-2 hover:bg-orange-200 active:scale-95 transition-all"
+                {/* Flashcard */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentCard}
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{
+                            opacity: 1,
+                            x: 0,
+                            transition: {
+                                duration: 0.4,
+                                ease: [0.4, 0, 0.2, 1]
+                            }
+                        }}
+                        exit={{
+                            opacity: 0,
+                            x: -50,
+                            transition: {
+                                duration: 0.3,
+                                ease: [0.4, 0, 0.2, 1]
+                            }
+                        }}
+                    >
+                        <Card
+                            style={{
+                                background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%)',
+                                border: 'none',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                                minHeight: '320px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0)',
+                                marginBottom: '2rem'
+                            }}
+                            className="overflow-hidden w-full"
+                            onClick={handleFlip}
                         >
-                            <X className="w-5 h-5" /> Chưa thuộc
-                        </Button>
+                            <CardContent className="p-6 relative" style={{
+                                minHeight: '320px',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                transformStyle: 'preserve-3d',
+                                perspective: '1000px',
+                                position: 'relative'
+                            }}>
+                                {/* Front side */}
+                                <div style={{
+                                    position: 'absolute',
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    backfaceVisibility: 'hidden',
+                                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                                    transition: 'transform 0.6s',
+                                    opacity: isFlipped ? 0 : 1,
+                                    padding: '2rem',
+                                    textAlign: 'center'
+                                }}>
+                                    <h2 className="text-2xl font-semibold leading-relaxed" style={{
+                                        background: 'linear-gradient(90deg, #7c3aed 0%, #ec4899 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text',
+                                        margin: 0
+                                    }}>
+                                        {currentCardData.front}
+                                    </h2>
+                                    <div className="mt-6 text-base font-medium flex items-center justify-center gap-2 text-indigo-600 whitespace-nowrap">
+                                        <EyeOff className="w-5 h-5 flex-shrink-0" />
+                                        Mặt sau
+                                    </div>
+                                </div>
 
-                        <Button
-                            onClick={handleMastered}
-                            className="px-6 py-3 bg-green-100 text-black border-2 border-black rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 active:scale-95 transition-all"
-                        >
-                            <Check className="w-5 h-5" /> Đã thuộc
-                        </Button>
-                    </>
-                )}
+                                {/* Back side */}
+                                <div style={{
+                                    position: 'absolute',
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    backfaceVisibility: 'hidden',
+                                    transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)',
+                                    transition: 'transform 0.6s',
+                                    opacity: isFlipped ? 1 : 0,
+                                    padding: '2rem',
+                                    textAlign: 'center',
+                                    transformStyle: 'preserve-3d'
+                                }}>
+                                    <div style={{ transform: 'rotateY(180deg)' }}>
+                                        <div className="w-full max-w-4xl px-8 py-6">
+                                            <h2 className="text-2xl font-bold leading-relaxed" style={{
+                                                margin: 0,
+                                                background: 'linear-gradient(90deg, #8b5cf6 0%, #4f46e5 100%)',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                                backgroundClip: 'text'
+                                            }}>
+                                                {currentCardData.back}
+                                            </h2>
+                                        </div>
+                                        <div className="mt-6 text-base font-semibold flex items-center justify-center gap-2 text-gray-700 whitespace-nowrap">
+                                            <Eye className="w-5 h-5 flex-shrink-0" />
+                                            Mặt trước
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                </AnimatePresence>
 
-                <Button
-                    onClick={handleNext}
-                    className="px-6 py-3 bg-indigo-100 text-black border-2 border-black rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-200 active:scale-95 transition-all"
-                >
-                    {currentCard === cards.length - 1 ? "Kết thúc" : "Sau"} <ChevronRight className="w-5 h-5" />
-                </Button>
+                {/* Navigation Buttons */}
+                <div className="w-full max-w-4xl mx-auto flex flex-wrap justify-center gap-4 pt-4">
+                    <Button
+                        onClick={handlePrev}
+                        disabled={currentCard === 0}
+                        variant="outline"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            color: 'white',
+                            backdropFilter: 'blur(4px)'
+                        }}
+                        className="px-6 py-3 hover:bg-opacity-40 transition-all duration-200 font-medium"
+                    >
+                        <ChevronLeft className="w-5 h-5 mr-2" /> Trước
+                    </Button>
 
-                <Button
-                    onClick={handleShuffle}
-                    className="px-6 py-3 bg-yellow-100 text-black border-2 border-black rounded-xl flex items-center justify-center gap-2 hover:bg-yellow-200 active:scale-95 transition-all"
-                >
-                    <Shuffle className="w-4 h-4" /> Xáo trộn
-                </Button>
+                    {isFlipped && (
+                        <>
+                            <Button
+                                onClick={handleDifficult}
+                                variant="outline"
+                                style={{
+                                    background: 'rgba(239, 68, 68, 0.2)',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    color: 'white',
+                                    backdropFilter: 'blur(4px)'
+                                }}
+                                className="px-6 py-3 hover:bg-opacity-50 transition-all duration-200 font-medium"
+                            >
+                                <X className="w-5 h-5 mr-2" /> Chưa thuộc
+                            </Button>
+
+                            <Button
+                                onClick={handleMastered}
+                                style={{
+                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                                }}
+                                className="px-6 py-3 hover:opacity-95 hover:shadow-md transition-all duration-200 font-medium"
+                            >
+                                <Check className="w-5 h-5 mr-2" /> Đã thuộc
+                            </Button>
+                        </>
+                    )}
+
+                    <Button
+                        onClick={currentCard === cards.length - 1 ? () => setShowSummary(true) : handleNext}
+                        variant="outline"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            color: 'white',
+                            backdropFilter: 'blur(4px)'
+                        }}
+                        className="px-6 py-3 hover:bg-opacity-40 transition-all duration-200 font-medium"
+                    >
+                        {currentCard === cards.length - 1 ? "Kết thúc" : "Sau"} <ChevronRight className="w-5 h-5 ml-2" />
+                    </Button>
+
+                </div>
             </div>
         </div>
     );

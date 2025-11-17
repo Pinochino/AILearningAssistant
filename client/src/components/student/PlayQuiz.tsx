@@ -627,23 +627,21 @@ const PlayQuiz = () => {
                                 background: 'rgba(255,255,255,0.2)',
                                 backdropFilter: 'blur(10px)',
                                 position: isFullscreen ? 'fixed' : 'absolute',
-                                top: isFullscreen ? '20px' : '8px',
-                                right: isFullscreen ? '20px' : '8px'
+                                top: isFullscreen ? '20px' : '2px',
+                                right: isFullscreen ? '20px' : '50%'
                             }}
                             className="p-2 rounded-full text-white hover:bg-white hover:bg-opacity-30 transition-all z-50"
                         >
                             {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
                         </button>
-                        <div>
-                            <h1 style={{ color: 'white' }} className="text-2xl font-bold">{quiz.title}</h1>
-                            <div className="flex items-center gap-4 mt-2">
-                                <div style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)', color: 'white', padding: '8px 16px', borderRadius: '20px', display: 'inline-block', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} className="text-sm">
-                                    {quiz.difficulty}
-                                </div>
-                                <div style={{ color: 'white' }} className={`flex items-center ${timer >= (quiz?.duration || 30) * 60 - 60 ? 'text-yellow-300 font-bold' : ''}`}>
-                                    <Clock className="w-4 h-4 mr-1" />
-                                    {formatTime(timer)}
-                                </div>
+                        <h1 style={{ color: 'white' }} className="text-2xl font-bold">{quiz.title}</h1>
+                        <div className="flex items-center gap-4 mt-2">
+                            <div style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)', color: 'white', padding: '8px 16px', borderRadius: '20px', display: 'inline-block', fontWeight: 'bold', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} className="text-sm">
+                                {quiz.difficulty}
+                            </div>
+                            <div style={{ color: 'white' }} className={`flex items-center ${timer >= (quiz?.duration || 30) * 60 - 60 ? 'text-yellow-300 font-bold' : ''}`}>
+                                <Clock className="w-4 h-4 mr-1" />
+                                {formatTime(timer)}
                             </div>
                         </div>
                     </div>
