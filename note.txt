@@ -6,4 +6,6 @@ pnpm build
 pnpm dev
 
 FE: pnpm run dev
-npm install @tanstack/react-query @reduxjs/toolkit redux-persist axios react-spinners react-cookie
+npm install @tanstack/react-query @reduxjs/toolkit redux-persist axios
+
+docker: docker compose --env-file .env up -d --build
