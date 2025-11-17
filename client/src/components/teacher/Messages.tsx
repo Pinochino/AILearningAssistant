@@ -31,7 +31,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { MessagesService } from '../../services/messages';
-import { NotificationsService } from '../../services/notifications';
 import { UsersService } from '../../services/users';
 import { useAuth } from '../../hooks/useAuth';
 import { getSocket, ensureSocketConnected } from '../../lib/socket';

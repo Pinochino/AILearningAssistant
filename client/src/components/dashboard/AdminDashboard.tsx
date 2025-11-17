@@ -121,33 +121,6 @@ const mockFlashcardStats = [
   },
 ];
 
-const mockLearningProgress = [
-  {
-    class: "Lớp 12A1",
-    students: 35,
-    avgProgress: 78.5,
-    completedLessons: 145,
-    totalLessons: 185,
-    activeStudents: 32,
-  },
-  {
-    class: "Lớp 12A2",
-    students: 33,
-    avgProgress: 82.1,
-    completedLessons: 156,
-    totalLessons: 190,
-    activeStudents: 30,
-  },
-  {
-    class: "Lớp 11B1",
-    students: 38,
-    avgProgress: 65.4,
-    completedLessons: 89,
-    totalLessons: 136,
-    activeStudents: 35,
-  },
-];
-
 const subjectStats = [
   {
     name: "Toán học",
@@ -471,80 +444,6 @@ export function AdminDashboard() {
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Activity Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Hoạt động theo tháng</CardTitle>
-            <CardDescription>
-              Thống kê người dùng, quiz và flashcard theo tháng
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar
-                  dataKey="users"
-                  fill="#3b82f6"
-                  name="Người dùng"
-                />
-                <Bar
-                  dataKey="quizzes"
-                  fill="#10b981"
-                  name="Quiz"
-                />
-                <Bar
-                  dataKey="flashcards"
-                  fill="#f59e0b"
-                  name="Flashcard"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Subject Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Phân bố môn học</CardTitle>
-            <CardDescription>
-              Số lượng học sinh theo từng môn học
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={subjectStats}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, students }) =>
-                    `${name}: ${students}`
-                  }
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="students"
-                >
-                  {subjectStats.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Additional Analytics Stats */}

@@ -2,7 +2,6 @@ import { Role, RoleName } from '../models/Role.js'
 import { User } from '../models/User.js'
 import { Conversation } from '../models/conversation.model.js'
 import { Message } from '../models/message.model.js'
-import { Notification } from '../models/notification.model.js'
 import { IAnnouncement, Announcement } from '../models/announcement.model.js'
 
 import mongoose, { Model } from 'mongoose'
@@ -90,7 +89,6 @@ export async function runSeed() {
   await Promise.all([
     Conversation.deleteMany({}),
     Message.deleteMany({}),
-    Notification.deleteMany({}),
     AnnouncementModel.deleteMany({}).exec(),
   ])
 
@@ -187,66 +185,6 @@ export async function runSeed() {
     content: 'Buổi học ngày mai chuyển sang phòng 201.',
     author: teacher1?._id,
   })
-
-  // Notifications (ví dụ giáo viên và học sinh)
-  await Notification.create({
-    user: teacher1?._id,
-    actor: student1?._id,
-    type: 'class_join_request',
-    title: 'Yêu cầu tham gia lớp',
-    body: `${student1?.name || 'Học sinh'} muốn tham gia lớp Lớp Toán 10A`,
-    data: { classId: groupConv._id, className: 'Lớp Toán 10A', requesterId: student1?._id },
-  })
-  await Notification.create({
-    user: teacher1?._id,
-    actor: student2?._id,
-    type: 'comment_reply',
-    title: 'Có phản hồi bình luận của bạn',
-    body: `${student2?.name || 'Học sinh'} đã trả lời bình luận của bạn trong một quiz/flashcard`,
-    data: { contentType: 'quiz', contentId: 'quiz-001' },
-  })
-  await Notification.create({
-    user: teacher1?._id,
-    actor: student1?._id,
-    type: 'new_comment_on_my_content',
-    title: 'Bình luận mới trên nội dung của bạn',
-    body: `${student1?.name || 'Học sinh'} đã bình luận vào quiz/flashcard bạn tạo`,
-    data: { contentType: 'flashcard', contentId: 'fc-001' },
-  })
-
-  await Notification.create({
-    user: student1?._id,
-    actor: teacher1?._id,
-    type: 'class_join_result',
-    title: 'Yêu cầu tham gia lớp: Đã duyệt',
-    body: `Yêu cầu tham gia lớp Lớp Toán 10A của bạn đã được chấp nhận`,
-    data: { classId: groupConv._id, className: 'Lớp Toán 10A', status: 'approved' },
-  })
-  await Notification.create({
-    user: student2?._id,
-    actor: teacher1?._id,
-    type: 'class_join_result',
-    title: 'Yêu cầu tham gia lớp: Bị từ chối',
-    body: `Yêu cầu tham gia lớp Lớp Toán 10A của bạn đã bị từ chối`,
-    data: { classId: groupConv._id, className: 'Lớp Toán 10A', status: 'rejected' },
-  })
-  await Notification.create({
-    user: student1?._id,
-    actor: student2?._id,
-    type: 'comment_reply',
-    title: 'Có phản hồi bình luận của bạn',
-    body: `${student2?.name || 'Bạn học'} đã trả lời bình luận của bạn trong một quiz/flashcard`,
-    data: { contentType: 'quiz', contentId: 'quiz-001' },
-  })
-  await Notification.create({
-    user: student1?._id,
-    actor: teacher1?._id,
-    type: 'new_comment_on_my_content',
-    title: 'Bình luận mới trên nội dung của bạn',
-    body: `${teacher1?.name || 'Giáo viên'} đã bình luận vào quiz/flashcard bạn tạo`,
-    data: { contentType: 'flashcard', contentId: 'fc-002' },
-  })
-
   console.log('✅ Seed dữ liệu (roles + users) hoàn tất')
 
   // Seed Classes

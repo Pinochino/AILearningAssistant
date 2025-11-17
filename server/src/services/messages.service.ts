@@ -2,7 +2,6 @@ import { Message } from "../models/message.model.js";
 import { Conversation } from "../models/conversation.model.js";
 import { User } from "../models/User.js";
 import AiBridgeService from "./ai-bridge.service.js";
-import NotificationsService from "./notifications.service.js";
 
 interface SendMessageData {
     conversationId: string;
@@ -62,11 +61,6 @@ class MessagesService {
         // Attach receivers for socket flow
         (message as any).$receivers = receivers;
         (message as any).$conversation = conversation;
-
-        // Create notifications for receivers
-        if (receivers.length > 0) {
-            await NotificationsService.createNotificationsForMessage(message, receivers);
-        }
 
         return message;
     }
@@ -219,15 +213,6 @@ class MessagesService {
         await Conversation.findByIdAndUpdate(conversationId, {
             lastMessage: aiMessage._id,
             updatedAt: new Date()
-        });
-
-        // Create notification for user
-        await NotificationsService.createNotification({
-            user: userId,
-            type: "ai_reply",
-            title: "AI Tutor đã trả lời",
-            body: aiResponse.answer.slice(0, 100) + "...",
-            data: { conversationId, messageId: aiMessage._id }
         });
 
         return aiMessage;

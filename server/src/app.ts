@@ -17,7 +17,6 @@ import "./models/announcement.model.js";
 
 // Import routes (these may import controllers that use models)
 import messagesRoutes from "./routes/messages.routes.js";
-import notificationsRoutes from "./routes/notifications.routes.js";
 import announcementsRoutes from "./routes/announcements.routes.js";
 import authRouter from "./routers/authRouter.js";
 import userRouter from "./routers/userRouter.js";
@@ -130,7 +129,6 @@ app.get("/health", (req, res) => {
 
 // API routes
 app.use("/api/messages", messagesRoutes);
-app.use("/api/notifications", notificationsRoutes);
 app.use("/api/announcements", announcementsRoutes);
 app.use('/api', classRoutes)
 app.use("/api/auth", authRouter);

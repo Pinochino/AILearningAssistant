@@ -23,7 +23,6 @@ import {
   StarOff
 } from 'lucide-react';
 import { MessagesService } from '../../services/messages';
-import { NotificationsService } from '../../services/notifications';
 import { UsersService } from '../../services/users';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Label } from '../ui/label';
@@ -390,23 +389,6 @@ export function Messages() {
     };
   }, [selectedConversation, meId, /* keep other deps the same as original */]);
 
-
-  // Load announcements (notifications)
-  useEffect(() => {
-    if (isAuthLoading) return;
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await NotificationsService.getAll() as any;
-        if (!mounted) return;
-        setAnnouncements(Array.isArray(res?.data) ? res.data : (res?.data?.items || []));
-      } catch (e) {
-        if (!mounted) return;
-        setAnnouncements([]);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [isAuthLoading]);
 
   const currentConversation = useMemo(() =>
     conversations.find((c) => (c._id || c.id) === selectedConversation),
@@ -806,7 +788,7 @@ export function Messages() {
             </>
           ) : (
             <CardContent className="flex items-center justify-center h-96">
-              <div className="text-center" style={{paddingTop: '64px'}}>
+              <div className="text-center" style={{ paddingTop: '64px' }}>
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Chọn cuộc trò chuyện</h3>
                 <p className="text-muted-foreground">

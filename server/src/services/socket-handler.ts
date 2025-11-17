@@ -1,7 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { OnlineService } from "./online.service.js";
 import MessagesService from "./messages.service.js";
-import NotificationsService from "./notifications.service.js";
 
 interface SocketData {
     user: {
@@ -199,27 +198,6 @@ export default function handleSocket(io: Server, socket: Socket) {
             isTyping: false,
             userName: `${userData.user.firstName} ${userData.user.lastName}`
         });
-    });
-
-    // Handle notification events
-    socket.on("mark_notification_read", async (data: { notificationId: string }) => {
-        try {
-            const notification = await NotificationsService.markAsRead(data.notificationId, userId);
-            if (notification) {
-                socket.emit('notification_read', { notificationId: data.notificationId });
-            }
-        } catch (error) {
-            socket.emit("error", { message: "Failed to mark notification as read" });
-        }
-    });
-
-    socket.on("mark_all_notifications_read", async () => {
-        try {
-            const count = await NotificationsService.markAllAsRead(userId);
-            socket.emit('all_notifications_read', { count });
-        } catch (error) {
-            socket.emit("error", { message: "Failed to mark all notifications as read" });
-        }
     });
 
     // Handle user status updates
