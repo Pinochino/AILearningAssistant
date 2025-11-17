@@ -247,7 +247,7 @@ export function PlayFlashcard() {
             const cardsData = cards.map((card, index) => ({
                 cardIndex: index,
                 isCorrect: masteredCards.has(card.id),
-                timeSpentSeconds: 0, // Có thể thêm logic tracking thởi gian từng thẻ
+                timeSpentSeconds: 0,
                 difficulty: 'medium' as const
             }));
 
@@ -461,15 +461,15 @@ export function PlayFlashcard() {
     // ===== MAIN FLASHCARD UI =====
     return (
         <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #fda085 100%)' }} className={`${isFullscreen ? 'fixed inset-0 z-50' : 'min-h-screen'} p-4`}>
-            <div className={`${isFullscreen ? 'h-full flex items-center justify-center' : 'max-w-4xl mx-auto'}`}>
+            <div className={`${isFullscreen ? 'h-full flex flex-row items-center justify-center p-8 gap-12' : 'max-w-4xl mx-auto'}`}>
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-                    className="rounded-2xl p-6 mb-6 text-white"
+                    className={`rounded-2xl p-6 text-white ${isFullscreen ? 'w-auto max-w-xs' : 'w-full mb-6'}`}
                 >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className={`flex items-center ${isFullscreen ? 'gap-4' : 'justify-between'} mb-4`}>
 
                         <h1 className="text-2xl font-bold text-white">{flashcard?.title}</h1>
 
@@ -512,7 +512,6 @@ export function PlayFlashcard() {
                         </div>
                     </div>
                 </motion.div>
-
                 {/* Flashcard */}
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -534,107 +533,193 @@ export function PlayFlashcard() {
                                 ease: [0.4, 0, 0.2, 1]
                             }
                         }}
+                        className={`w-full ${isFullscreen ? 'w-[60%]' : 'max-w-3xl'} ${isFullscreen ? '' : 'mx-auto mb-8'}`}
                     >
-                        <Card
+                        {/* DIV FLIPPER CHA:*/}
+                        <div
+                            className="relative w-full cursor-pointer"
                             style={{
-                                background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%)',
-                                border: 'none',
-                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                                minHeight: '320px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease',
+                                minHeight: '400px', // Bạn có thể dùng minHeight ở đây
+                                transformStyle: 'preserve-3d',
                                 transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0)',
-                                marginBottom: '2rem'
+                                transition: 'transform 0.6s',
                             }}
-                            className="overflow-hidden w-full"
                             onClick={handleFlip}
                         >
-                            <CardContent className="p-6 relative" style={{
-                                minHeight: '320px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                transformStyle: 'preserve-3d',
-                                perspective: '1000px',
-                                position: 'relative'
-                            }}>
-                                {/* Front side */}
-                                <div style={{
-                                    position: 'absolute',
-                                    width: '100%',
-                                    height: '100%',
+                            {/* MẶT TRƯỚC:*/}
+                            <div
+                                className="absolute inset-0 w-full h-full p-8 flex flex-col items-center justify-center rounded-xl"
+                                style={{
+                                    background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%)',
+                                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                                    backfaceVisibility: 'hidden',
+                                    textAlign: 'center',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     justifyContent: 'center',
                                     alignItems: 'center',
-                                    backfaceVisibility: 'hidden',
-                                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                                    transition: 'transform 0.6s',
-                                    opacity: isFlipped ? 0 : 1,
-                                    padding: '2rem',
-                                    textAlign: 'center'
+                                    height: '100%'
+                                }}
+                            >
+                                <div style={{
+                                    width: '100%',
+                                    padding: '0 2rem',
+                                    margin: '0 auto',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    flex: '1 0 auto',
+                                    maxHeight: '100%'
                                 }}>
-                                    <h2 className="text-2xl font-semibold leading-relaxed" style={{
-                                        background: 'linear-gradient(90deg, #7c3aed 0%, #ec4899 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        WebkitTextFillColor: 'transparent',
-                                        backgroundClip: 'text',
-                                        margin: 0
-                                    }}>
+                                    <h2
+                                        style={{
+                                            background: 'linear-gradient(90deg, #7c3aed 0%, #ec4899 100%)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            backgroundClip: 'text',
+                                            wordBreak: 'break-word',
+                                            overflowWrap: 'break-word',
+                                            maxHeight: '100%',
+                                            overflowY: 'auto',
+                                            fontSize: '1.25rem',
+                                            lineHeight: '1.75rem',
+                                            padding: '1.5rem',
+                                            margin: 'auto',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flex: '1 1 auto',
+                                            minHeight: '0',
+                                            width: '100%'
+                                        }}
+                                    >
                                         {currentCardData.front}
                                     </h2>
-                                    <div className="mt-6 text-base font-medium flex items-center justify-center gap-2 text-indigo-600 whitespace-nowrap">
-                                        <EyeOff className="w-5 h-5 flex-shrink-0" />
+                                </div>
+                                <div style={{
+                                    padding: '1.5rem 0',
+                                    textAlign: 'center',
+                                    flexShrink: 0,
+                                    width: '100%',
+                                    position: 'relative',
+                                    zIndex: 1
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        color: '#4f46e5',
+                                        fontSize: '1rem',
+                                        fontWeight: 500,
+                                        whiteSpace: 'nowrap',
+                                        padding: '0.5rem 0',
+                                        margin: '0 auto',
+                                        maxWidth: 'fit-content',
+                                        paddingLeft: '1rem',
+                                        paddingRight: '1rem'
+                                    }}>
+                                        <EyeOff style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />
                                         Mặt sau
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Back side */}
-                                <div style={{
-                                    position: 'absolute',
-                                    width: '100%',
-                                    height: '100%',
+                            {/* MẶT SAU:*/}
+                            <div
+                                className="absolute inset-0 w-full h-full p-8 flex flex-col items-center justify-center rounded-xl"
+                                style={{
+                                    background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%)',
+                                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                                    backfaceVisibility: 'hidden',
+                                    transform: 'rotateY(180deg)',
+                                    textAlign: 'center',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     justifyContent: 'center',
                                     alignItems: 'center',
-                                    backfaceVisibility: 'hidden',
-                                    transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)',
-                                    transition: 'transform 0.6s',
-                                    opacity: isFlipped ? 1 : 0,
-                                    padding: '2rem',
-                                    textAlign: 'center',
-                                    transformStyle: 'preserve-3d'
+                                    height: '100%'
+                                }}
+                            >
+                                <div style={{
+                                    width: '100%',
+                                    padding: '0 2rem',
+                                    margin: '0 auto',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    flex: '1 0 auto',
+                                    maxHeight: '100%'
                                 }}>
-                                    <div style={{ transform: 'rotateY(180deg)' }}>
-                                        <div className="w-full max-w-4xl px-8 py-6">
-                                            <h2 className="text-2xl font-bold leading-relaxed" style={{
-                                                margin: 0,
-                                                background: 'linear-gradient(90deg, #8b5cf6 0%, #4f46e5 100%)',
-                                                WebkitBackgroundClip: 'text',
-                                                WebkitTextFillColor: 'transparent',
-                                                backgroundClip: 'text'
-                                            }}>
-                                                {currentCardData.back}
-                                            </h2>
-                                        </div>
-                                        <div className="mt-6 text-base font-semibold flex items-center justify-center gap-2 text-gray-700 whitespace-nowrap">
-                                            <Eye className="w-5 h-5 flex-shrink-0" />
-                                            Mặt trước
-                                        </div>
+                                    <h2
+                                        style={{
+                                            background: 'linear-gradient(90deg, #8b5cf6 0%, #4f46e5 100%)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            backgroundClip: 'text',
+                                            wordBreak: 'break-word',
+                                            overflowWrap: 'break-word',
+                                            maxHeight: '100%',
+                                            overflowY: 'auto',
+                                            fontSize: '1.25rem',
+                                            lineHeight: '1.75rem',
+                                            padding: '1.5rem',
+                                            margin: 'auto',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flex: '1 1 auto',
+                                            minHeight: '0',
+                                            width: '100%'
+                                        }}
+                                    >
+                                        {currentCardData.back}
+                                    </h2>
+                                </div>
+                                <div style={{
+                                    padding: '1.5rem 0',
+                                    textAlign: 'center',
+                                    flexShrink: 0,
+                                    width: '100%',
+                                    position: 'relative',
+                                    zIndex: 1
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        color: '#4f46e5',
+                                        fontSize: '1rem',
+                                        fontWeight: 600,
+                                        whiteSpace: 'nowrap',
+                                        padding: '0.5rem 0',
+                                        margin: '0 auto',
+                                        maxWidth: 'fit-content',
+                                        paddingLeft: '1rem',
+                                        paddingRight: '1rem'
+                                    }}>
+                                        <Eye style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }} />
+                                        Mặt trước
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </motion.div>
                 </AnimatePresence>
 
                 {/* Navigation Buttons */}
-                <div className="w-full max-w-4xl mx-auto flex flex-wrap justify-center gap-4 pt-4">
+                <div style={{
+                    width: isFullscreen ? 'auto' : '100%',
+                    maxWidth: isFullscreen ? '300px' : '64rem',
+                    margin: isFullscreen ? '0' : '2rem auto 0',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    gap: '1rem',
+                    flexDirection: 'row',
+                    alignItems: 'center'
+                }}>
                     <Button
                         onClick={handlePrev}
                         disabled={currentCard === 0}
@@ -661,7 +746,7 @@ export function PlayFlashcard() {
                                     color: 'white',
                                     backdropFilter: 'blur(4px)'
                                 }}
-                                className="px-6 py-3 hover:bg-opacity-50 transition-all duration-200 font-medium"
+                                className={`py-3 hover:bg-opacity-50 transition-all duration-200 font-medium px-6`}
                             >
                                 <X className="w-5 h-5 mr-2" /> Chưa thuộc
                             </Button>
@@ -674,7 +759,7 @@ export function PlayFlashcard() {
                                     border: 'none',
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                                 }}
-                                className="px-6 py-3 hover:opacity-95 hover:shadow-md transition-all duration-200 font-medium"
+                                className={`py-3 hover:opacity-95 hover:shadow-md transition-all duration-200 font-medium px-6`}
                             >
                                 <Check className="w-5 h-5 mr-2" /> Đã thuộc
                             </Button>
