@@ -10,7 +10,7 @@ const flashcardService = new FlashcardService();
 router.post('/flashcards/:flashcardSetId/submit', authMiddleware, async (req, res) => {
     try {
         const { flashcardSetId } = req.params;
-        const userId = req.user.id;
+        const userId = (req.user as any).id;
         const { cards, timeSpentMinutes, startedAt, sessionId } = req.body;
 
         console.log('=== Submit Flashcard Attempt ===');
@@ -95,7 +95,7 @@ router.post('/flashcards/:flashcardSetId/submit', authMiddleware, async (req, re
 router.get('/flashcards/:flashcardSetId/latest', authMiddleware, async (req, res) => {
     try {
         const { flashcardSetId } = req.params;
-        const userId = req.user.id;
+        const userId = (req.user as any).id;
 
         const attempt = await flashcardService.getLatestAttempt(userId, flashcardSetId);
 
@@ -155,7 +155,7 @@ router.get('/flashcard-attempts/:attemptId', authMiddleware, async (req, res) =>
         }
 
         // Check if user owns this attempt
-        if (attempt.userId._id.toString() !== req.user.id) {
+        if (attempt.userId._id.toString() !== (req.user as any).id) {
             return res.status(403).json({
                 success: false,
                 message: 'Access denied'
@@ -177,7 +177,7 @@ router.get('/flashcard-attempts/:attemptId', authMiddleware, async (req, res) =>
                     startedAt: attempt.startedAt,
                     cards: attempt.cards,
                     flashcardSet: attempt.flashcardSetId,
-                    user: attempt.user
+                    user: (attempt as any).user
                 }
             }
         });
@@ -195,7 +195,7 @@ router.get('/flashcard-attempts/:attemptId', authMiddleware, async (req, res) =>
 router.get('/flashcards/:flashcardSetId/attempts', authMiddleware, async (req, res) => {
     console.log('Flashcard attempts API called with flashcardSetId:', req.params.flashcardSetId);
     console.log('Full user object:', req.user);
-    console.log('User roles:', req.user.roles);
+    console.log('User roles:', (req.user as any).roles);
     try {
         const { flashcardSetId } = req.params;
         const limit = parseInt(req.query.limit as string) || 10;
@@ -209,7 +209,7 @@ router.get('/flashcards/:flashcardSetId/attempts', authMiddleware, async (req, r
         }
 
         // Check if user is teacher or admin
-        const userRole = req.user.role;
+        const userRole = (req.user as any).role;
         const isTeacherOrAdmin = userRole === 'teacher' || userRole === 'admin';
         console.log('User role:', userRole);
         console.log('Is teacher or admin:', isTeacherOrAdmin);
@@ -222,7 +222,7 @@ router.get('/flashcards/:flashcardSetId/attempts', authMiddleware, async (req, r
             console.log('Found attempts:', attempts?.length || 0);
         } else {
             // Students can only see their own attempts
-            const userId = req.user.id;
+            const userId = (req.user as any).id;
             attempts = await flashcardService.getUserAttempts(userId, flashcardSetId, limit);
         }
 
@@ -241,7 +241,7 @@ router.get('/flashcards/:flashcardSetId/attempts', authMiddleware, async (req, r
                     startedAt: attempt.startedAt,
                     flashcardSet: attempt.flashcardSetId,
                     userId: attempt.userId,
-                    user: attempt.user,
+                    user: (attempt as any).user,
                     cards: attempt.cards
                 }))
             }
