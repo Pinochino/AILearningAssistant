@@ -329,7 +329,7 @@ export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, add
         }))
       }
 
-      await axios.put(`http://localhost:9000/api/quizzes/${editingQuiz._id}`, payload, {
+      await axios.patch(`http://localhost:9000/api/quizzes/${editingQuiz._id}`, payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -379,7 +379,7 @@ export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, add
         }))
       }
 
-      await axios.put(`http://localhost:9000/api/flashcard-sets/${editingFlashcard._id}`, payload, {
+      await axios.patch(`http://localhost:9000/api/flashcard-sets/${editingFlashcard._id}`, payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -510,46 +510,13 @@ export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, add
   }
 
   const canEdit = (item: any) => {
-    const currentUserId = getCurrentUserId()
-    console.log('=== CAN EDIT CHECK ===')
-    console.log('Item:', item)
-    console.log('CurrentUserId:', currentUserId)
-    console.log('Item createdBy:', item.createdBy)
-    console.log('Item teacherId:', item.teacherId)
-    console.log('Item userId:', item.userId)
-    console.log('Item._id:', item._id)
-    console.log('Item creator:', item.creator)
-    console.log('Item author:', item.author)
-    console.log('Comparison results:')
-    console.log('createdBy === currentUserId:', item.createdBy === currentUserId)
-    console.log('teacherId === currentUserId:', item.teacherId === currentUserId)
-    console.log('userId === currentUserId:', item.userId === currentUserId)
-
-    const canEditResult = item.createdBy === currentUserId || item.teacherId === currentUserId || item.userId === currentUserId
-    console.log('Can edit result:', canEditResult)
-    console.log('========================')
-
-    return canEditResult
+    // Teachers can edit all quizzes and flashcards
+    return true
   }
 
   const canDelete = (item: any) => {
-    const currentUserId = getCurrentUserId()
-    console.log('=== CAN DELETE CHECK ===')
-    console.log('Item:', item)
-    console.log('CurrentUserId:', currentUserId)
-    console.log('Item createdBy:', item.createdBy)
-    console.log('Item teacherId:', item.teacherId)
-    console.log('Item userId:', item.userId)
-    console.log('Comparison results:')
-    console.log('createdBy === currentUserId:', item.createdBy === currentUserId)
-    console.log('teacherId === currentUserId:', item.teacherId === currentUserId)
-    console.log('userId === currentUserId:', item.userId === currentUserId)
-
-    const canDeleteResult = item.createdBy === currentUserId || item.teacherId === currentUserId || item.userId === currentUserId || true
-    console.log('Can delete result:', canDeleteResult)
-    console.log('==========================')
-
-    return canDeleteResult
+    // Teachers can delete all quizzes and flashcards
+    return true
   }
 
   if (loading) {

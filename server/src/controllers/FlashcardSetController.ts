@@ -196,7 +196,7 @@ export const remove: RequestHandler = async (req, res) => {
             return responseUtils({ req, res, code: 404, message: 'Flashcard set not found' })
         }
 
-        await FlashcardSet.deleteById(id)
+        await (FlashcardSet as any).deleteById(id, { deletedBy: getUserId(req) })
 
         return responseUtils({
             req,

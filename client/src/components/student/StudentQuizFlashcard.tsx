@@ -113,6 +113,43 @@ export function StudentQuizFlashcard({
         { id: string; question: string; answers: string[]; correctAnswer: number }[]
     >([{ id: '1', question: '', answers: ['', '', '', ''], correctAnswer: 0 }])
 
+    // Permission functions for students
+    const getCurrentUserId = () => {
+        const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user')
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr)
+                return user._id || user.id || user.userId
+            } catch (error) {
+                console.error('Error parsing user from localStorage:', error)
+            }
+        }
+        const userId = localStorage.getItem('userId') || localStorage.getItem('user_id')
+        return userId
+    }
+
+    const canEdit = (item: any) => {
+        const currentUserId = getCurrentUserId()
+        if (!currentUserId || !item) return false
+
+        // Students can only edit if they are the creator
+        return item.createdBy === currentUserId ||
+            item.teacherId === currentUserId ||
+            item.userId === currentUserId ||
+            item.creator === currentUserId
+    }
+
+    const canDelete = (item: any) => {
+        const currentUserId = getCurrentUserId()
+        if (!currentUserId || !item) return false
+
+        // Students can only delete if they are the creator
+        return item.createdBy === currentUserId ||
+            item.teacherId === currentUserId ||
+            item.userId === currentUserId ||
+            item.creator === currentUserId
+    }
+
     // Fetch quizzes data when component mounts
     useEffect(() => {
         fetchQuizzes()
@@ -636,6 +673,24 @@ export function StudentQuizFlashcard({
         setIsDeleteFlashcardDialogOpen(true)
     }
 
+    const handleEditQuiz = (quiz: any) => {
+        setEditingQuiz(quiz)
+        setIsEditQuizOpen(true)
+    }
+
+    const handleDeleteQuiz = (quiz: any) => {
+        // For now, just show a confirmation dialog
+        if (window.confirm(`Bạn có chắc chắn muốn xóa quiz "${quiz.title}" không?`)) {
+            // TODO: Implement delete API call
+            toast.info('Tính năng xóa quiz đang phát triển')
+        }
+    }
+
+    const handleEditFlashcard = (flashcard: any) => {
+        setEditingFlashcard(flashcard)
+        setIsEditFlashcardOpen(true)
+    }
+
     const handleViewContent = (item: any) => {
         if (selectedTab === 'quizzes') {
             setViewingQuiz(item)
@@ -1116,6 +1171,18 @@ export function StudentQuizFlashcard({
                                                         Xem lại lần làm cuối cùng
                                                     </Button>
                                                 )}
+                                                <div className='flex gap-1'>
+                                                    {canEdit(quiz) && (
+                                                        <Button variant='ghost' size='sm' onClick={() => handleEditQuiz(quiz)}>
+                                                            <Edit className='h-4 w-4' />
+                                                        </Button>
+                                                    )}
+                                                    {canDelete(quiz) && (
+                                                        <Button variant='ghost' size='sm' onClick={() => handleDeleteQuiz(quiz)}>
+                                                            <Trash2 className='h-4 w-4 text-destructive' />
+                                                        </Button>
+                                                    )}
+                                                </div>
                                                 <Button size='sm' onClick={() => {
                                                     console.log('🔍 Debug - quiz object:', quiz);
                                                     console.log('🔍 Debug - quiz._id:', quiz._id);
