@@ -24,6 +24,8 @@ import { SubjectSearch } from './student/SubjectSearch'
 import { AITutor } from './student/AITutor'
 import { DocumentsView } from './student/DocumentsView'
 import { Messages } from './student/Messages'
+import PlayQuiz from './student/PlayQuiz'
+import { PlayFlashcard } from './student/PlayFlashcard'
 
 // Common pages
 import { Profile } from './Profile'
@@ -110,6 +112,10 @@ export function PageRouter() {
         return <DocumentsView />;
       case "messages":
         return <Messages />;
+      case "play-quiz":
+        return <PlayQuiz />;
+      case "play-flashcard":
+        return <PlayFlashcard />;
       default:
         return <StudentDashboard />;
     }

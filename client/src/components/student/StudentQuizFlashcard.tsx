@@ -10,7 +10,6 @@ import { Textarea } from '../ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Checkbox } from '../ui/checkbox'
 import { Paperclip, X } from 'lucide-react'
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import {
     Plus,
     Target,
@@ -28,11 +27,10 @@ import {
 } from 'lucide-react'
 import QuizView from '../teacher/QuizView'
 import FlashcardView from '../teacher/FlashcardView'
-import { EditQuizDialog } from './EditQuizDialog'
-import { EditFlashcardDialog } from './EditFlashcardDialog'
 import Spinner from '../layout/spinner/Spinner'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { useNavigation } from '../../hooks/useNavigation'
 
 interface StudentQuizFlashcardProps {
     quizzesData?: any[]
@@ -51,6 +49,7 @@ export function StudentQuizFlashcard({
     chaptersLoading = false,
     currentSubjectId = null
 }: StudentQuizFlashcardProps) {
+    const { navigateTo } = useNavigation()
     const [quizLoading, setQuizLoading] = useState(false)
     const [quizError, setQuizError] = useState<string | null>(null)
     const [flashcardError, setFlashcardError] = useState<string | null>(null)
@@ -979,7 +978,7 @@ export function StudentQuizFlashcard({
                     ) : quizzesData.length > 0 ? (
                         <div className='grid grid-cols-1 gap-4'>
                             {quizzesData.map((quiz) => (
-                                <Card key={quiz.id}>
+                                <Card key={quiz._id || quiz.id}>
                                     <CardContent className='p-4'>
                                         <div className='flex items-center justify-between gap-4'>
                                             {/* BÊN TRÁI: icon + info */}
@@ -1017,7 +1016,16 @@ export function StudentQuizFlashcard({
                                                     <Eye className='h-4 w-4 mr-1' />
                                                     Xem nội dung
                                                 </Button>
-                                                <Button size='sm'>
+                                                <Button size='sm' onClick={() => {
+                                                    console.log('🔍 Debug - quiz object:', quiz);
+                                                    console.log('🔍 Debug - quiz._id:', quiz._id);
+                                                    console.log('🔍 Debug - quiz.id:', quiz.id);
+                                                    console.log('🔍 Debug - all keys:', Object.keys(quiz));
+                                                    Object.entries(quiz).forEach(([key, value]) => {
+                                                        console.log(`🔍 ${key}:`, value);
+                                                    });
+                                                    navigateTo('play-quiz', { quizId: quiz._id });
+                                                }}>
                                                     <Play className='h-4 w-4 mr-2' />
                                                     Làm quiz
                                                 </Button>
@@ -1044,50 +1052,61 @@ export function StudentQuizFlashcard({
                         </div>
                     ) : flashcardsData.length > 0 ? (
                         <div className='grid grid-cols-1 gap-4'>
-                            {flashcardsData.map((flashcard) => (
-                                <Card key={flashcard.id}>
-                                    <CardContent className='p-4'>
-                                        <div className='flex items-center justify-between'>
-                                            <div className='flex items-center gap-4'>
-                                                <div className='p-2 bg-orange-100 rounded-lg'>
-                                                    <BookOpen className='h-5 w-5 text-orange-600' />
+                            {flashcardsData.map((flashcard) => {
+                                console.log('Flashcard keys:', Object.keys(flashcard));
+                                console.log('Flashcard values:', Object.values(flashcard));
+                                console.log('Flashcard full object:', JSON.stringify(flashcard, null, 2));
+                                console.log('Flashcard ID (id):', flashcard.id);
+                                console.log('Flashcard ID (_id):', flashcard._id);
+                                return (
+                                    <Card key={flashcard._id}>
+                                        <CardContent className='p-4'>
+                                            <div className='flex items-center justify-between'>
+                                                <div className='flex items-center gap-4'>
+                                                    <div className='p-2 bg-orange-100 rounded-lg'>
+                                                        <BookOpen className='h-5 w-5 text-orange-600' />
+                                                    </div>
+                                                    <div className='space-y-1'>
+                                                        <div className='flex items-center gap-2'>
+                                                            <h3 className='font-medium'>{flashcard.title}</h3>
+                                                            <Badge className={getDifficultyColor(flashcard.difficulty)}>{flashcard.difficulty}</Badge>
+                                                        </div>
+                                                        <p className='text-sm text-muted-foreground'>{flashcard.description}</p>
+
+                                                        {/* Chapters */}
+                                                        <div className='flex flex-wrap gap-1'>
+                                                            {flashcard.chapterNames &&
+                                                                flashcard.chapterNames.map((chapter: string, index: number) => (
+                                                                    <Badge key={index} variant='secondary' className='text-xs'>
+                                                                        {chapter}
+                                                                    </Badge>
+                                                                ))}
+                                                        </div>
+
+                                                        <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                                                            <span>{flashcard.totalCards || flashcard.flashcards?.length || 0} thẻ</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className='space-y-1'>
-                                                    <div className='flex items-center gap-2'>
-                                                        <h3 className='font-medium'>{flashcard.title}</h3>
-                                                        <Badge className={getDifficultyColor(flashcard.difficulty)}>{flashcard.difficulty}</Badge>
-                                                    </div>
-                                                    <p className='text-sm text-muted-foreground'>{flashcard.description}</p>
-
-                                                    {/* Chapters */}
-                                                    <div className='flex flex-wrap gap-1'>
-                                                        {flashcard.chapterNames &&
-                                                            flashcard.chapterNames.map((chapter: string, index: number) => (
-                                                                <Badge key={index} variant='secondary' className='text-xs'>
-                                                                    {chapter}
-                                                                </Badge>
-                                                            ))}
-                                                    </div>
-
-                                                    <div className='flex items-center gap-4 text-sm text-muted-foreground'>
-                                                        <span>{flashcard.totalCards || flashcard.flashcards?.length || 0} thẻ</span>
-                                                    </div>
+                                                <div className='flex items-center gap-2'>
+                                                    <Button variant='outline' size='sm' onClick={() => handleViewContent(flashcard)}>
+                                                        <Eye className='h-4 w-4 mr-1' />
+                                                        Xem nội dung
+                                                    </Button>
+                                                    <Button size='sm' onClick={() => {
+                                                        console.log('Flashcard object:', flashcard);
+                                                        console.log('Flashcard ID:', flashcard._id);
+                                                        navigateTo('play-flashcard', { flashcardId: flashcard._id })
+                                                    }}>
+                                                        <Play className='h-4 w-4 mr-2' />
+                                                        Ôn tập
+                                                    </Button>
                                                 </div>
                                             </div>
-                                            <div className='flex items-center gap-2'>
-                                                <Button variant='outline' size='sm' onClick={() => handleViewContent(flashcard)}>
-                                                    <Eye className='h-4 w-4 mr-1' />
-                                                    Xem nội dung
-                                                </Button>
-                                                <Button size='sm'>
-                                                    <Play className='h-4 w-4 mr-2' />
-                                                    Ôn tập
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className='flex flex-col items-center justify-center py-12 text-center'>

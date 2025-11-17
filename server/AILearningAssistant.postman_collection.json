@@ -1,16 +1,16 @@
 {
 	"info": {
-		"_postman_id": "4851493d-71ef-4581-94dd-76e7b03ecc0a",
+		"_postman_id": "70e95b4a-2d5d-44f1-b8df-00ae806d158d",
 		"name": "AILearningAssistant",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "33627045"
+		"_exporter_id": "46241878"
 	},
 	"item": [
 		{
 			"name": "Auth",
 			"item": [
 				{
-					"name": "Login",
+					"name": "RefreshToken",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -40,13 +40,13 @@
 					"response": []
 				},
 				{
-					"name": "RefreshToken",
+					"name": "Login",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}",
+							"raw": "{\r\n    \"username\": \"teacher1\",\r\n    \"password\": \"123456\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -375,7 +375,1006 @@
 					"name": "getAllRoles",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Announcement",
+			"item": [
+				{
+					"name": "getAllAnnouncements",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9000/api/announcements",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"announcements"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAnnouncementById",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9000/api/announcements/6918989b53eb5d40e51124fa",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"announcements",
+								"6918989b53eb5d40e51124fa"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createAnnouncement",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Chuyển phòng học\",\r\n  \"content\": \"Ngày 16/11, phòng 805D chuyển sang 101D\",\r\n  \"scope\": \"school\",\r\n  \"classId\": null,\r\n  \"pinned\": null,\r\n  \"startsAt\": \"2025-11-15T10:14:15.106+00:00\",\r\n  \"endsAt\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/announcements",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"announcements"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateAnnouncementById",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Update nè\",\r\n  \"content\": \"Ngày 16/11, phòng 805D chuyển sang 101D\",\r\n  \"scope\": \"school\",\r\n  \"classId\": null,\r\n  \"pinned\": null,\r\n  \"startsAt\": \"2025-11-15T10:14:15.106+00:00\",\r\n  \"endsAt\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/announcements/6918989b53eb5d40e51124fa",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"announcements",
+								"6918989b53eb5d40e51124fa"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteAnnouncementById",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9000/api/announcements/6918989b53eb5d40e51124fa",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"announcements",
+								"6918989b53eb5d40e51124fa"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Conversation",
+			"item": [
+				{
+					"name": "getConversations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9000/api/messages/conversations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"conversations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getConversationWithAI",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/ai",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"ai"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getConversationWithAnotherUser",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/direct/6914045262792f2e1258db34",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"direct",
+								"6914045262792f2e1258db34"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createConversation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"participants\": [\"6914045262792f2e1258db3a\", \"6914045262792f2e1258db34\", \"6914045262792f2e1258db3d\"],\r\n  \"name\": \"Study Group 2024\",\r\n  \"isGroup\": true,\r\n  \"conversationType\": \"group\",\r\n  \"aiTutorId\": null,\r\n  \"classId\": \"656a1b2c3d4e5f6789012348\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/conversations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"conversations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateConversation",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Updated Group Name\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/conversations/6918aa6153eb5d40e5112a59",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"conversations",
+								"6918aa6153eb5d40e5112a59"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteConversation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/conversations/6918aa6153eb5d40e5112a59",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"conversations",
+								"6918aa6153eb5d40e5112a59"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Message",
+			"item": [
+				{
+					"name": "getConversationMessages",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/conversations/691852767a14d003cfc47a77/messages",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"conversations",
+								"691852767a14d003cfc47a77",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sendMessageToAITutor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"prompt\": \"Can you explain the concept of machine learning?\",\r\n  \"conversationId\": \"6918b31453eb5d40e5112ac1\",\r\n  \"aiTutorId\": \"ai - mặc định\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/ai",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"ai"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createMessage",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"conversationId\": \"6918aa6153eb5d40e5112a59\",\r\n  \"content\": \"Chao moi nguoi a\",\r\n  \"type\": \"text\",\r\n  \"replyTo\": null,\r\n  \"attachments\": []\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "markMessageAsRead",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzNCIsIm5hbWUiOiJUw610IGNo4budIG3hu5l0IiwidXNlcm5hbWUiOiJ0ZWFjaGVyMSIsImVtYWlsIjoiIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjMyMjE5MzMsImV4cCI6MTc2MzIyOTEzM30.MfEbwEuu8p2JsVLeLr2WVn29xlYutqb8ZByshKYUclQ",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"conversationId\": \"6918aa6153eb5d40e5112a59\",\r\n  \"content\": \"Chao moi nguoi a\",\r\n  \"type\": \"text\",\r\n  \"replyTo\": null,\r\n  \"attachments\": []\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/messages/6918acd353eb5d40e5112a77/read",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"messages",
+								"6918acd353eb5d40e5112a77",
+								"read"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Class",
+			"item": [
+				{
+					"name": "allClasses",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYxNjU1LCJleHAiOjE3NjMyNjI4NTV9.2PfzifVQbs6EoGAY4PVeHn8E-DIW-fi__HUOhmNjiRw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/classes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"classes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getClassById",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYxNjU1LCJleHAiOjE3NjMyNjI4NTV9.2PfzifVQbs6EoGAY4PVeHn8E-DIW-fi__HUOhmNjiRw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/classes/6914a9b411553581acce0003",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"classes",
+								"6914a9b411553581acce0003"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getPendingEnrollments",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYzMjkwLCJleHAiOjE3NjMyNjQ0OTB9.I0B6e_tVYDUytQuyD1qFWtDb8nLksG2n1WHgwrn1NAM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api//students/69132a4fa4398bfbb46dcdf7/enrollments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"",
+								"students",
+								"69132a4fa4398bfbb46dcdf7",
+								"enrollments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getClassessByTeacher",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYzODcyLCJleHAiOjE3NjMyNjUwNzJ9.MEfFzL55nI6TIJi52y-tInumrBjvwDTaFW4XQOEqK8c",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/teachers/69132a4ea4398bfbb46dcddf/classes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"teachers",
+								"69132a4ea4398bfbb46dcddf",
+								"classes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAvailableClasses",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRmYTQzOThiZmJiNDZkY2RlYiIsInVzZXJuYW1lIjoic3R1ZGVudDIiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlVTRVIiXSwiaWF0IjoxNzYzMjY0MDIyLCJleHAiOjE3NjMyNjUyMjJ9.9jC6eutBZZJ_-Z3IEkSP1oIW5czA0gbrG62pQ46bL04",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/students/69132a4fa4398bfbb46dcdeb/available-classes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"students",
+								"69132a4fa4398bfbb46dcdeb",
+								"available-classes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteClassById",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkYyIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MzI2NDE5MywiZXhwIjoxNzYzMjY1MzkzfQ.gBoFVahnqd8Nf6jsLkoOB_jJ3UnDFxM1tA-JtjyXK6w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/classes/69132a50a4398bfbb46dce07",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"classes",
+								"69132a50a4398bfbb46dce07"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createClass",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkYyIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MzI2MTU1MiwiZXhwIjoxNzYzMjYyNzUyfQ.ivQwIfQRRf6BeWXSt54Uome7D-EE0pxyPczCFuS2FkQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"subject\": \"Toán cao cấp\",\r\n  \"grade\": \"Lớp 12A1\",\r\n  \"teacherId\": \"69132a4ea4398bfbb46dcddf\",\r\n  \"maxStudents\": 30,\r\n  \"schedule\": [\r\n    {\r\n      \"dayOfWeek\": 1,\r\n      \"startTime\": \"07:30\",\r\n      \"endTime\": \"09:00\"\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/classes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"classes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "editClass",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkYyIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MzI2MTU1MiwiZXhwIjoxNzYzMjYyNzUyfQ.ivQwIfQRRf6BeWXSt54Uome7D-EE0pxyPczCFuS2FkQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Toán cao cấp - Lớp 12A2\",\r\n  \"subject\": \"Toán cao cấp\",\r\n  \"grade\": \"Lớp 12A2\",\r\n  \"teacherId\": \"69132a4ea4398bfbb46dcddf\",\r\n  \"maxStudents\": 35,\r\n  \"schedule\": [\r\n    {\r\n      \"dayOfWeek\": 2,\r\n      \"startTime\": \"08:00\",\r\n      \"endTime\": \"09:30\"\r\n    }\r\n  ],\r\n  \"isActive\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/classes/69193dac465a47bcc92bc96c",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"classes",
+								"69193dac465a47bcc92bc96c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "requestEnrollment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RlOCIsInVzZXJuYW1lIjoic3R1ZGVudDEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlVTRVIiXSwiaWF0IjoxNzYzMjYxNzA0LCJleHAiOjE3NjMyNjI5MDR9.ClEpEhD6GbTfv4pbpHf-_1TNE1n2AjFSiDHGPxWXikw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"message\": \"Em muốn đăng ký môn này vì cần tín chỉ\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/classes/69193dac465a47bcc92bc96c/request-enrollment",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"classes",
+								"69193dac465a47bcc92bc96c",
+								"request-enrollment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rejectRequest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYxNjU1LCJleHAiOjE3NjMyNjI4NTV9.2PfzifVQbs6EoGAY4PVeHn8E-DIW-fi__HUOhmNjiRw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/enrollments/691940ef465a47bcc92bc995/reject",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"enrollments",
+								"691940ef465a47bcc92bc995",
+								"reject"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "approveRequest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYyOTQ2LCJleHAiOjE3NjMyNjQxNDZ9.ZvPAhTFoVP9Cgjd6HYBM6tj6d7CKl23zI2s6kP9KrYc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9000/api/enrollments/691940ef465a47bcc92bc995/approve",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9000",
+							"path": [
+								"api",
+								"enrollments",
+								"691940ef465a47bcc92bc995",
+								"approve"
+							]
+						}
 					},
 					"response": []
 				}
