@@ -188,7 +188,7 @@ const PlayQuiz = () => {
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-red-600 mb-4">{error}</p>
-                    <Button onClick={() => navigateTo('quizzes')} variant="outline">
+                    <Button onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })} variant="outline">
                         Quay lại
                     </Button>
                 </div>
@@ -201,7 +201,7 @@ const PlayQuiz = () => {
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Không tìm thấy quiz</p>
-                    <Button onClick={() => navigateTo('quizzes')} variant="outline">
+                    <Button onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })} variant="outline">
                         Quay lại
                     </Button>
                 </div>
@@ -220,7 +220,7 @@ const PlayQuiz = () => {
                     {/* Back Button */}
                     <Button
                         variant="ghost"
-                        onClick={() => navigateTo('quizzes')}
+                        onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })}
                         className="mb-6 flex items-center gap-2"
                     >
                         <ChevronLeft className="w-4 h-4" />
@@ -274,7 +274,7 @@ const PlayQuiz = () => {
                             {/* Action Buttons */}
                             <div className="flex justify-center gap-6 mt-6"> {/* cách ra khỏi 3 ô trên */}
                                 <Button
-                                    onClick={() => navigateTo('quizzes')}
+                                    onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })}
                                     variant="outline"
                                     className="px-10 py-3 rounded-xl"
                                 >
@@ -376,7 +376,7 @@ const PlayQuiz = () => {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => navigateTo('quizzes')}
+                                    onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })}
                                     className="hover:bg-slate-100"
                                 >
                                     <ChevronLeft className="w-5 h-5" />

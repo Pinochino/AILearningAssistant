@@ -40,6 +40,7 @@ interface StudentQuizFlashcardProps {
     chapters?: any[]
     chaptersLoading?: boolean
     currentSubjectId?: string | null
+    initialTab?: string
 }
 
 export function StudentQuizFlashcard({
@@ -47,7 +48,8 @@ export function StudentQuizFlashcard({
     flashcardsData = [],
     chapters = [],
     chaptersLoading = false,
-    currentSubjectId = null
+    currentSubjectId = null,
+    initialTab = 'quiz'
 }: StudentQuizFlashcardProps) {
     const { navigateTo } = useNavigation()
     const [quizLoading, setQuizLoading] = useState(false)
@@ -79,7 +81,7 @@ export function StudentQuizFlashcard({
     const [viewingFlashcard, setViewingFlashcard] = useState<any>(null)
 
     // Tab selection
-    const [selectedTab, setSelectedTab] = useState('quizzes')
+    const [selectedTab, setSelectedTab] = useState(initialTab === 'flashcard' ? 'flashcards' : 'quizzes')
 
     // Delete dialog states
     const [isDeleteFlashcardDialogOpen, setIsDeleteFlashcardDialogOpen] = useState(false)
@@ -1024,7 +1026,7 @@ export function StudentQuizFlashcard({
                                                     Object.entries(quiz).forEach(([key, value]) => {
                                                         console.log(`🔍 ${key}:`, value);
                                                     });
-                                                    navigateTo('play-quiz', { quizId: quiz._id });
+                                                    navigateTo('play-quiz', { quizId: quiz._id, subjectId: currentSubjectId || '' });
                                                 }}>
                                                     <Play className='h-4 w-4 mr-2' />
                                                     Làm quiz
@@ -1096,7 +1098,7 @@ export function StudentQuizFlashcard({
                                                     <Button size='sm' onClick={() => {
                                                         console.log('Flashcard object:', flashcard);
                                                         console.log('Flashcard ID:', flashcard._id);
-                                                        navigateTo('play-flashcard', { flashcardId: flashcard._id })
+                                                        navigateTo('play-flashcard', { flashcardId: flashcard._id, subjectId: currentSubjectId || '' })
                                                     }}>
                                                         <Play className='h-4 w-4 mr-2' />
                                                         Ôn tập

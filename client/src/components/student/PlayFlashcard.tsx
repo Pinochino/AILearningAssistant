@@ -153,7 +153,7 @@ export function PlayFlashcard() {
                 <div className="max-w-4xl mx-auto">
                     <div className="flex flex-col items-center justify-center h-32">
                         <p className="text-red-500 mb-4">{error}</p>
-                        <Button onClick={() => navigateTo('subject')}>
+                        <Button onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'flashcard' })}>
                             Quay lại danh sách
                         </Button>
                     </div>
@@ -174,7 +174,7 @@ export function PlayFlashcard() {
                     {/* Back Button */}
                     <Button
                         variant="ghost"
-                        onClick={() => navigateTo('subject')}
+                        onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'flashcard' })}
                         className="mb-6 flex items-center gap-2"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -232,7 +232,7 @@ export function PlayFlashcard() {
                                     Học lại từ đầu
                                 </Button>
                                 <Button
-                                    onClick={() => navigateTo('subject')}
+                                    onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'flashcard' })}
                                     variant="outline"
                                     className="flex-1 max-w-[200px] py-3 rounded-xl"
                                 >
@@ -257,7 +257,7 @@ export function PlayFlashcard() {
                 {/* Nút điều khiển */}
                 <div className="flex justify-between items-center">
                     <Button
-                        onClick={() => navigateTo('subject')}
+                        onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'flashcard' })}
                         className="flex items-center gap-2 text-black bg-gray-100 hover:bg-gray-200 border-2 border-black rounded-lg px-3 py-2"
                     >
                         <ArrowLeft className="w-5 h-5" /> Quay lại

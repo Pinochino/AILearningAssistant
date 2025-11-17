@@ -77,8 +77,9 @@ interface FlashcardItem {
 }
 
 export function SubjectView() {
-  const { navigateTo } = useNavigation()
+  const { navigateTo, currentParams } = useNavigation()
   const [hasClasses, setHasClasses] = useState(false)
+  const [selectedTab, setSelectedTab] = useState('chapters')
 
   // Real data states
   const [chaptersLoading, setChaptersLoading] = useState(false)
@@ -214,6 +215,15 @@ export function SubjectView() {
 
     loadClasses()
   }, [])
+
+  // Handle tab parameter from navigation
+  useEffect(() => {
+    if (currentParams?.tab) {
+      if (currentParams.tab === 'quiz' || currentParams.tab === 'flashcard') {
+        setSelectedTab('student-content')
+      }
+    }
+  }, [currentParams])
 
   // Fetch real data when currentSubjectId changes
   useEffect(() => {
@@ -780,7 +790,7 @@ export function SubjectView() {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue='chapters' className='space-y-4'>
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className='space-y-4'>
         <TabsList>
           <TabsTrigger value='chapters'>Chương học</TabsTrigger>
           <TabsTrigger value='student-content'>Quiz & Flashcard</TabsTrigger>
@@ -883,6 +893,7 @@ export function SubjectView() {
             chapters={chapters}
             chaptersLoading={chaptersLoading}
             currentSubjectId={currentSubjectId}
+            initialTab={currentParams?.tab || 'quiz'}
           />
         </TabsContent>
       </Tabs>
