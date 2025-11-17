@@ -174,7 +174,10 @@ export class QuizService {
   }) {
     const { userId, quizId, classId, page = 1, limit = 20 } = data
 
-    const filter: any = { userId: new Types.ObjectId(userId) }
+    const filter: any = {}
+    if (userId && userId !== '') {
+      filter.userId = new Types.ObjectId(userId)
+    }
     if (quizId) filter.quizId = new Types.ObjectId(quizId)
     if (classId) filter.classId = new Types.ObjectId(classId)
 
@@ -186,6 +189,7 @@ export class QuizService {
         .skip(skip)
         .limit(limit)
         .populate('quizId', 'title difficulty durationMinutes')
+        .populate('userId', 'name email')
         .lean(),
       QuizAttempt.countDocuments(filter)
     ])

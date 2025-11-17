@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { useNavigation } from '../../hooks/useNavigation'
 import { Card, CardContent } from '../ui/card'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
@@ -79,6 +80,7 @@ interface FlashcardItem {
 }
 
 export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, addFlashcardSet: parentAddFlashcardSet }: TeacherQuizFlashcardProps) {
+  const { navigateTo, currentParams } = useNavigation()
   const [selectedTab, setSelectedTab] = useState('quizzes')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedChapter, setSelectedChapter] = useState('all')
@@ -222,7 +224,19 @@ export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, add
   }
 
   const handleViewResults = (item: any) => {
-    toast.info('Tính năng xem kết quả đang phát triển')
+    if (selectedTab === 'quizzes') {
+      // Navigate to quiz results overview
+      navigateTo('quiz-results-overview', {
+        quizId: item._id,
+        subjectId: currentParams.subjectId
+      })
+    } else if (selectedTab === 'flashcards') {
+      // Navigate to flashcard results overview
+      navigateTo('flashcard-results-overview', {
+        flashcardId: item._id,
+        subjectId: currentParams.subjectId
+      })
+    }
   }
 
   const handleEdit = (item: any) => {
@@ -497,17 +511,45 @@ export default function TeacherQuizFlashcard({ subjectId, refreshFlashcards, add
 
   const canEdit = (item: any) => {
     const currentUserId = getCurrentUserId()
-    console.log('Can edit check - Item:', item, 'CurrentUserId:', currentUserId)
-    console.log('Item createdBy:', item.createdBy, 'Item teacherId:', item.teacherId, 'Item userId:', item.userId)
-    return item.createdBy === currentUserId || item.teacherId === currentUserId || item.userId === currentUserId
+    console.log('=== CAN EDIT CHECK ===')
+    console.log('Item:', item)
+    console.log('CurrentUserId:', currentUserId)
+    console.log('Item createdBy:', item.createdBy)
+    console.log('Item teacherId:', item.teacherId)
+    console.log('Item userId:', item.userId)
+    console.log('Item._id:', item._id)
+    console.log('Item creator:', item.creator)
+    console.log('Item author:', item.author)
+    console.log('Comparison results:')
+    console.log('createdBy === currentUserId:', item.createdBy === currentUserId)
+    console.log('teacherId === currentUserId:', item.teacherId === currentUserId)
+    console.log('userId === currentUserId:', item.userId === currentUserId)
+
+    const canEditResult = item.createdBy === currentUserId || item.teacherId === currentUserId || item.userId === currentUserId
+    console.log('Can edit result:', canEditResult)
+    console.log('========================')
+
+    return canEditResult
   }
 
   const canDelete = (item: any) => {
     const currentUserId = getCurrentUserId()
-    console.log('Can delete check - Item:', item, 'CurrentUserId:', currentUserId)
-    console.log('Item createdBy:', item.createdBy, 'Item teacherId:', item.teacherId, 'Item userId:', item.userId)
-    // Teachers can always delete, or if they created it
-    return item.createdBy === currentUserId || item.teacherId === currentUserId || item.userId === currentUserId || true
+    console.log('=== CAN DELETE CHECK ===')
+    console.log('Item:', item)
+    console.log('CurrentUserId:', currentUserId)
+    console.log('Item createdBy:', item.createdBy)
+    console.log('Item teacherId:', item.teacherId)
+    console.log('Item userId:', item.userId)
+    console.log('Comparison results:')
+    console.log('createdBy === currentUserId:', item.createdBy === currentUserId)
+    console.log('teacherId === currentUserId:', item.teacherId === currentUserId)
+    console.log('userId === currentUserId:', item.userId === currentUserId)
+
+    const canDeleteResult = item.createdBy === currentUserId || item.teacherId === currentUserId || item.userId === currentUserId || true
+    console.log('Can delete result:', canDeleteResult)
+    console.log('==========================')
+
+    return canDeleteResult
   }
 
   if (loading) {

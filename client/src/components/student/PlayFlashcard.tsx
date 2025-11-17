@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Progress } from '../ui/progress';
 import { useNavigation } from '../../hooks/useNavigation';
-import { ChevronLeft, ChevronRight, Shuffle, ArrowLeft, RotateCcw, Check, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Shuffle, ArrowLeft, RotateCcw, Check, X, Eye, EyeOff } from "lucide-react";
 
 interface FlashcardData {
     id: string;
@@ -403,7 +403,17 @@ export function PlayFlashcard() {
                         {isFlipped ? currentCardData.back : currentCardData.front}
                     </h2>
                     <p className="mt-6 text-base text-indigo-600 font-medium flex items-center justify-center gap-2">
-                        {isFlipped ? "🔁 Xem câu hỏi" : "💡 Xem đáp án"}
+                        {isFlipped ? (
+                            <>
+                                <Eye className="w-4 h-4" />
+                                Xem câu hỏi
+                            </>
+                        ) : (
+                            <>
+                                <EyeOff className="w-4 h-4" />
+                                Xem đáp án
+                            </>
+                        )}
                     </p>
                 </div>
             </div>

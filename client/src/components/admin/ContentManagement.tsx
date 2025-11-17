@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Button } from '../ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { useNavigation } from '../../hooks/useNavigation'
 import {
   Search,
   FileText,
@@ -79,11 +80,22 @@ interface User {
 }
 
 export function ContentManagement() {
+  const { navigateTo } = useNavigation()
   const [documents, setDocuments] = useState<Material[]>([])
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [flashcards, setFlashcards] = useState<Flashcard[]>([])
   const [classes, setClasses] = useState<Class[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Handler functions for navigation
+  const handleViewQuizResults = (quizId: string) => {
+    navigateTo('quiz-results-overview', { quizId })
+  }
+
+  const handleViewFlashcardResults = (flashcardId: string) => {
+    navigateTo('flashcard-results-overview', { flashcardId })
+  }
+
   const [error, setError] = useState<string | null>(null)
   const [selectedClass, setSelectedClass] = useState('all')
 
@@ -457,7 +469,11 @@ export function ContentManagement() {
                         </div>
                       </div>
                       <div className='flex items-center gap-2'>
-                        <Button variant='outline' size='sm'>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => handleViewQuizResults(quiz._id)}
+                        >
                           <Eye className='h-4 w-4' />
                         </Button>
                         <Button variant='outline' size='sm'>
@@ -523,7 +539,11 @@ export function ContentManagement() {
                         </div>
                       </div>
                       <div className='flex items-center gap-2'>
-                        <Button variant='outline' size='sm'>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => handleViewFlashcardResults(flashcard._id)}
+                        >
                           <Eye className='h-4 w-4' />
                         </Button>
                         <Button variant='outline' size='sm'>

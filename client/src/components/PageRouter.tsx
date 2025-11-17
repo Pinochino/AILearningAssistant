@@ -17,6 +17,8 @@ import { UserDetailPage } from './admin/UserDetail'
 // Teacher pages
 import { SubjectDetail } from './teacher/SubjectDetail'
 import { Messages as TeacherMessages } from './teacher/Messages'
+import TeacherQuizResultsOverview from './teacher/TeacherQuizResultsOverview'
+import TeacherFlashcardResultsOverview from './teacher/TeacherFlashcardResultsOverview'
 
 // Student pages
 import { SubjectView } from './student/SubjectView'
@@ -25,7 +27,7 @@ import { AITutor } from './student/AITutor'
 import { DocumentsView } from './student/DocumentsView'
 import { Messages } from './student/Messages'
 import PlayQuiz from './student/PlayQuiz'
-import { PlayFlashcard } from './student/PlayFlashcard'
+import PlayFlashcard from './student/PlayFlashcard'
 import QuizAttemptReview from './student/QuizAttemptReview'
 import FlashcardAttemptReview from './student/FlashcardAttemptReview'
 
@@ -65,9 +67,13 @@ export function PageRouter() {
       case 'quiz-stats':
       case 'flashcard-stats':
       case 'learning-progress':
-        return <AdminDashboard /> // Change here
+        return <AdminDashboard />
       case 'content':
         return <ContentManagement />;
+      case 'quiz-results-overview':
+        return <TeacherQuizResultsOverview />;
+      case 'flashcard-results-overview':
+        return <TeacherFlashcardResultsOverview />;
       case "settings":
         return <SystemSettings />;
       default:
@@ -90,6 +96,10 @@ export function PageRouter() {
       case "schedule":
       case "messages":
         return <TeacherMessages />;
+      case "quiz-results-overview":
+        return <TeacherQuizResultsOverview />;
+      case "flashcard-results-overview":
+        return <TeacherFlashcardResultsOverview />;
       default:
         return <TeacherDashboard />;
     }

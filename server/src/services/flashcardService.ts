@@ -203,5 +203,33 @@ export class FlashcardService {
       .sort({ completedAt: -1 })
       .limit(limit)
       .populate('flashcardSetId')
+      .populate('userId', 'name email')
+  }
+
+  // ✅ Lấy tất cả attempts của flashcard set (cho teacher/admin)
+  async getAllAttemptsForFlashcardSet(flashcardSetId: string, limit = 10) {
+    console.log('Finding attempts for flashcardSetId:', flashcardSetId);
+
+    // Debug: Hiển thị tất cả attempts trong database
+    const allAttempts = await FlashcardAttempt.find({});
+    console.log('All flashcard attempts in database:', allAttempts.length);
+    allAttempts.forEach((attempt, index) => {
+      console.log(`Attempt ${index}:`, {
+        _id: attempt._id,
+        flashcardSetId: attempt.flashcardSetId,
+        userId: attempt.userId,
+        score: attempt.score
+      });
+    });
+
+    const attempts = await FlashcardAttempt.find({
+      flashcardSetId: new Types.ObjectId(flashcardSetId)
+    })
+      .sort({ completedAt: -1 })
+      .limit(limit)
+      .populate('flashcardSetId')
+      .populate('userId', 'name email');
+    console.log('Flashcard attempts found:', attempts?.length || 0);
+    return attempts;
   }
 }

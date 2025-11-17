@@ -264,7 +264,7 @@ export const submitQuiz: RequestHandler = async (req, res) => {
 export const getQuizAttempts: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params
-    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid quiz id' })
+    if (!id || !isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid quiz id' })
 
     const { page = '1', limit = '20' } = req.query as Record<string, string>
     const p = Math.max(1, parseInt(String(page)) || 1)
