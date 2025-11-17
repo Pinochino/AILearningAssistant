@@ -6,6 +6,7 @@ import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { useNavigation } from '../../hooks/useNavigation';
 import { ChevronLeft, Trophy, Users, CheckCircle, XCircle, BarChart3, TrendingUp, Brain } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 interface FlashcardAttempt {
     _id: string;
@@ -133,6 +134,8 @@ export function TeacherFlashcardResultsOverview() {
             setFlashcardStats(stats);
         }
     }, [attempts, flashcardSet]);
+    const { user } = useAuth();
+    const userRole = user?.role;
 
     const calculateFlashcardStats = (attempts: FlashcardAttempt[], flashcards: any[]): FlashcardStats[] => {
         if (!Array.isArray(attempts) || attempts.length === 0 || !Array.isArray(flashcards)) {
@@ -249,7 +252,18 @@ export function TeacherFlashcardResultsOverview() {
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col items-center justify-center h-32">
                         <p className="text-red-500 mb-4">{error}</p>
-                        <Button onClick={() => navigateTo('content')}>
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                if (userRole === 'admin') {
+                                    navigateTo('content');
+                                } else {
+                                    navigateTo('classes', { tab: 'flashcard' });
+                                }
+                            }}
+                            className="flex items-center gap-2"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
                             Quay lại
                         </Button>
                     </div>
@@ -265,7 +279,13 @@ export function TeacherFlashcardResultsOverview() {
                 <div className="flex items-center gap-4 mb-6">
                     <Button
                         variant="ghost"
-                        onClick={() => navigateTo('content')}
+                        onClick={() => {
+                            if (userRole === 'admin') {
+                                navigateTo('content');
+                            } else {
+                                navigateTo('classes', { tab: 'flashcard' });
+                            }
+                        }}
                         className="flex items-center gap-2"
                     >
                         <ChevronLeft className="w-4 h-4" />

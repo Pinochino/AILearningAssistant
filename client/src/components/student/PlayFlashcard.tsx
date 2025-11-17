@@ -4,7 +4,8 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Progress } from '../ui/progress';
 import { useNavigation } from '../../hooks/useNavigation';
-import { ChevronLeft, ChevronRight, Shuffle, ArrowLeft, RotateCcw, Check, X, Eye, EyeOff } from "lucide-react";
+import { ChevronLeft, ChevronRight, Shuffle, ArrowLeft, RotateCcw, Check, X, Eye, EyeOff, Zap, Star, Trophy, Award, CheckCircle, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface FlashcardData {
     id: string;
@@ -351,7 +352,7 @@ export function PlayFlashcard() {
 
     // ===== MAIN FLASHCARD UI =====
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4">
             {/* 🟦 Header */}
             <div className="w-full max-w-4xl mx-auto border-6 border-black rounded-2xl bg-white p-8 flex flex-col gap-4 shadow-md">
                 {/* Nút điều khiển */}

@@ -6,6 +6,7 @@ import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { useNavigation } from '../../hooks/useNavigation';
 import { ChevronLeft, Trophy, Users, CheckCircle, XCircle, BarChart3, TrendingUp } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 interface QuizAttempt {
     _id: string;
@@ -125,7 +126,8 @@ export function TeacherQuizResultsOverview() {
             setQuestionStats(stats);
         }
     }, [attempts, quiz]);
-
+    const { user } = useAuth();
+    const userRole = user?.role;
     const calculateQuestionStats = (attempts: QuizAttempt[], questions: any[]): QuestionStats[] => {
         if (!Array.isArray(attempts) || attempts.length === 0 || !Array.isArray(questions) || questions.length === 0) {
             return [];
@@ -230,7 +232,18 @@ export function TeacherQuizResultsOverview() {
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col items-center justify-center h-32">
                         <p className="text-red-500 mb-4">{error}</p>
-                        <Button onClick={() => navigateTo('content')}>
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                if (userRole === 'admin') {
+                                    navigateTo('content');
+                                } else {
+                                    navigateTo('classes', { tab: 'quiz' });
+                                }
+                            }}
+                            className="flex items-center gap-2"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
                             Quay lại
                         </Button>
                     </div>
@@ -246,7 +259,13 @@ export function TeacherQuizResultsOverview() {
                 <div className="flex items-center gap-4 mb-6">
                     <Button
                         variant="ghost"
-                        onClick={() => navigateTo('content')}
+                        onClick={() => {
+                            if (userRole === 'admin') {
+                                navigateTo('content');
+                            } else {
+                                navigateTo('classes', { tab: 'quiz' });
+                            }
+                        }}
                         className="flex items-center gap-2"
                     >
                         <ChevronLeft className="w-4 h-4" />
@@ -301,7 +320,9 @@ export function TeacherQuizResultsOverview() {
                                 <TrendingUp className="w-5 h-5 text-purple-600" />
                                 <div>
                                     <p className="text-sm text-muted-foreground">Hoàn thành</p>
-                                    <p className="text-2xl font-bold">{Array.isArray(bestAttemptsByUser) ? bestAttemptsByUser.length : 0}</p>
+                                    <p className="text-2xl font-bold">
+                                        {Array.isArray(attempts) ? attempts.length : 0}
+                                    </p>
                                 </div>
                             </div>
                         </CardContent>
