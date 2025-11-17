@@ -357,3 +357,26 @@ export const getAttemptDetail: RequestHandler = async (req, res) => {
     return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
   }
 }
+
+// 🆕 GET /quizzes/:id/latest-attempt - Get latest attempt for current user
+export const getLatestAttempt: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params
+    if (!isId(id)) return responseUtils({ req, res, code: 400, message: 'Invalid quiz id' })
+
+    const userId = getUserId(req)
+    if (!userId) return responseUtils({ req, res, code: 401, message: 'Unauthorized' })
+
+    const attempt = await quizService.getLatestAttempt(userId, id)
+
+    return responseUtils({
+      req,
+      res,
+      code: 200,
+      message: 'OK',
+      data: attempt
+    })
+  } catch (err: any) {
+    return responseUtils({ req, res, code: 500, message: err.message || 'Internal server error' })
+  }
+}

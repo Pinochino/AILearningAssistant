@@ -19,11 +19,12 @@ r.patch('/:id/publish', qz.publish)
 r.delete('/:id', qz.remove)
 r.patch('/:id/restore', qz.restore)
 
-// 🆕 Submit & History
+// Submit & History
 r.post('/:id/submit', qz.submitQuiz)
 r.get('/:id/attempts', qz.getQuizAttempts)
 r.get('/:id/statistics', qz.getQuizStats)
 r.get('/attempts/my-history', qz.getMyQuizHistory)
 r.get('/attempts/:attemptId', qz.getAttemptDetail)
+r.get('/:id/latest-attempt', qz.getLatestAttempt)
 
 export default r

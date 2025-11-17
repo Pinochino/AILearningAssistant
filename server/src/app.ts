@@ -28,6 +28,7 @@ import flashcardRouter from "./routers/flashcardRouter.js";
 import flashcardSetRouter from "./routers/flashcardSetRouter.js";
 import materialRouter from "./routers/materialRouter.js";
 import aiRouter from "./routers/aiRouter.js";
+import flashcardAttemptRoutes from "./routes/flashcard.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -139,6 +140,7 @@ app.use("/", classRoutes);
 app.use("/api/roles", roleRouter);
 app.use("/api/chapters", chapterRouter);
 app.use("/api/quizzes", quizRouter);
+app.use("/api", flashcardAttemptRoutes);
 app.use("/api/flashcards", flashcardRouter);
 app.use("/api/flashcard-sets", flashcardSetRouter);
 app.use("/api/materials", materialRouter);

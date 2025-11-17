@@ -26,6 +26,8 @@ import { DocumentsView } from './student/DocumentsView'
 import { Messages } from './student/Messages'
 import PlayQuiz from './student/PlayQuiz'
 import { PlayFlashcard } from './student/PlayFlashcard'
+import QuizAttemptReview from './student/QuizAttemptReview'
+import FlashcardAttemptReview from './student/FlashcardAttemptReview'
 
 // Common pages
 import { Profile } from './Profile'
@@ -116,6 +118,10 @@ export function PageRouter() {
         return <PlayQuiz />;
       case "play-flashcard":
         return <PlayFlashcard />;
+      case "quiz-attempt-review":
+        return <QuizAttemptReview />;
+      case "flashcard-attempt-review":
+        return <FlashcardAttemptReview />;
       default:
         return <StudentDashboard />;
     }

@@ -213,6 +213,19 @@ export class QuizService {
     return attempt
   }
 
+  // ✅ Lấy lần làm gần nhất của user cho một quiz cụ thể
+  async getLatestAttempt(userId: string, quizId: string) {
+    const attempt = await QuizAttempt.findOne({
+      userId: new Types.ObjectId(userId),
+      quizId: new Types.ObjectId(quizId)
+    })
+      .sort({ completedAt: -1 })
+      .populate('quizId')
+      .lean()
+
+    return attempt
+  }
+
   // ✅ Thống kê quiz (cho giáo viên)
   async getQuizStatistics(quizId: string) {
     const attempts = await QuizAttempt.find({ quizId: new Types.ObjectId(quizId) }).lean()

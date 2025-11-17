@@ -1,5 +1,6 @@
 import { Chapter } from '../models/Chapter.js'
 import { Flashcard } from '../models/Flashcard.js'
+import { FlashcardAttempt } from '../models/FlashcardAttempt.js'
 import AIService from './aiService.js'
 import { Types } from 'mongoose'
 
@@ -15,15 +16,15 @@ const calculateNextInterval = (params: {
   isCorrect: boolean
 }): INextInterval => {
   let { currentInterval, easeFactor } = params
-  
+
   if (!params.isCorrect) {
     return { interval: 1, easeFactor: Math.max(1.3, easeFactor - 0.2) }
   }
 
-  const difficultyFactor = 
+  const difficultyFactor =
     params.difficulty === 'easy' ? 1.3 :
-    params.difficulty === 'medium' ? 1 :
-    0.7
+      params.difficulty === 'medium' ? 1 :
+        0.7
 
   if (currentInterval === 0) currentInterval = 1
   else currentInterval = Math.round(currentInterval * easeFactor * difficultyFactor)
@@ -141,5 +142,66 @@ export class FlashcardService {
       },
       { new: true }
     )
+  }
+
+  // ✅ Lưu kết quả ôn tập flashcard
+  async saveAttempt(data: {
+    userId: string
+    flashcardSetId: string
+    classId: string
+    cards: {
+      cardIndex: number
+      isCorrect: boolean
+      timeSpentSeconds?: number
+      difficulty?: 'easy' | 'medium' | 'hard'
+    }[]
+    timeSpentMinutes: number
+    startedAt: string
+    sessionId: string
+  }) {
+    const correctCards = data.cards.filter(card => card.isCorrect).length
+    const incorrectCards = data.cards.length - correctCards
+    const score = data.cards.length > 0 ? Math.round((correctCards / data.cards.length) * 100) : 0
+
+    return FlashcardAttempt.create({
+      userId: new Types.ObjectId(data.userId),
+      flashcardSetId: new Types.ObjectId(data.flashcardSetId),
+      classId: new Types.ObjectId(data.classId),
+      cards: data.cards,
+      score,
+      totalCards: data.cards.length,
+      correctCards,
+      incorrectCards,
+      timeSpentMinutes: data.timeSpentMinutes,
+      startedAt: new Date(data.startedAt),
+      completedAt: new Date(),
+      sessionId: data.sessionId
+    })
+  }
+
+  // ✅ Lấy lần ôn tập cuối cùng của user cho flashcard set
+  async getLatestAttempt(userId: string, flashcardSetId: string) {
+    return FlashcardAttempt.findOne({
+      userId: new Types.ObjectId(userId),
+      flashcardSetId: new Types.ObjectId(flashcardSetId)
+    }).sort({ completedAt: -1 }).populate('flashcardSetId')
+  }
+
+  // ✅ Lấy chi tiết lần ôn tập
+  async getAttemptById(attemptId: string) {
+    return FlashcardAttempt.findById(attemptId)
+      .populate('flashcardSetId')
+      .populate('userId', 'name email')
+  }
+
+  // ✅ Lấy tất cả attempts của user cho flashcard set
+  async getUserAttempts(userId: string, flashcardSetId: string, limit = 10) {
+    return FlashcardAttempt.find({
+      userId: new Types.ObjectId(userId),
+      flashcardSetId: new Types.ObjectId(flashcardSetId)
+    })
+      .sort({ completedAt: -1 })
+      .limit(limit)
+      .populate('flashcardSetId')
   }
 }

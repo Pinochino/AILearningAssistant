@@ -23,7 +23,8 @@ import {
     Clock,
     Star,
     Globe,
-    Lock
+    Lock,
+    History
 } from 'lucide-react'
 import QuizView from '../teacher/QuizView'
 import FlashcardView from '../teacher/FlashcardView'
@@ -90,6 +91,8 @@ export function StudentQuizFlashcard({
     // Real data states
     const [quizzesLoading, setQuizzesLoading] = useState(false)
     const [flashcardsLoading, setFlashcardsLoading] = useState(false)
+    const [quizAttempts, setQuizAttempts] = useState<Record<string, any>>({})
+    const [flashcardAttempts, setFlashcardAttempts] = useState<Record<string, any>>({})
 
     const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false)
     const [isCreateFlashcardOpen, setIsCreateFlashcardOpen] = useState(false)
@@ -118,6 +121,22 @@ export function StudentQuizFlashcard({
     // Fetch flashcards data when component mounts
     useEffect(() => {
         fetchFlashcards()
+    }, [currentSubjectId])
+
+    // Listen for flashcard attempt saved events
+    useEffect(() => {
+        const handleFlashcardAttemptSaved = async (event: any) => {
+            console.log('Flashcard attempt saved event received:', event.detail);
+            // Refresh flashcards to update attempts
+            if (currentSubjectId) {
+                await fetchFlashcards()
+            }
+        }
+
+        window.addEventListener('flashcardAttemptSaved', handleFlashcardAttemptSaved)
+        return () => {
+            window.removeEventListener('flashcardAttemptSaved', handleFlashcardAttemptSaved)
+        }
     }, [currentSubjectId])
 
     const getMaterialsBySelectedChapters = async (chapterIds: string[]) => {
@@ -271,13 +290,69 @@ export function StudentQuizFlashcard({
             })
 
             // res.data.data.items là array quiz BE trả về
-            setQuizzes(res.data.data.items || [])
+            const quizzesList = res.data.data.items || []
+            setQuizzes(quizzesList)
+
+            // Check attempts for each quiz
+            await checkQuizAttempts(quizzesList)
         } catch (err: any) {
             console.error('Error loading quizzes:', err)
             setQuizError(err?.response?.data?.message || 'Không thể tải danh sách quiz')
         } finally {
             setQuizLoading(false)
         }
+    }
+
+    const checkQuizAttempts = async (quizzesList: any[]) => {
+        const attempts: Record<string, any> = {}
+
+        for (const quiz of quizzesList) {
+            try {
+                const res = await axios.get(
+                    `http://localhost:9000/api/quizzes/${quiz._id}/latest-attempt`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                        }
+                    }
+                )
+
+                if (res.data.data) {
+                    attempts[quiz._id] = res.data.data
+                }
+            } catch (error: any) {
+                // No attempt found or error
+                console.log(`No attempt for quiz ${quiz._id}`)
+            }
+        }
+
+        setQuizAttempts(attempts)
+    }
+
+    const checkFlashcardAttempts = async (flashcardsList: any[]) => {
+        const attempts: Record<string, any> = {}
+
+        for (const flashcard of flashcardsList) {
+            try {
+                const res = await axios.get(
+                    `http://localhost:9000/api/flashcards/${flashcard._id}/latest`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                        }
+                    }
+                )
+
+                if (res.data.data && res.data.data.attempt) {
+                    attempts[flashcard._id] = res.data.data.attempt
+                }
+            } catch (error: any) {
+                // No attempt found or error
+                console.log(`No attempt for flashcard ${flashcard._id}`)
+            }
+        }
+
+        setFlashcardAttempts(attempts)
     }
 
     const fetchFlashcards = async () => {
@@ -294,6 +369,11 @@ export function StudentQuizFlashcard({
             })
 
             // res.data.data.items là array flashcard sets BE trả về
+            const flashcardsList = res.data.data.items || []
+
+            // Check attempts for each flashcard
+            await checkFlashcardAttempts(flashcardsList)
+
             // Note: This will update the parent's flashcardsData through props
         } catch (err: any) {
             console.error('Error loading flashcards:', err)
@@ -1018,6 +1098,24 @@ export function StudentQuizFlashcard({
                                                     <Eye className='h-4 w-4 mr-1' />
                                                     Xem nội dung
                                                 </Button>
+                                                {quizAttempts[quiz._id] && (
+                                                    <Button variant='outline' size='sm' onClick={() => {
+                                                        console.log('🔍 Debug - Review button clicked');
+                                                        console.log('🔍 Debug - attempt:', quizAttempts[quiz._id]);
+                                                        console.log('🔍 Debug - attemptId:', quizAttempts[quiz._id]._id);
+                                                        console.log('🔍 Debug - Navigating to quiz-attempt-review with params:', {
+                                                            attemptId: quizAttempts[quiz._id]._id,
+                                                            subjectId: currentSubjectId || ''
+                                                        });
+                                                        navigateTo('quiz-attempt-review', {
+                                                            attemptId: quizAttempts[quiz._id]._id,
+                                                            subjectId: currentSubjectId || ''
+                                                        })
+                                                    }}>
+                                                        <History className='h-4 w-4 mr-1' />
+                                                        Xem lại lần làm cuối cùng
+                                                    </Button>
+                                                )}
                                                 <Button size='sm' onClick={() => {
                                                     console.log('🔍 Debug - quiz object:', quiz);
                                                     console.log('🔍 Debug - quiz._id:', quiz._id);
@@ -1095,6 +1193,29 @@ export function StudentQuizFlashcard({
                                                         <Eye className='h-4 w-4 mr-1' />
                                                         Xem nội dung
                                                     </Button>
+                                                    {flashcardAttempts[flashcard._id] && (
+                                                        <Button
+                                                            variant='outline'
+                                                            size='sm'
+                                                            onClick={() => {
+                                                                console.log('🔍 Debug - Flashcard review button clicked');
+                                                                console.log('🔍 Debug - attempt:', flashcardAttempts[flashcard._id]);
+                                                                console.log('🔍 Debug - attempt structure:', JSON.stringify(flashcardAttempts[flashcard._id], null, 2));
+                                                                console.log('🔍 Debug - attemptId:', flashcardAttempts[flashcard._id]?._id);
+                                                                console.log('🔍 Debug - Navigating to flashcard-attempt-review with params:', {
+                                                                    attemptId: flashcardAttempts[flashcard._id]?._id,
+                                                                    subjectId: currentSubjectId || ''
+                                                                });
+                                                                navigateTo('flashcard-attempt-review', {
+                                                                    attemptId: flashcardAttempts[flashcard._id]?._id,
+                                                                    subjectId: currentSubjectId || ''
+                                                                })
+                                                            }}
+                                                        >
+                                                            <History className='h-4 w-4 mr-2' />
+                                                            Xem lại lần ôn tập
+                                                        </Button>
+                                                    )}
                                                     <Button size='sm' onClick={() => {
                                                         console.log('Flashcard object:', flashcard);
                                                         console.log('Flashcard ID:', flashcard._id);
@@ -1103,11 +1224,12 @@ export function StudentQuizFlashcard({
                                                         <Play className='h-4 w-4 mr-2' />
                                                         Ôn tập
                                                     </Button>
+
                                                 </div>
                                             </div>
                                         </CardContent>
                                     </Card>
-                                );
+                                )
                             })}
                         </div>
                     ) : (

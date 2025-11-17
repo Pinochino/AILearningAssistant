@@ -20,6 +20,7 @@ const PlayQuiz = () => {
     const [showResults, setShowResults] = useState(false);
     const [timer, setTimer] = useState(0);
     const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+    const [quizResult, setQuizResult] = useState<any>(null);
 
     useEffect(() => {
         fetchQuizData();
@@ -110,8 +111,61 @@ const PlayQuiz = () => {
         setFlaggedQuestions(newFlagged);
     };
 
-    const handleSubmit = () => {
-        setShowResults(true);
+    const handleSubmit = async () => {
+        try {
+            const timeSpentMinutes = Math.floor(timer / 60);
+            const answers = selectedAnswers.map((answer, index) => ({
+                questionIndex: index,
+                selectedAnswer: answer ?? -1,
+            }));
+
+            console.log('🔍 Debug - Submitting quiz:', {
+                quizId: currentParams.quizId,
+                timeSpentMinutes,
+                answers,
+                startedAt: new Date(Date.now() - timer * 1000).toISOString()
+            });
+
+            const response = await axios.post(
+                `http://localhost:9000/api/quizzes/${currentParams.quizId}/submit`,
+                {
+                    answers,
+                    timeSpentMinutes,
+                    startedAt: new Date(Date.now() - timer * 1000).toISOString(),
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                }
+            );
+
+            console.log('🔍 Debug - Submit response:', response);
+            console.log('🔍 Debug - Response data:', response.data);
+
+            const result = response.data.data;
+            console.log('🔍 Debug - Result from server:', result);
+            setQuizResult(result);
+            setShowResults(true);
+        } catch (error: any) {
+            console.error('Error submitting quiz:', error);
+            console.log('🔍 Debug - Using fallback calculation');
+            // Fallback to client-side calculation if server fails
+            const results = calculateResults();
+            setQuizResult({
+                score: results.percentage,
+                correctAnswers: results.correct,
+                totalQuestions: results.total,
+                timeSpentMinutes: Math.floor(timer / 60),
+                answers: questions.map((q, index) => ({
+                    questionIndex: index,
+                    selectedAnswer: selectedAnswers[index] ?? -1,
+                    isCorrect: (selectedAnswers?.[index] ?? null) === q.correctAnswer,
+                    correctAnswer: q.correctAnswer,
+                })),
+            });
+            setShowResults(true);
+        }
     };
 
     const calculateResults = () => {
@@ -210,7 +264,15 @@ const PlayQuiz = () => {
     }
 
     if (showResults) {
-        const results = calculateResults();
+        console.log('🔍 Debug - quizResult:', quizResult);
+        // Use server result if available, otherwise fall back to client calculation
+        const results = quizResult && quizResult.results ? {
+            correct: quizResult.results.correctAnswers,
+            incorrect: quizResult.results.totalQuestions - quizResult.results.correctAnswers,
+            total: quizResult.results.totalQuestions,
+            percentage: quizResult.results.score
+        } : calculateResults();
+        console.log('🔍 Debug - results:', results);
         const gradeInfo = getGrade(results.percentage);
 
         return (
@@ -276,7 +338,7 @@ const PlayQuiz = () => {
                                 <Button
                                     onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })}
                                     variant="outline"
-                                    className="px-10 py-3 rounded-xl"
+                                    className="max-w-[200px] py-3 rounded-xl"
                                 >
                                     Quay lại danh sách
                                 </Button>
