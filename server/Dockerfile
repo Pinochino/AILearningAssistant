@@ -2,15 +2,15 @@ FROM node:latest
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN npm install -g npm
 
 COPY package*.json ./
-RUN pnpm install 
+RUN npm install 
 
 COPY . .
 
-RUN pnpm build
+# RUN npm build
 
 EXPOSE 9000
 
-CMD ["pnpm", "start"]
+CMD ["npm", "start"]

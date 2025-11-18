@@ -782,7 +782,7 @@ export function SubjectDetail() {
       },
       cancel: {
         label: 'Hủy',
-        onClick: () => { }
+        onClick: () => {}
       },
       duration: 10000
     })
@@ -929,9 +929,9 @@ export function SubjectDetail() {
       questions.map((q) =>
         q.id === questionId
           ? {
-            ...q,
-            answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
-          }
+              ...q,
+              answers: q.answers.map((ans, idx) => (idx === answerIndex ? value : ans))
+            }
           : q
       )
     )
@@ -1155,7 +1155,7 @@ export function SubjectDetail() {
     try {
       await axios.put(
         `http://localhost:9000/api/materials/${editingMaterial._id || editingMaterial.id}`,
-        { title: editMaterialTitle.trim() },
+        { title: editMaterialTitle.trim(), classId: currentSubjectId },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -1959,7 +1959,7 @@ export function SubjectDetail() {
                               <Input
                                 placeholder='Nhập ID chương' // Trường này vẫn còn, nhưng ẩn đi
                                 value={chapterId}
-                                onChange={() => { }} // Không cần thay đổi giá trị của nó
+                                onChange={() => {}} // Không cần thay đổi giá trị của nó
                               />
                             </div>
 
