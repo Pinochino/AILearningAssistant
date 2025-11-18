@@ -13,39 +13,37 @@ dotenv.config()
 
 export async function runSeed() {
   // Ensure core roles exist (idempotent)
-  const roleNames = [
-    RoleName.ADMIN,
-    RoleName.TEACHER,
-    RoleName.STUDENT,
-  ] as const
+  const roleNames = [RoleName.ADMIN, RoleName.TEACHER, RoleName.STUDENT] as const
 
   const existing = await Role.find({ name: { $in: roleNames } })
   const existingSet = new Set(existing.map((r: any) => r.name))
-  const toCreate = roleNames.filter(r => !existingSet.has(r)).map(name => ({ name }))
+  const toCreate = roleNames.filter((r) => !existingSet.has(r)).map((name) => ({ name }))
   if (toCreate.length) {
     await Role.insertMany(toCreate)
   }
 
-  let superAdminRole = await Role.findOne({ name: RoleName.ADMIN })
-  let teacherRole = await Role.findOne({ name: RoleName.TEACHER })
-  let userRole = await Role.findOne({ name: RoleName.STUDENT })
+  const superAdminRole = await Role.findOne({ name: RoleName.ADMIN })
+  const teacherRole = await Role.findOne({ name: RoleName.TEACHER })
+  const userRole = await Role.findOne({ name: RoleName.STUDENT })
 
   // Fetch role ids
   const [ADMIN, TEACHER, STUDENT] = await Promise.all([
     Role.findOne({ name: RoleName.ADMIN }),
     Role.findOne({ name: RoleName.TEACHER }),
-    Role.findOne({ name: RoleName.STUDENT }),
+    Role.findOne({ name: RoleName.STUDENT })
   ])
 
   // Ensure email index allows multiple nulls by making it sparse unique
   try {
-    const indexes = await (User as any).collection.indexes();
-    const hasEmailIndex = Array.isArray(indexes) && indexes.find((ix: any) => ix.name === 'email_1');
+    const indexes = await (User as any).collection.indexes()
+    const hasEmailIndex = Array.isArray(indexes) && indexes.find((ix: any) => ix.name === 'email_1')
     if (hasEmailIndex) {
-      try { await (User as any).collection.dropIndex('email_1'); } catch { }
+      try {
+        await (User as any).collection.dropIndex('email_1')
+      } catch {}
     }
-    await (User as any).collection.createIndex({ email: 1 }, { unique: true, sparse: true, name: 'email_1' });
-  } catch { }
+    await (User as any).collection.createIndex({ email: 1 }, { unique: true, sparse: true, name: 'email_1' })
+  } catch {}
 
   // Helper to upsert user with roles[] by username
   async function upsertUser(name: string, username: string, password: string, roleIds: any[], email?: string) {
@@ -63,7 +61,7 @@ export async function runSeed() {
     }
   }
 
-  const password = 'password123'
+  const password = '123456'
   await upsertUser('Quản trị hệ thống', 'admin', password, [ADMIN?._id].filter(Boolean) as any)
   await upsertUser('Nguyễn Văn A', 'teacher1', password, [TEACHER?._id].filter(Boolean) as any)
   await upsertUser('Trần Thị B', 'teacher2', password, [TEACHER?._id].filter(Boolean) as any)
@@ -79,24 +77,19 @@ export async function runSeed() {
     User.findOne({ username: 'teacher1' }),
     User.findOne({ username: 'teacher2' }),
     User.findOne({ username: 'student1' }),
-    User.findOne({ username: 'student2' }),
+    User.findOne({ username: 'student2' })
   ])
 
   const AnnouncementModel = Announcement as Model<IAnnouncement>
 
-
   // Clean sample collections (keep users/roles)
-  await Promise.all([
-    Conversation.deleteMany({}),
-    Message.deleteMany({}),
-    AnnouncementModel.deleteMany({}).exec(),
-  ])
+  await Promise.all([Conversation.deleteMany({}), Message.deleteMany({}), AnnouncementModel.deleteMany({}).exec()])
 
   // Conversations: direct, group, ai
   const directConv = await Conversation.create({
     participants: [student1?._id, teacher1?._id].filter(Boolean),
     conversationType: 'direct',
-    isGroup: false,
+    isGroup: false
   })
 
   const groupConv = await Conversation.create({
@@ -104,14 +97,14 @@ export async function runSeed() {
     name: 'Lớp Toán 10A',
     conversationType: 'group',
     isGroup: true,
-    admins: [teacher1?._id].filter(Boolean),
+    admins: [teacher1?._id].filter(Boolean)
   })
 
   const aiConv = await Conversation.create({
     participants: [student1?._id].filter(Boolean),
     conversationType: 'ai',
     aiTutorId: 'default-tutor',
-    name: 'AI Tutor - default',
+    name: 'AI Tutor - default'
   })
 
   // Messages
@@ -119,21 +112,21 @@ export async function runSeed() {
     conversation: directConv._id,
     sender: student1?._id,
     content: 'Chào thầy, em có câu hỏi về bài tập toán',
-    type: 'text',
+    type: 'text'
   })
 
   const message2 = await Message.create({
     conversation: directConv._id,
     sender: teacher1?._id,
     content: 'Chào em, thầy sẵn sàng giúp em. Em có câu hỏi gì?',
-    type: 'text',
+    type: 'text'
   })
 
   const message3 = await Message.create({
     conversation: groupConv._id,
     sender: teacher1?._id,
     content: 'Chào các em, hôm nay chúng ta sẽ học về phương trình bậc hai',
-    type: 'text',
+    type: 'text'
   })
 
   const aiMessage = await Message.create({
@@ -141,7 +134,7 @@ export async function runSeed() {
     sender: null, // sender is null for AI messages
     content: 'Xin chào! Tôi là AI Tutor... Em có câu hỏi gì không?',
     type: 'ai',
-    aiTutorId: 'math-tutor',
+    aiTutorId: 'math-tutor'
   })
 
   // Seed read states: đánh dấu chỉ người gửi đã đọc
@@ -163,7 +156,7 @@ export async function runSeed() {
   await Promise.all([
     Conversation.findByIdAndUpdate(directConv._id, { lastMessage: message2._id }),
     Conversation.findByIdAndUpdate(groupConv._id, { lastMessage: message3._id }),
-    Conversation.findByIdAndUpdate(aiConv._id, { lastMessage: aiMessage._id }),
+    Conversation.findByIdAndUpdate(aiConv._id, { lastMessage: aiMessage._id })
   ])
 
   // Announcements
@@ -171,19 +164,19 @@ export async function runSeed() {
     title: 'Chào mừng năm học mới',
     content: 'Chúc mừng các em bước vào năm học mới đầy hứng khởi!',
     author: admin?._id,
-    pinned: true,
+    pinned: true
   })
 
   await (Announcement as any).create({
     title: 'Lịch kiểm tra giữa kỳ',
     content: 'Tuần tới sẽ có kiểm tra giữa kỳ cho các môn Toán và Vật lý.',
-    author: teacher1?._id,
+    author: teacher1?._id
   })
 
   await (Announcement as any).create({
     title: 'Thông báo lớp Toán 10A',
     content: 'Buổi học ngày mai chuyển sang phòng 201.',
-    author: teacher1?._id,
+    author: teacher1?._id
   })
   console.log('✅ Seed dữ liệu (roles + users) hoàn tất')
 
@@ -194,7 +187,7 @@ export async function runSeed() {
   const [classTeacher1, classStudent1, classStudent2] = await Promise.all([
     User.findOne({ username: 'teacher1' }),
     User.findOne({ username: 'student1' }),
-    User.findOne({ username: 'student2' }),
+    User.findOne({ username: 'student2' })
   ])
 
   const classesToSeed: Array<Partial<IClass>> = [
@@ -211,7 +204,7 @@ export async function runSeed() {
         { dayOfWeek: 3, startTime: '07:00', endTime: '08:30' },
         { dayOfWeek: 5, startTime: '07:00', endTime: '08:30' }
       ],
-      maxStudents: 40,
+      maxStudents: 40
     },
     {
       name: 'Vật lý - 12A1',
@@ -224,7 +217,7 @@ export async function runSeed() {
         { dayOfWeek: 2, startTime: '08:45', endTime: '10:15' },
         { dayOfWeek: 4, startTime: '08:45', endTime: '10:15' }
       ],
-      maxStudents: 35,
+      maxStudents: 35
     },
     {
       name: 'Trí tuệ nhân tạo',
@@ -237,7 +230,7 @@ export async function runSeed() {
         { dayOfWeek: 4, startTime: '15:30', endTime: '17:00' },
         { dayOfWeek: 6, startTime: '08:00', endTime: '09:30' }
       ],
-      maxStudents: 70,
+      maxStudents: 70
     }
   ]
 
@@ -287,5 +280,3 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   // Executed directly
   main()
 }
-
-
