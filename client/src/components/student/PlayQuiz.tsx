@@ -404,7 +404,7 @@ const PlayQuiz = () => {
                         </motion.div>
                         <h2 className="text-xl font-bold text-gray-800 mb-2">Lỗi</h2>
                         <p className="text-gray-600 mb-4">{error}</p>
-                        <Button onClick={() => window.history.back()} className="w-full">
+                        <Button onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })}>
                             Quay lại
                         </Button>
                     </CardContent>
@@ -523,7 +523,7 @@ const PlayQuiz = () => {
                             {/* Action Buttons */}
                             <div className="flex justify-center gap-6 mt-6">
                                 <Button
-                                    onClick={() => navigateTo('content')}
+                                    onClick={() => navigateTo('classes', { subjectId: currentParams.subjectId, tab: 'quiz' })}
                                     variant="outline"
                                     className="max-w-[200px] py-3 rounded-xl"
                                 >
