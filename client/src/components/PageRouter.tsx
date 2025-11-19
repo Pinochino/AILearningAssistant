@@ -1,58 +1,55 @@
-import { React } from 'react'
-// import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { useNavigation } from '../hooks/useNavigation'
 
 // Dashboard components
-import { AdminDashboard } from './dashboard/AdminDashboard'
-import { TeacherDashboard } from './dashboard/TeacherDashboard'
-import { StudentDashboard } from './dashboard/StudentDashboard'
+import { AdminDashboard } from "./dashboard/AdminDashboard";
+import { TeacherDashboard } from "./dashboard/TeacherDashboard";
+import { StudentDashboard } from "./dashboard/StudentDashboard";
 
 // Admin pages
 import { UserManagement } from './admin/UserManagement'
 import { EditUser } from './admin/EditUser'
-import { SubjectManagement } from './admin/SubjectManagement'
-import { EditSubject } from './admin/EditSubject'
-import { Analytics } from './admin/Analytics'
+import { ClassManagement } from './admin/ClassManagement'
 import { ContentManagement } from './admin/ContentManagement'
 import { SystemSettings } from './admin/SystemSettings'
+import { UserDetailPage } from './admin/UserDetail'
 
 // Teacher pages
 import { SubjectDetail } from './teacher/SubjectDetail'
-import { StudentsManagement } from './teacher/StudentsManagement'
-import { ContentManagement as TeacherContentManagement } from './teacher/ContentManagement'
-import { Schedule as TeacherSchedule } from './teacher/Schedule'
 import { Messages as TeacherMessages } from './teacher/Messages'
-import { Analytics as TeacherAnalytics } from './teacher/Analytics'
+import TeacherQuizResultsOverview from './teacher/TeacherQuizResultsOverview'
+import TeacherFlashcardResultsOverview from './teacher/TeacherFlashcardResultsOverview'
 
 // Student pages
 import { SubjectView } from './student/SubjectView'
 import { SubjectSearch } from './student/SubjectSearch'
-import { Schedule } from './student/Schedule'
 import { AITutor } from './student/AITutor'
 import { DocumentsView } from './student/DocumentsView'
 import { Messages } from './student/Messages'
-import { Achievements } from './student/Achievements'
-import {useAppSelector} from '../redux/hooks'
+import PlayQuiz from './student/PlayQuiz'
+import PlayFlashcard from './student/PlayFlashcard'
+import QuizAttemptReview from './student/QuizAttemptReview'
+import FlashcardAttemptReview from './student/FlashcardAttemptReview'
 
 // Common pages
 import { Profile } from './Profile'
-import { RootState } from '../redux/store'
 
 export function PageRouter() {
   const { currentPage, currentParams } = useNavigation()
-  const {user} = useAppSelector((state: RootState) => state.auth.login)
-
-  const roles = user.data.user.role
+  const { user } = useAuth()
 
   if (!user) return null
 
+  // Get user role (admin, teacher, or student)
+  const userRole = user.role
+
   // Common routes (available for all roles)
-  if (currentPage === 'profile') {
-    return <Profile />
+  if (currentPage === "profile") {
+    return <Profile />;
   }
 
   // Admin routes
-  if (Array.from(roles).includes("SUPER_ADMIN")) {
+  if (user.role === "admin") {
     switch (currentPage) {
       case 'dashboard':
         return <AdminDashboard />
@@ -61,87 +58,84 @@ export function PageRouter() {
         return <UserManagement />
       case 'edit-user':
         return <EditUser />
-      case 'subjects':
-        return <SubjectManagement />
+      case 'user-detail':
+        return <UserDetailPage />
+      case 'classes':
+        return <ClassManagement />
       case 'edit-subject':
-        return <EditSubject />
       case 'analytics':
       case 'quiz-stats':
       case 'flashcard-stats':
       case 'learning-progress':
-        return <AdminDashboard /> // Change here
-      case 'content':
-        return <ContentManagement />
-      case 'gamification':
-        return (
-          <div className='space-y-6'>
-            <h1>Gamification</h1>
-            <p className='text-muted-foreground'>Tính năng gamification đang được phát triển...</p>
-          </div>
-        )
-      case 'settings':
-        return <SystemSettings />
-      default:
         return <AdminDashboard />
+      case 'content':
+        return <ContentManagement />;
+      case 'quiz-results-overview':
+        return <TeacherQuizResultsOverview />;
+      case 'flashcard-results-overview':
+        return <TeacherFlashcardResultsOverview />;
+      case "settings":
+        return <SystemSettings />;
+      default:
+        return <AdminDashboard />;
     }
   }
 
   // Teacher routes
-  if (Array.from(roles).includes("TEACHER")) {
+  if (user.role === "teacher") {
     switch (currentPage) {
-      case 'dashboard':
-        return <TeacherDashboard />
-      case 'subjects':
-        return <SubjectDetail />
-      case 'students':
-        return <StudentsManagement />
-      case 'content':
-      case 'documents':
-      case 'quizzes':
-      case 'flashcards':
-        return <TeacherContentManagement />
-      case 'schedule':
-        return <TeacherSchedule />
-      case 'messages':
-        return <TeacherMessages />
+      case "dashboard":
+        return <TeacherDashboard />;
+      case "classes":
+        return <SubjectDetail />;
+      case "content":
+      case "documents":
+      case "quizzes":
+      case "flashcards":
+        return <TeacherDashboard />;
+      case "schedule":
+      case "messages":
+        return <TeacherMessages />;
+      case "quiz-results-overview":
+        return <TeacherQuizResultsOverview />;
+      case "flashcard-results-overview":
+        return <TeacherFlashcardResultsOverview />;
       default:
-        return <TeacherDashboard />
+        return <TeacherDashboard />;
     }
   }
 
   // Student routes
-  if (Array.from(roles).includes("USER")) {
+  if (user.role === "student") {
     switch (currentPage) {
-      case 'dashboard':
-        return <StudentDashboard />
-      case 'subjects':
-        return <SubjectView />
-      case 'subject-search':
-        return <SubjectSearch />
-      case 'schedule':
-        return <Schedule />
-      case 'study':
-      case 'quizzes':
-      case 'flashcards':
-      case 'documents':
-        return (
-          <div className='space-y-6'>
-            <h1>Học tập</h1>
-            <p className='text-muted-foreground'>Trang học tập đang được phát triển...</p>
-          </div>
-        )
-      case 'ai-tutor':
-        return <AITutor />
-      case 'documents':
-        return <DocumentsView />
-      case 'messages':
-        return <Messages />
-      case 'achievements':
-        return <Achievements />
+      case "dashboard":
+        return <StudentDashboard />;
+      case "classes":
+        return <SubjectView />;
+      case "class-search":
+        return <SubjectSearch />;
+      case "schedule":
+      case "study":
+      case "quizzes":
+      case "flashcards":
+      case "ai-tutor":
+        return <AITutor />;
+      case "documents":
+        return <DocumentsView />;
+      case "messages":
+        return <Messages />;
+      case "play-quiz":
+        return <PlayQuiz />;
+      case "play-flashcard":
+        return <PlayFlashcard />;
+      case "quiz-attempt-review":
+        return <QuizAttemptReview />;
+      case "flashcard-attempt-review":
+        return <FlashcardAttemptReview />;
       default:
-        return <StudentDashboard />
+        return <StudentDashboard />;
     }
   }
 
-  return <div>Page not found</div>
+  return <div>Page not found</div>;
 }

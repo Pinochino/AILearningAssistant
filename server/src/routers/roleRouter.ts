@@ -1,8 +1,7 @@
 import { Router } from 'express'
-import roleController from '~/controllers/RoleController'
+import roleController from '~/controllers/RoleController.js'
 
 const roleRouter = Router()
 roleRouter.get('/list', roleController.getRoles)
-roleRouter.post('/list-user/:roleId', roleController.getUserByRole)
 
 export default roleRouter

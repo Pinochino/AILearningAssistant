@@ -1,19 +1,66 @@
 {
-  "compilerOptions": {
-    "module": "commonjs", // Quy định output module được sử dụng
-    "moduleResolution": "node",
-    "target": "ES2023", // Target output cho code
-    "outDir": "dist", // Đường dẫn output cho thư mục build
-    "esModuleInterop": true,
-    "strict": true /* Enable all strict type-checking options. */,
-    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-    "baseUrl": ".", // Đường dẫn base cho các import
-    "paths": {
-      "~/*": ["src/*"] // Đường dẫn tương đối cho các import (alias)
-    }
-  },
-  "files": ["src/type.d.ts"], // Các file dùng để defined global type cho dự án
-  "include": ["src/**/*"] // Đường dẫn include cho các file cần build,
-  // "types": ["node", "express", "passport"],
-  // "typeRoots": ["./src/types", "./node_modules/@types"]
+    "compilerOptions": {
+        "target": "ES2023",
+        "module": "NodeNext",
+        "lib": [
+            "ES2023"
+        ],
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "declaration": false,
+        "declarationMap": false,
+        "sourceMap": true,
+        "removeComments": true,
+        "noImplicitAny": true,
+        "strictNullChecks": false,
+        "strictFunctionTypes": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": false,
+        "noFallthroughCasesInSwitch": true,
+        "moduleResolution": "NodeNext",
+        "baseUrl": "./",
+        "paths": {
+            "@/*": [
+                "src/*"
+            ],
+            "~/*": [
+                "src/*"
+            ], // alias ~/ -> src/
+            "~data/*": [
+                "src/data/*"
+            ] // alias ~data -> src/data/
+        },
+        "types": [
+            "node",
+            "socket.io"
+        ],
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    },
+    "files": [
+        "src/type.d.ts"
+    ],
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "src/test/**",
+        "src/configs/passport.ts",
+        "src/configs/webConfigs.ts",
+        "src/routers/authRouter.ts",
+        "src/routers/routers.ts",
+        "src/services/cloudinaryService.ts",
+        "src/services/userService.ts",
+        "src/controllers/AuthController.ts"
+    ]
 }

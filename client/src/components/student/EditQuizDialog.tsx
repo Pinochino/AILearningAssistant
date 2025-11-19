@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -131,7 +131,7 @@ export function EditQuizDialog({ isOpen, onOpenChange, quiz, onSave }: EditQuizD
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+      <DialogContent className='max-w-5xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Chỉnh sửa Quiz</DialogTitle>
         </DialogHeader>
@@ -160,7 +160,7 @@ export function EditQuizDialog({ isOpen, onOpenChange, quiz, onSave }: EditQuizD
                   <Checkbox
                     id={`edit-chapter-${chapter.id}`}
                     checked={selectedChapters.includes(chapter.id)}
-                    onCheckedChange={(checked) => handleChapterSelect(chapter.id, checked as boolean)}
+                    onCheckedChange={(checked: boolean) => handleChapterSelect(chapter.id, checked as boolean)}
                   />
                   <Label htmlFor={`edit-chapter-${chapter.id}`}>{chapter.title}</Label>
                 </div>
@@ -243,6 +243,14 @@ export function EditQuizDialog({ isOpen, onOpenChange, quiz, onSave }: EditQuizD
                 </div>
               </RadioGroup>
             </div>
+          </div>
+
+          <div className='flex items-center justify-between'>
+            <Label>Câu hỏi</Label>
+            <Button type='button' variant='outline' size='sm' onClick={addQuestion}>
+              <Plus className='h-4 w-4 mr-1' />
+              Thêm câu hỏi
+            </Button>
           </div>
 
           <div className='flex justify-end gap-2 pt-4'>

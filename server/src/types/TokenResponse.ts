@@ -1,5 +1,4 @@
-import { IUser } from '~/models/User'
-import { UserInterface } from './UserInterface'
+import { UserInterface } from './UserInterface.js'
 
 export interface TokenResponse {
   user: UserInterface

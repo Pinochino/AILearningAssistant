@@ -1,17 +1,16 @@
-FROM node:10-alpine
+FROM node:latest
 
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+WORKDIR /app
 
-WORKDIR /home/node/app
+RUN npm install -g npm
 
 COPY package*.json ./
+RUN npm install 
 
-USER node
+COPY . .
 
-RUN npm install
-
-COPY --chown=node:node . .
+# RUN npm build
 
 EXPOSE 9000
 
-CMD [ "node", "server.ts" ]
+CMD ["npm", "start"]

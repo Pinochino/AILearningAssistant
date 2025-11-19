@@ -1,48 +1,59 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area@1.2.3'
+import * as React from "react";
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
-import { cn } from './utils'
+import { cn } from "./utils";
 
-function ScrollArea({ className, children, ...props }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+function ScrollArea({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
   return (
-    <ScrollAreaPrimitive.Root data-slot='scroll-area' className={cn('relative', className)} {...props}>
+    <ScrollAreaPrimitive.Root
+      data-slot="scroll-area"
+      className={cn("relative overflow-hidden [&>div[data-slot=scroll-area-scrollbar]]:opacity-100", className)}
+      {...props}
+    >
       <ScrollAreaPrimitive.Viewport
-        data-slot='scroll-area-viewport'
-        className='focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1'
+        data-slot="scroll-area-viewport"
+        className="focus-visible:ring-ring/50 w-full h-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
+
       <ScrollBar />
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
-  )
+  );
 }
 
 function ScrollBar({
   className,
-  orientation = 'vertical',
+  orientation = "vertical",
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
   return (
     <ScrollAreaPrimitive.ScrollAreaScrollbar
-      data-slot='scroll-area-scrollbar'
+      data-slot="scroll-area-scrollbar"
       orientation={orientation}
       className={cn(
-        'flex touch-none p-px transition-colors select-none',
-        orientation === 'vertical' && 'h-full w-2.5 border-l border-l-transparent',
-        orientation === 'horizontal' && 'h-2.5 flex-col border-t border-t-transparent',
-        className
+        "flex touch-none p-px transition-colors select-none",
+        orientation === "vertical" &&
+        "h-full w-4 border-l border-l-transparent opacity-100",
+        orientation === "horizontal" &&
+        "h-4 flex-col border-t border-t-transparent opacity-100",
+        className,
       )}
       {...props}
     >
       <ScrollAreaPrimitive.ScrollAreaThumb
-        data-slot='scroll-area-thumb'
-        className='bg-border relative flex-1 rounded-full'
+        data-slot="scroll-area-thumb"
+        className="bg-gray-400 hover:bg-gray-500 relative flex-1 rounded-full transition-colors"
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
-  )
+  );
 }
 
-export { ScrollArea, ScrollBar }
+export { ScrollArea, ScrollBar };

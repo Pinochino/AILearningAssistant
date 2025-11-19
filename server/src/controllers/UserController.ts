@@ -1,13 +1,11 @@
 import { Request, Response } from 'express'
-import roleService from '~/services/roleService'
-import userService from '~/services/userService'
-import { responseUtils } from '~/utils/ResponseUtils'
+import userService from '~/services/userService.js'
+import { responseUtils } from '~/utils/ResponseUtils.js'
 
 const userController = {
   getAllUsers: async (req: Request, res: Response) => {
     try {
       const { limit, order, search, skip, sortBy } = req.query
-      console.log(search)
       const users = await userService.getUsers(req.query)
       responseUtils({ req, res, code: 200, message: `Get user successfully`, data: users })
     } catch (error: any) {
@@ -47,9 +45,11 @@ const userController = {
   updateUser: async (req: Request, res: Response) => {
     try {
       const { userId } = req.params
+      console.log(`User ID: ${userId}`)
       const result = await userService.updateUser(userId, req.body)
-      responseUtils({ req, res, code: 400, message: `Update user successfully`, data: result })
+      responseUtils({ req, res, code: 200, message: `Update user successfully`, data: result })
     } catch (error: any) {
+      console.log(error.message)
       responseUtils({ req, res, code: 400, message: error.message })
     }
   },
@@ -58,7 +58,7 @@ const userController = {
     try {
       const { userId } = req.params
       const result = await userService.softDeleteUser(userId)
-      responseUtils({ req, res, code: 400, message: `Soft delete user successfully`, data: result })
+      responseUtils({ req, res, code: 200, message: `Soft delete user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
@@ -68,7 +68,7 @@ const userController = {
     try {
       const { userId } = req.params
       const result = await userService.restoreUser(userId)
-      responseUtils({ req, res, code: 400, message: `Restore user successfully`, data: result })
+      responseUtils({ req, res, code: 200, message: `Restore user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
@@ -77,26 +77,36 @@ const userController = {
   findDeletedUsers: async (req: Request, res: Response) => {
     try {
       const result = await userService.findDeletedUser()
-      responseUtils({ req, res, code: 400, message: `Get all deleted user successfully`, data: result })
+      responseUtils({ req, res, code: 200, message: `Get all deleted user successfully`, data: result })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
   },
 
-  countUserByRoleName: async (req: Request, res: Response) => {
+  countUserByRole: async (req: Request, res: Response) => {
     try {
-      const { roleName } = req.params
-      const usersNumber = await userService.countUserByRole(roleName)
-      responseUtils({ req, res, code: 200, message: `Get users by role success`, data: usersNumber })
+      const { roleName } = req.params as { roleName: string }
+      const count = await userService.countUsersByRole(roleName)
+      responseUtils({ req, res, code: 200, message: `Get count by role successfully`, data: count })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }
   },
 
-  countUserActive: async (req: Request, res: Response) => {
+  countUsesByActive: async (req: Request, res: Response) => {
     try {
-      const usersNumber = await userService.countUserIsActive()
-      responseUtils({ req, res, code: 200, message: `Get users isActive`, data: usersNumber })
+      const userCount = await userService.countUsersByActive()
+      responseUtils({ req, res, code: 200, message: `Count users by isActive successfully`, data: { userCount } })
+    } catch (error: any) {
+      responseUtils({ req, res, code: 400, message: error.message })
+    }
+  },
+
+  filterUserByRoleId: async (req: Request, res: Response) => {
+    try {
+      const { roleId } = req.params
+      const users = await userService.getUsersByRoleId(roleId)
+      responseUtils({ req, res, code: 200, message: `Filter users by roleId successfully`, data: { users } })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

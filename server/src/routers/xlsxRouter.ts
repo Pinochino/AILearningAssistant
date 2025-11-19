@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { upload } from '~/configs/multerConfig'
-import xlsxController from '~/controllers/XlsxController'
+import { upload } from '~/configs/multerConfig.js'
+import xlsxController from '~/controllers/XlsxController.js'
 
 const xlsxRouter = Router()
 

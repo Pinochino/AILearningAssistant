@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import roleService from '~/services/roleService'
-import { responseUtils } from '~/utils/ResponseUtils'
+import roleService from '~/services/roleService.js'
+import { responseUtils } from '~/utils/ResponseUtils.js'
 
 const roleController = {
   getRoles: async (req: Request, res: Response) => {
@@ -16,16 +16,6 @@ const roleController = {
       const { roleName } = req.params
       const role = await roleService.getRoleByName(roleName)
       responseUtils({ req, res, code: 200, message: `Get Role Succesfully`, data: role })
-    } catch (error: any) {
-      responseUtils({ req, res, code: 400, message: error.message })
-    }
-  },
-
-  getUserByRole: async (req: Request, res: Response) => {
-    try {
-      const { roleId } = req.params
-      const role = await roleService.getUsersByRoleId(roleId)
-      responseUtils({ req, res, code: 200, message: `Get users Succesfully`, data: role })
     } catch (error: any) {
       responseUtils({ req, res, code: 400, message: error.message })
     }

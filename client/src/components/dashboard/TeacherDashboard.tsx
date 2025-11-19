@@ -1,14 +1,17 @@
-import React, { useState } from 'react'
-import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSection'
-import { AnnouncementCreator } from '../dashboard/AnnouncementCreator'
-import { useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
-import { Button } from '../ui/button'
-import { Progress } from '../ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import React, { useState, useEffect } from 'react';
+import { AnnouncementSection, Announcement } from '../dashboard/AnnouncementSection';
+import { AnnouncementCreator } from '../dashboard/AnnouncementCreator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { toast } from 'sonner';
+import { Progress } from '../ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import axios from 'axios';
 import {
   BookOpen,
   Users,
@@ -24,39 +27,13 @@ import {
   Target,
   Clock,
   Eye
-} from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { useNavigation } from '../../hooks/useNavigation'
-
-const mySubjects = [
-  {
-    id: '1',
-    name: 'Toán học 12A1',
-    students: 35,
-    completion: 78,
-    nextClass: '2024-09-19 07:30',
-    pendingQuizzes: 3,
-    newMessages: 5
-  },
-  {
-    id: '2',
-    name: 'Toán học 12A2',
-    students: 32,
-    completion: 82,
-    nextClass: '2024-09-19 09:15',
-    pendingQuizzes: 1,
-    newMessages: 2
-  },
-  {
-    id: '3',
-    name: 'Toán nâng cao',
-    students: 18,
-    completion: 91,
-    nextClass: '2024-09-20 14:00',
-    pendingQuizzes: 0,
-    newMessages: 1
-  }
-]
+} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useNavigation } from '../../hooks/useNavigation';
+import { AnnouncementService } from '../../services/announcements';
+import { useAuth } from '../../hooks/useAuth';
+import { classApi } from '../../services/api';
+import { teacherApi } from '../../services/api';
 
 const recentActivities = [
   {
@@ -64,49 +41,49 @@ const recentActivities = [
     action: 'hoàn thành quiz "Đạo hàm cơ bản"',
     score: 95,
     time: '2 giờ trước',
-    avatar: 'NA'
+    avatar: 'NA',
   },
   {
     student: 'Trần Thị B',
     action: 'gửi câu hỏi về bài "Tích phân"',
     time: '3 giờ trước',
-    avatar: 'TB'
+    avatar: 'TB',
   },
   {
     student: 'Lê Minh C',
     action: 'hoàn thành flashcard "Lượng giác"',
     score: 88,
     time: '5 giờ trước',
-    avatar: 'LC'
+    avatar: 'LC',
   },
   {
     student: 'Phạm Thị D',
     action: 'tải lên bài tập về nhà',
     time: '6 giờ trước',
-    avatar: 'PD'
-  }
-]
+    avatar: 'PD',
+  },
+];
 
 const upcomingClasses = [
   {
     subject: 'Toán học 12A1',
     time: '07:30 - 08:15',
     room: 'Phòng 201',
-    topic: 'Ứng dụng đạo hàm'
+    topic: 'Ứng dụng đạo hàm',
   },
   {
     subject: 'Toán học 12A2',
     time: '09:15 - 10:00',
     room: 'Phòng 201',
-    topic: 'Bài tập tổng hợp'
+    topic: 'Bài tập tổng hợp',
   },
   {
     subject: 'Toán nâng cao',
     time: '14:00 - 15:30',
     room: 'Phòng 301',
-    topic: 'Phương trình vi phân'
-  }
-]
+    topic: 'Phương trình vi phân',
+  },
+];
 
 const mockOverallStats = {
   totalStudents: 85,
@@ -116,8 +93,8 @@ const mockOverallStats = {
   avgQuizScore: 82.5,
   completionRate: 78.3,
   activeStudents: 72,
-  avgStudyTime: 2.4
-}
+  avgStudyTime: 2.4,
+};
 
 const mockSubjectStats = [
   {
@@ -130,7 +107,7 @@ const mockSubjectStats = [
     flashcardCount: 45,
     lastActivity: '2024-09-18',
     trend: 'up',
-    trendValue: 5.2
+    trendValue: 5.2,
   },
   {
     id: '2',
@@ -142,7 +119,7 @@ const mockSubjectStats = [
     flashcardCount: 32,
     lastActivity: '2024-09-17',
     trend: 'up',
-    trendValue: 2.1
+    trendValue: 2.1,
   },
   {
     id: '3',
@@ -154,9 +131,9 @@ const mockSubjectStats = [
     flashcardCount: 28,
     lastActivity: '2024-09-16',
     trend: 'down',
-    trendValue: -1.5
-  }
-]
+    trendValue: -1.5,
+  },
+];
 
 const mockStudentPerformance = [
   {
@@ -168,7 +145,7 @@ const mockStudentPerformance = [
     completionRate: 95,
     studyTime: 3.2,
     lastActive: '2024-09-18',
-    status: 'excellent'
+    status: 'excellent',
   },
   {
     id: '2',
@@ -179,7 +156,7 @@ const mockStudentPerformance = [
     completionRate: 87,
     studyTime: 2.8,
     lastActive: '2024-09-17',
-    status: 'good'
+    status: 'good',
   },
   {
     id: '3',
@@ -190,379 +167,495 @@ const mockStudentPerformance = [
     completionRate: 65,
     studyTime: 1.5,
     lastActive: '2024-09-15',
-    status: 'needs_attention'
-  }
-]
+    status: 'needs_attention',
+  },
+];
 
 export function TeacherDashboard() {
-  const { navigateTo } = useNavigation()
-  const [selectedSubject, setSelectedSubject] = useState('all')
-  const [openCreate, setOpenCreate] = useState(false)
-  const [selectedPeriod, setSelectedPeriod] = useState('month')
-  // Announcements (local mock storage)
-  const [announcements, setAnnouncements] = useState<Announcement[]>([
-    {
-      id: 'init-1',
-      title: 'Chào mừng đến lớp',
-      content: 'Chào mừng các bạn đến với hệ thống - theo dõi lịch học và thông báo tại đây.',
-      author: 'Admin',
-      date: new Date().toLocaleDateString()
-    }
-  ])
+  const { navigateTo } = useNavigation();
+  const { user } = useAuth();
+  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [totalQuizzes, setTotalQuizzes] = useState(0);
+  const [totalFlashcards, setTotalFlashcards] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [totalClasses, setTotalClasses] = useState(0);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [openCreate, setOpenCreate] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  // Announcements (from backend notifications)
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formTitle, setFormTitle] = useState('');
+  const [formContent, setFormContent] = useState('');
 
-  const handleCreateAnnouncement = (title: string, content: string) => {
-    const newAnn: Announcement = {
-      id: Date.now().toString(),
-      title,
-      content,
-      author: 'Giáo viên', // teacher tạo => ghi nhãn 'Giáo viên'
-      date: new Date().toLocaleString()
+  // Fetch teacher's classes and calculate totals
+  useEffect(() => {
+    const fetchTeacherData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Get user ID from localStorage as a fallback
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const userId = user?.id || currentUser?._id || currentUser?.id;
+
+        console.log('Fetching classes for teacher ID:', userId);
+
+        // Fetch all classes for the teacher using classApi with teacherId filter
+        const response = await classApi.getAll({
+          teacherId: userId,
+          limit: 100 // Get all classes
+        });
+
+        console.log('Classes API response:', response);
+
+        // Handle the API response format
+        let classes: any[] = [];
+
+        if (response.success) {
+          if (Array.isArray(response.data?.items)) {
+            // Response is paginated
+            classes = response.data.items;
+          } else if (Array.isArray(response.data)) {
+            // Response is a direct array
+            classes = response.data;
+          }
+        } else if (Array.isArray(response)) {
+          // Response is already an array
+          classes = response;
+        }
+
+        console.log('Processed classes:', classes);
+        setTotalClasses(classes.length);
+
+        // Calculate total students across all classes
+        const studentCount = classes.reduce((total: number, cls: any) => {
+          if (cls.students && Array.isArray(cls.students)) {
+            return total + cls.students.length;
+          } else if (cls.studentIds && Array.isArray(cls.studentIds)) {
+            return total + cls.studentIds.length;
+          } else if (cls.enrollments) {
+            // Count only approved enrollments if available
+            const approvedEnrollments = cls.enrollments.filter(
+              (e: any) => e.status === 'approved'
+            );
+            return total + approvedEnrollments.length;
+          }
+          return total;
+        }, 0);
+
+        console.log('Total students:', studentCount);
+        setTotalStudents(studentCount);
+
+      } catch (error) {
+        console.error('Error fetching teacher data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTeacherData();
+  }, [user?.id]);
+
+  // Fetch teacher's quizzes and flashcards counts
+  useEffect(() => {
+    const loadStatsCount = async () => {
+      try {
+        setStatsLoading(true);
+
+        // Get user ID from localStorage as a fallback
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const userId = user?.id || currentUser?._id || currentUser?.id;
+
+        if (!userId) {
+          console.error('No user ID found for stats');
+          setTotalQuizzes(0);
+          setTotalFlashcards(0);
+          return;
+        }
+
+        console.log('Fetching stats for teacher ID:', userId);
+
+        // First, get all classes for this teacher
+        const classesResponse = await classApi.getAll({
+          teacherId: userId,
+          limit: 100
+        });
+
+        let classes: any[] = [];
+        if (classesResponse.success) {
+          if (Array.isArray(classesResponse.data?.items)) {
+            classes = classesResponse.data.items;
+          } else if (Array.isArray(classesResponse.data)) {
+            classes = classesResponse.data;
+          }
+        }
+
+        console.log('Teacher classes:', classes);
+
+        if (classes.length === 0) {
+          setTotalQuizzes(0);
+          setTotalFlashcards(0);
+          return;
+        }
+
+        // Fetch quizzes and flashcards for each class
+        let totalQuizCount = 0;
+        let totalFlashcardCount = 0;
+
+        for (const classItem of classes) {
+          const classId = classItem._id || classItem.id;
+          if (!classId) continue;
+
+          try {
+            // Fetch quizzes for this class
+            const quizzesRes = await axios.get(`http://localhost:9000/api/quizzes/class/${classId}`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+
+            // Fetch flashcards for this class
+            const flashcardsRes = await axios.get(`http://localhost:9000/api/flashcard-sets/class/${classId}`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+
+            console.log(`Class ${classId} quizzes:`, quizzesRes.data);
+            console.log(`Class ${classId} flashcards:`, flashcardsRes.data);
+
+            // Count quizzes for this class
+            const classQuizCount = quizzesRes.data?.pagination?.totalItems ||
+              quizzesRes.data?.data?.items?.length ||
+              quizzesRes.data?.items?.length ||
+              quizzesRes.data?.data?.length ||
+              quizzesRes.data?.length || 0;
+
+            // Count flashcards for this class
+            const classFlashcardCount = flashcardsRes.data?.pagination?.totalItems ||
+              flashcardsRes.data?.data?.items?.length ||
+              flashcardsRes.data?.items?.length ||
+              flashcardsRes.data?.data?.length ||
+              flashcardsRes.data?.length || 0;
+
+            totalQuizCount += classQuizCount;
+            totalFlashcardCount += classFlashcardCount;
+
+          } catch (error) {
+            console.error(`Error fetching data for class ${classId}:`, error);
+            // Continue with other classes even if one fails
+          }
+        }
+
+        console.log('Final totals - Quizzes:', totalQuizCount, 'Flashcards:', totalFlashcardCount);
+        setTotalQuizzes(totalQuizCount);
+        setTotalFlashcards(totalFlashcardCount);
+      } catch (error) {
+        console.error('Error loading teacher stats count:', error);
+        setTotalQuizzes(0);
+        setTotalFlashcards(0);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    loadStatsCount();
+  }, [user?.id]);
+
+  const mapToAnnouncement = (n: any): Announcement => ({
+    id: n._id || n.id,
+    title: String(n.title || 'Thông báo'),
+    content: String(n.content || ''),
+    author: ((): string => {
+      const direct = n?.authorName;
+      if (typeof direct === 'string' && direct.trim()) return direct.trim();
+      const a = n?.author;
+      if (a) {
+        const first = (a.firstName || '').toString().trim();
+        const last = (a.lastName || '').toString().trim();
+        const full = `${first} ${last}`.trim();
+        if (full) return full;
+        if (typeof a.name === 'string' && a.name.trim()) return a.name.trim();
+        if (typeof a.email === 'string' && a.email.trim()) return a.email.trim();
+      }
+      if (typeof n.author === 'string' && n.author.trim()) return n.author.trim();
+      return 'Hệ thống';
+    })(),
+    date: new Date(n.createdAt || Date.now()).toLocaleString('vi-VN'),
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await AnnouncementService.list() as any; // { items }
+        const list = Array.isArray(res?.items) ? res.items : [];
+        if (!mounted) return;
+        setAnnouncements(list.map(mapToAnnouncement));
+      } catch {
+        if (!mounted) return;
+        setAnnouncements([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const handleCreateAnnouncement = async (title: string, content: string) => {
+    try {
+      await AnnouncementService.create({ title, content, scope: 'school' });
+      const res = await AnnouncementService.list() as any; // { items }
+      const list = Array.isArray(res?.items) ? res.items : [];
+      setAnnouncements(list.map(mapToAnnouncement));
+      setOpenCreate(false);
+      toast.success('Đã tạo thông báo');
+    } catch (e) {
+      toast.error('Tạo thông báo thất bại');
     }
-    setAnnouncements((prev) => [newAnn, ...prev])
-  }
+  };
+
+  const handleUpdateAnnouncement = async (id: string, title: string, content: string) => {
+    try {
+      await AnnouncementService.update(id, { title, content });
+      const res = await AnnouncementService.list() as any; // { items }
+      const list = Array.isArray(res?.items) ? res.items : [];
+      setAnnouncements(list.map(mapToAnnouncement));
+    } catch (e) {
+      // TODO: show a toast
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    try {
+      await AnnouncementService.remove(id);
+      const res = await AnnouncementService.list() as any; // { items }
+      const list = Array.isArray(res?.items) ? res.items : [];
+      setAnnouncements(list.map(mapToAnnouncement));
+    } catch (e) {
+      // TODO: show a toast
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'excellent':
-        return (
-          <Badge variant='default' className='bg-green-100 text-green-800'>
-            Xuất sắc
-          </Badge>
-        )
+        return <Badge variant="default" className="bg-green-100 text-green-800">Xuất sắc</Badge>;
       case 'good':
-        return <Badge variant='secondary'>Tốt</Badge>
+        return <Badge variant="secondary">Tốt</Badge>;
       case 'needs_attention':
-        return <Badge variant='destructive'>Cần chú ý</Badge>
+        return <Badge variant="destructive">Cần chú ý</Badge>;
       default:
-        return <Badge variant='outline'>{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
-  const filteredSubjectStats =
-    selectedSubject === 'all' ? mockSubjectStats : mockSubjectStats.filter((s) => s.id === selectedSubject)
+  const filteredSubjectStats = selectedSubject === 'all'
+    ? mockSubjectStats
+    : mockSubjectStats.filter(s => s.id === selectedSubject);
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {/* Header */}
-      <div className='flex items-center justify-between'>
+      <div className="flex items-center justify-between">
         <div>
           <h1>Bảng điều khiển giáo viên</h1>
-          <p className='text-muted-foreground'>Quản lý lớp học và theo dõi tiến độ học tập của học sinh</p>
+          <p className="text-muted-foreground">
+            Quản lý lớp học và theo dõi tiến độ học tập của học sinh
+          </p>
         </div>
-        <div className='flex gap-2'>
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className='w-32'>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='week'>Tuần</SelectItem>
-              <SelectItem value='month'>Tháng</SelectItem>
-              <SelectItem value='quarter'>Quý</SelectItem>
-              <SelectItem value='year'>Năm</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant='outline' className='gap-2' onClick={() => navigateTo('schedule')}>
-            <Calendar className='h-4 w-4' />
-            Xem lịch học
-          </Button>
-          <Button className='gap-2' onClick={() => navigateTo('content')}>
-            <Plus className='h-4 w-4' />
-            Tạo nội dung mới
-          </Button>
+        <div className="flex gap-2">
+          {(user?.role === 'admin' || user?.role === 'teacher') && (
+            <div className="lg:col-span-1">
+              <Dialog open={openCreate} onOpenChange={setOpenCreate}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" /> Tạo thông báo
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Tạo thông báo mới</DialogTitle>
+                  </DialogHeader>
+                  <AnnouncementCreator onCreate={handleCreateAnnouncement} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
         </div>
       </div>
       {/* Announcement area for Teacher */}
-      <div className='mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4'>
-        <div className='lg:col-span-1'>
-          <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-            <DialogTrigger asChild>
-              <Button className='gap-2'>
-                <Plus className='h-4 w-4' /> Tạo thông báo
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Tạo thông báo mới</DialogTitle>
-              </DialogHeader>
-              <AnnouncementCreator onCreate={handleCreateAnnouncement} />
-            </DialogContent>
-          </Dialog>
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+
+        <div className="lg:col-span-3">
+          <AnnouncementSection
+            announcements={announcements}
+            canManage
+            currentUser={user}
+            onEdit={(id) => {
+              const target = (announcements || []).find(a => a.id === id);
+              if (!target || target.author !== user?.name) return;
+              setEditingId(id);
+              setFormTitle(target?.title || '');
+              setFormContent(target?.content || '');
+              setEditOpen(true);
+            }}
+            onDelete={(id) => {
+              const target = (announcements || []).find(a => a.id === id);
+              if (!target || target.author !== user?.name) return;
+              setEditingId(id);
+              setDeleteOpen(true);
+            }}
+          />
         </div>
-        <div className='lg:col-span-3'>
-          <AnnouncementSection announcements={announcements} />
-        </div>
+
+        {/* Edit Announcement Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Sửa thông báo</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              {(() => {
+                const MAX_TITLE_CHARS = 80;
+                const chars = formTitle.length;
+                const remaining = Math.max(0, MAX_TITLE_CHARS - chars);
+                return (
+                  <div className="space-y-1">
+                    <div className="text-xs text-muted-foreground">Tiêu đề (còn {remaining}/{MAX_TITLE_CHARS} ký tự)</div>
+                    <Input
+                      placeholder="Tiêu đề"
+                      value={formTitle}
+                      onChange={(e) => {
+                        const raw = e.target.value || '';
+                        if (raw.length <= MAX_TITLE_CHARS) {
+                          setFormTitle(raw);
+                        } else {
+                          setFormTitle(raw.slice(0, MAX_TITLE_CHARS));
+                        }
+                      }}
+                    />
+                  </div>
+                );
+              })()}
+              <Textarea placeholder="Nội dung" rows={6} value={formContent} onChange={(e) => setFormContent(e.target.value)} className="max-h-60 overflow-y-auto" />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>Hủy</Button>
+                <Button onClick={async () => {
+                  if (!editingId) return;
+                  try {
+                    await AnnouncementService.update(editingId, { title: formTitle.trim(), content: formContent.trim() });
+                    const res = await AnnouncementService.list() as any;
+                    const list = Array.isArray(res?.items) ? res.items : [];
+                    setAnnouncements(list.map(mapToAnnouncement));
+                    toast.success('Đã cập nhật thông báo');
+                    setEditOpen(false);
+                  } catch {
+                    toast.error('Cập nhật thất bại');
+                  }
+                }}>Lưu</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Xóa thông báo</DialogTitle>
+            </DialogHeader>
+            <p>Bạn có chắc muốn xóa thông báo này?</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteOpen(false)}>Hủy</Button>
+              <Button variant="destructive" onClick={async () => {
+                if (!editingId) return;
+                try {
+                  await AnnouncementService.remove(editingId);
+                  const res = await AnnouncementService.list() as any;
+                  const list = Array.isArray(res?.items) ? res.items : [];
+                  setAnnouncements(list.map(mapToAnnouncement));
+                  toast.success('Đã xóa thông báo');
+                  setDeleteOpen(false);
+                } catch {
+                  toast.error('Xóa thất bại');
+                }
+              }}>Xóa</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
+
 
       {/* Overall Stats */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-3'>
-              <div className='p-2 bg-blue-100 rounded-lg'>
-                <Users className='h-5 w-5 text-blue-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Users className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className='text-sm text-muted-foreground'>Tổng sinh viên</p>
-                <p className='text-xl font-semibold'>{mockOverallStats.totalStudents}</p>
-                <p className='text-xs text-green-600'>+{mockOverallStats.activeStudents} đang hoạt động</p>
+                <p className="text-sm text-muted-foreground">Tổng học sinh</p>
+                {isLoading ? (
+                  <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  <p className="text-xl font-semibold">{totalStudents}</p>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-3'>
-              <div className='p-2 bg-green-100 rounded-lg'>
-                <BookOpen className='h-5 w-5 text-green-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <BookOpen className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className='text-sm text-muted-foreground'>Môn học</p>
-                <p className='text-xl font-semibold'>{mockOverallStats.totalSubjects}</p>
-                <p className='text-xs text-muted-foreground'>Đang giảng dạy</p>
+                <p className="text-sm text-muted-foreground">Lớp học</p>
+                {isLoading ? (
+                  <div className="h-6 w-12 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  <p className="text-xl font-semibold">{totalClasses}</p>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-3'>
-              <div className='p-2 bg-purple-100 rounded-lg'>
-                <Target className='h-5 w-5 text-purple-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Target className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <p className='text-sm text-muted-foreground'>Điểm TB Quiz</p>
-                <p className='text-xl font-semibold'>{mockOverallStats.avgQuizScore}%</p>
-                <p className='text-xs text-green-600'>+2.1% so với tháng trước</p>
+                <p className="text-sm text-muted-foreground">Số lượng Quiz</p>
+                <p className="text-xl font-semibold">{statsLoading ? '...' : totalQuizzes}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className='p-4'>
-            <div className='flex items-center gap-3'>
-              <div className='p-2 bg-orange-100 rounded-lg'>
-                <Activity className='h-5 w-5 text-orange-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Activity className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className='text-sm text-muted-foreground'>Tỷ lệ hoàn thành</p>
-                <p className='text-xl font-semibold'>{mockOverallStats.completionRate}%</p>
-                <p className='text-xs text-green-600'>+3.2% so với tháng trước</p>
+                <p className="text-sm text-muted-foreground">Số lượng Flashcard</p>
+                <p className="text-xl font-semibold">{statsLoading ? '...' : totalFlashcards}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Detailed Analytics Tabs */}
-      <Tabs defaultValue='subjects' className='space-y-4'>
-        <TabsList>
-          <TabsTrigger value='subjects'>Lớp học của tôi</TabsTrigger>
-          <TabsTrigger value='students'>Hiệu suất sinh viên</TabsTrigger>
-          <TabsTrigger value='overview'>Tổng quan</TabsTrigger>
-        </TabsList>
-
-        {/* Subjects Tab */}
-        <TabsContent value='subjects' className='space-y-4'>
-          <div className='grid grid-cols-1 gap-4'>
-            {filteredSubjectStats.map((subject) => (
-              <Card key={subject.id}>
-                <CardContent className='p-4'>
-                  <div className='flex items-center justify-between mb-4'>
-                    <div>
-                      <h3 className='font-medium text-lg'>{subject.name}</h3>
-                      <p className='text-sm text-muted-foreground'>
-                        {subject.students} sinh viên • Hoạt động cuối:{' '}
-                        {new Date(subject.lastActivity).toLocaleDateString('vi-VN')}
-                      </p>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <div
-                        className={`flex items-center gap-1 ${
-                          subject.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
-                        {subject.trend === 'up' ? (
-                          <TrendingUp className='h-4 w-4' />
-                        ) : (
-                          <TrendingDown className='h-4 w-4' />
-                        )}
-                        <span className='text-sm font-medium'>{Math.abs(subject.trendValue)}%</span>
-                      </div>
-                      <Button variant='outline' size='sm' onClick={() => navigateTo('subjects')}>
-                        <Eye className='h-4 w-4 mr-2' />
-                        Xem chi tiết
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                    <div className='text-center'>
-                      <p className='text-2xl font-bold text-blue-600'>{subject.avgScore}%</p>
-                      <p className='text-sm text-muted-foreground'>Điểm TB</p>
-                    </div>
-                    <div className='text-center'>
-                      <p className='text-2xl font-bold text-green-600'>{subject.completionRate}%</p>
-                      <p className='text-sm text-muted-foreground'>Hoàn thành</p>
-                    </div>
-                    <div className='text-center'>
-                      <p className='text-2xl font-bold text-purple-600'>{subject.quizCount}</p>
-                      <p className='text-sm text-muted-foreground'>Quiz</p>
-                    </div>
-                    <div className='text-center'>
-                      <p className='text-2xl font-bold text-orange-600'>{subject.flashcardCount}</p>
-                      <p className='text-sm text-muted-foreground'>Flashcard</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Students Tab */}
-        <TabsContent value='students' className='space-y-4'>
-          <Card>
-            <CardHeader>
-              <CardTitle>Hiệu suất sinh viên</CardTitle>
-              <CardDescription>Phân tích chi tiết về tiến độ học tập của từng sinh viên</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-4'>
-                {mockStudentPerformance.map((student) => (
-                  <div key={student.id} className='flex items-center justify-between p-4 border rounded-lg'>
-                    <div className='flex items-center gap-4'>
-                      <div className='space-y-1'>
-                        <div className='flex items-center gap-2'>
-                          <h3 className='font-medium'>{student.name}</h3>
-                          <Badge variant='outline' className='text-xs'>
-                            {student.studentId}
-                          </Badge>
-                          {getStatusBadge(student.status)}
-                        </div>
-                        <p className='text-sm text-muted-foreground'>{student.subject}</p>
-                        <div className='flex items-center gap-4 text-sm text-muted-foreground'>
-                          <span>Điểm Quiz: {student.quizScore}%</span>
-                          <span>•</span>
-                          <span>Hoàn thành: {student.completionRate}%</span>
-                          <span>•</span>
-                          <span>Thời gian học: {student.studyTime}h/ngày</span>
-                          <span>•</span>
-                          <span>Hoạt động cuối: {new Date(student.lastActive).toLocaleDateString('vi-VN')}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className='flex items-center gap-4'>
-                      <div className='w-32'>
-                        <div className='flex justify-between text-sm mb-1'>
-                          <span>Tiến độ</span>
-                          <span>{student.completionRate}%</span>
-                        </div>
-                        <Progress value={student.completionRate} className='h-2' />
-                      </div>
-                      <div className='text-right'>
-                        <p className='text-lg font-semibold text-blue-600'>{student.quizScore}%</p>
-                        <p className='text-xs text-muted-foreground'>Điểm Quiz</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Overview Tab */}
-        <TabsContent value='overview' className='space-y-4'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            {/* Recent Activities */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Hoạt động gần đây</CardTitle>
-                <CardDescription>Các hoạt động mới nhất của học sinh</CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className='flex items-start gap-3'>
-                    <Avatar className='h-8 w-8'>
-                      <AvatarFallback className='text-xs'>{activity.avatar}</AvatarFallback>
-                    </Avatar>
-                    <div className='flex-1 space-y-1'>
-                      <div className='text-sm'>
-                        <span className='font-medium'>{activity.student}</span> {activity.action}
-                        {activity.score && (
-                          <Badge variant='secondary' className='ml-2'>
-                            {activity.score}%
-                          </Badge>
-                        )}
-                      </div>
-                      <p className='text-xs text-muted-foreground'>{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Today's Schedule */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Lịch học hôm nay</CardTitle>
-                <CardDescription>Thứ Năm, 19 tháng 9, 2024</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='space-y-4'>
-                  {upcomingClasses.map((classItem, index) => (
-                    <div key={index} className='border rounded-lg p-4 space-y-2'>
-                      <div className='flex items-center justify-between'>
-                        <h4 className='font-medium'>{classItem.subject}</h4>
-                        <Badge variant='outline'>{classItem.room}</Badge>
-                      </div>
-                      <p className='text-sm text-muted-foreground'>{classItem.time}</p>
-                      <p className='text-sm'>{classItem.topic}</p>
-                      <Button size='sm' variant='secondary' className='w-full'>
-                        Chuẩn bị bài giảng
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Quick Actions */}
-      <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-        <Card className='cursor-pointer hover:shadow-md transition-shadow' onClick={() => navigateTo('content')}>
-          <CardContent className='p-4 text-center'>
-            <Plus className='h-6 w-6 mx-auto mb-2 text-primary' />
-            <p className='text-sm font-medium'>Tạo Quiz</p>
-          </CardContent>
-        </Card>
-
-        <Card className='cursor-pointer hover:shadow-md transition-shadow' onClick={() => navigateTo('content')}>
-          <CardContent className='p-4 text-center'>
-            <FileText className='h-6 w-6 mx-auto mb-2 text-primary' />
-            <p className='text-sm font-medium'>Upload tài liệu</p>
-          </CardContent>
-        </Card>
-
-        <Card className='cursor-pointer hover:shadow-md transition-shadow' onClick={() => navigateTo('analytics')}>
-          <CardContent className='p-4 text-center'>
-            <BarChart3 className='h-6 w-6 mx-auto mb-2 text-primary' />
-            <p className='text-sm font-medium'>Xem báo cáo</p>
-          </CardContent>
-        </Card>
-
-        <Card className='cursor-pointer hover:shadow-md transition-shadow' onClick={() => navigateTo('messages')}>
-          <CardContent className='p-4 text-center'>
-            <MessageSquare className='h-6 w-6 mx-auto mb-2 text-primary' />
-            <p className='text-sm font-medium'>Nhắn tin HS</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  )
+    </div >
+  );
 }

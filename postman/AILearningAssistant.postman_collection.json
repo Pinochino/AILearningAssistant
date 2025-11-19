@@ -1,0 +1,3003 @@
+{
+  "info": {
+    "_postman_id": "70e95b4a-2d5d-44f1-b8df-00ae806d158d",
+    "name": "AILearningAssistant",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "46241878"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "RefreshToken",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"teacher1\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "getAllUsers",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\t\"username\": \"thai\",\r\n    \"email\": \"thai@gmail.com\",\r\n    \"newPassword\": \"hung2211\",\r\n    \"roles\": [\"OPERATOR\"]\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/users/list",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "users", "list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "updateUser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGNiYTcyMDhkMzcxYThkZWY1NTEyZSIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MjQ0MjY1MCwiZXhwIjoxNzYyNDQyOTUwfQ.TLRxWp1AwlJnf3oOjBs0P-ziehhDeNoIMA_AQCZBHA8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"addRoleId\": \"690cba7208d371a8def5511e\",\r\n    \"name\": \"hehe\",\r\n    \"removeRoleId\": \"690cba7208d371a8def5511d\",\r\n    \"username\": \"Hehe\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/users/update/690cba8c08d371a8def5514a",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "users", "update", "690cba8c08d371a8def5514a"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deleteUser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGNiYTcyMDhkMzcxYThkZWY1NTEyZSIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MjQ0MjY1MCwiZXhwIjoxNzYyNDQyOTUwfQ.TLRxWp1AwlJnf3oOjBs0P-ziehhDeNoIMA_AQCZBHA8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"addRoleId\": \"690cba7208d371a8def5511e\",\r\n    \"name\": \"hehe\",\r\n    \"removeRoleId\": \"690cba7208d371a8def5511d\",\r\n    \"username\": \"Hehe\",\r\n    \"_id\": \"\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/users/delete/690cba8c08d371a8def5514a",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "users", "delete", "690cba8c08d371a8def5514a"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getUserDetail",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\t\"username\": \"thai\",\r\n    \"email\": \"thai@gmail.com\",\r\n    \"newPassword\": \"hung2211\",\r\n    \"roles\": [\"OPERATOR\"]\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/users/detail/690cba8c08d371a8def5514a",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "users", "detail", "690cba8c08d371a8def5514a"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "countUsersByRoleId",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/users/count-by-role/Teacher",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "users", "count-by-role", "Teacher"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "filterUsersByRoleId",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"123456\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/users/list-user/690cba7208d371a8def5511c",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "users", "list-user", "690cba7208d371a8def5511c"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "createUser",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"name\": \"admin\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "countUserByActive",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGNiYTcyMDhkMzcxYThkZWY1NTEyZSIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MjQ0MjY1MCwiZXhwIjoxNzYyNDQyOTUwfQ.TLRxWp1AwlJnf3oOjBs0P-ziehhDeNoIMA_AQCZBHA8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMGQ3M2MzZC03NDQ2LTRmODEtYTljOS1jOTQyZDI3OTQ1YzciLCJleHAiOjE3NjExOTA0NTMsImlhdCI6MTc2MTE5MDM5MywianRpIjoiZmU1NDlkNDgtMWY2Yy00YzE2LWEyMzQtOTY2MjFmMWRjYzFiIiwicm9sZXMiOlsiQURNSU4iXX0.CvxhoN-uKO6UpMKzdZxmO3srYOBnvVYtMh3tOmBHlKU",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"addRoleId\": \"690cba7208d371a8def5511e\",\r\n    \"name\": \"hehe\",\r\n    \"removeRoleId\": \"690cba7208d371a8def5511d\",\r\n    \"username\": \"Hehe\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/users/count-by-active",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "users", "count-by-active"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Role",
+      "item": [
+        {
+          "name": "getAllRoles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Announcement",
+      "item": [
+        {
+          "name": "getAllAnnouncements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9000/api/announcements",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "announcements"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getAnnouncementById",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9000/api/announcements/6918989b53eb5d40e51124fa",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "announcements", "6918989b53eb5d40e51124fa"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "createAnnouncement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"title\": \"Chuyển phòng học\",\r\n  \"content\": \"Ngày 16/11, phòng 805D chuyển sang 101D\",\r\n  \"scope\": \"school\",\r\n  \"classId\": null,\r\n  \"pinned\": null,\r\n  \"startsAt\": \"2025-11-15T10:14:15.106+00:00\",\r\n  \"endsAt\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/announcements",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "announcements"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "updateAnnouncementById",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"title\": \"Update nè\",\r\n  \"content\": \"Ngày 16/11, phòng 805D chuyển sang 101D\",\r\n  \"scope\": \"school\",\r\n  \"classId\": null,\r\n  \"pinned\": null,\r\n  \"startsAt\": \"2025-11-15T10:14:15.106+00:00\",\r\n  \"endsAt\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/announcements/6918989b53eb5d40e51124fa",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "announcements", "6918989b53eb5d40e51124fa"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deleteAnnouncementById",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIyZiIsIm5hbWUiOiJNw610IFbEg24gQW4iLCJ1c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiIiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NjMyMjE5MDcsImV4cCI6MTc2MzIyOTEwN30.QL9zX1IY5nvpvzB4WR1Jw8CMoEaZ5kZiICB5YZW7Kjw",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9000/api/announcements/6918989b53eb5d40e51124fa",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "announcements", "6918989b53eb5d40e51124fa"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Conversation",
+      "item": [
+        {
+          "name": "getConversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9000/api/messages/conversations",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "messages", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getConversationWithAI",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/ai",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "messages", "ai"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getConversationWithAnotherUser",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/direct/6914045262792f2e1258db34",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "messages", "direct", "6914045262792f2e1258db34"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "createConversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"participants\": [\"6914045262792f2e1258db3a\", \"6914045262792f2e1258db34\", \"6914045262792f2e1258db3d\"],\r\n  \"name\": \"Study Group 2024\",\r\n  \"isGroup\": true,\r\n  \"conversationType\": \"group\",\r\n  \"aiTutorId\": null,\r\n  \"classId\": \"656a1b2c3d4e5f6789012348\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/conversations",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "messages", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "updateConversation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Updated Group Name\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/conversations/6918aa6153eb5d40e5112a59",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "messages",
+                "conversations",
+                "6918aa6153eb5d40e5112a59"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deleteConversation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/conversations/6918aa6153eb5d40e5112a59",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "messages",
+                "conversations",
+                "6918aa6153eb5d40e5112a59"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Message",
+      "item": [
+        {
+          "name": "getConversationMessages",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/conversations/691852767a14d003cfc47a77/messages",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "messages",
+                "conversations",
+                "691852767a14d003cfc47a77",
+                "messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "sendMessageToAITutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"prompt\": \"Can you explain the concept of machine learning?\",\r\n  \"conversationId\": \"6918b31453eb5d40e5112ac1\",\r\n  \"aiTutorId\": \"ai - mặc định\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/ai",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "messages", "ai"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "createMessage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzYSIsIm5hbWUiOiJMw6ogVsSDbiBDIiwidXNlcm5hbWUiOiJzdHVkZW50MSIsImVtYWlsIjoiIiwicm9sZXMiOlsiU1RVREVOVCJdLCJpYXQiOjE3NjMyMjE5NDQsImV4cCI6MTc2MzIyOTE0NH0.evDwC4Q0KqIhFuh6tfVzcj5QnGjhQSSEb7oCwcOn3as",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"conversationId\": \"6918aa6153eb5d40e5112a59\",\r\n  \"content\": \"Chao moi nguoi a\",\r\n  \"type\": \"text\",\r\n  \"replyTo\": null,\r\n  \"attachments\": []\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "markMessageAsRead",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTQwNDUyNjI3OTJmMmUxMjU4ZGIzNCIsIm5hbWUiOiJUw610IGNo4budIG3hu5l0IiwidXNlcm5hbWUiOiJ0ZWFjaGVyMSIsImVtYWlsIjoiIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjMyMjE5MzMsImV4cCI6MTc2MzIyOTEzM30.MfEbwEuu8p2JsVLeLr2WVn29xlYutqb8ZByshKYUclQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"conversationId\": \"6918aa6153eb5d40e5112a59\",\r\n  \"content\": \"Chao moi nguoi a\",\r\n  \"type\": \"text\",\r\n  \"replyTo\": null,\r\n  \"attachments\": []\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/messages/6918acd353eb5d40e5112a77/read",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "messages", "6918acd353eb5d40e5112a77", "read"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Class",
+      "item": [
+        {
+          "name": "allClasses",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYxNjU1LCJleHAiOjE3NjMyNjI4NTV9.2PfzifVQbs6EoGAY4PVeHn8E-DIW-fi__HUOhmNjiRw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/classes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "classes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getClassById",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYxNjU1LCJleHAiOjE3NjMyNjI4NTV9.2PfzifVQbs6EoGAY4PVeHn8E-DIW-fi__HUOhmNjiRw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/classes/6914a9b411553581acce0003",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "classes", "6914a9b411553581acce0003"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getPendingEnrollments",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYzMjkwLCJleHAiOjE3NjMyNjQ0OTB9.I0B6e_tVYDUytQuyD1qFWtDb8nLksG2n1WHgwrn1NAM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api//students/69132a4fa4398bfbb46dcdf7/enrollments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "",
+                "students",
+                "69132a4fa4398bfbb46dcdf7",
+                "enrollments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getClassessByTeacher",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYzODcyLCJleHAiOjE3NjMyNjUwNzJ9.MEfFzL55nI6TIJi52y-tInumrBjvwDTaFW4XQOEqK8c",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/teachers/69132a4ea4398bfbb46dcddf/classes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "teachers", "69132a4ea4398bfbb46dcddf", "classes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getAvailableClasses",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRmYTQzOThiZmJiNDZkY2RlYiIsInVzZXJuYW1lIjoic3R1ZGVudDIiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlVTRVIiXSwiaWF0IjoxNzYzMjY0MDIyLCJleHAiOjE3NjMyNjUyMjJ9.9jC6eutBZZJ_-Z3IEkSP1oIW5czA0gbrG62pQ46bL04",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/students/69132a4fa4398bfbb46dcdeb/available-classes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "students",
+                "69132a4fa4398bfbb46dcdeb",
+                "available-classes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "deleteClassById",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkYyIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MzI2NDE5MywiZXhwIjoxNzYzMjY1MzkzfQ.gBoFVahnqd8Nf6jsLkoOB_jJ3UnDFxM1tA-JtjyXK6w",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/classes/69132a50a4398bfbb46dce07",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "classes", "69132a50a4398bfbb46dce07"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "createClass",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkYyIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MzI2MTU1MiwiZXhwIjoxNzYzMjYyNzUyfQ.ivQwIfQRRf6BeWXSt54Uome7D-EE0pxyPczCFuS2FkQ",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"subject\": \"Toán cao cấp\",\r\n  \"grade\": \"Lớp 12A1\",\r\n  \"teacherId\": \"69132a4ea4398bfbb46dcddf\",\r\n  \"maxStudents\": 30,\r\n  \"schedule\": [\r\n    {\r\n      \"dayOfWeek\": 1,\r\n      \"startTime\": \"07:30\",\r\n      \"endTime\": \"09:00\"\r\n    }\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/classes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "classes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "editClass",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkYyIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6IiIsInJvbGVzIjpbIlNVUEVSX0FETUlOIl0sImlhdCI6MTc2MzI2MTU1MiwiZXhwIjoxNzYzMjYyNzUyfQ.ivQwIfQRRf6BeWXSt54Uome7D-EE0pxyPczCFuS2FkQ",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Toán cao cấp - Lớp 12A2\",\r\n  \"subject\": \"Toán cao cấp\",\r\n  \"grade\": \"Lớp 12A2\",\r\n  \"teacherId\": \"69132a4ea4398bfbb46dcddf\",\r\n  \"maxStudents\": 35,\r\n  \"schedule\": [\r\n    {\r\n      \"dayOfWeek\": 2,\r\n      \"startTime\": \"08:00\",\r\n      \"endTime\": \"09:30\"\r\n    }\r\n  ],\r\n  \"isActive\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/classes/69193dac465a47bcc92bc96c",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": ["api", "classes", "69193dac465a47bcc92bc96c"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "requestEnrollment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RlOCIsInVzZXJuYW1lIjoic3R1ZGVudDEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlVTRVIiXSwiaWF0IjoxNzYzMjYxNzA0LCJleHAiOjE3NjMyNjI5MDR9.ClEpEhD6GbTfv4pbpHf-_1TNE1n2AjFSiDHGPxWXikw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"message\": \"Em muốn đăng ký môn này vì cần tín chỉ\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/classes/69193dac465a47bcc92bc96c/request-enrollment",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "classes",
+                "69193dac465a47bcc92bc96c",
+                "request-enrollment"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "rejectRequest",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYxNjU1LCJleHAiOjE3NjMyNjI4NTV9.2PfzifVQbs6EoGAY4PVeHn8E-DIW-fi__HUOhmNjiRw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Lớp đã đầy\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/enrollments/691940ef465a47bcc92bc995/reject",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "enrollments",
+                "691940ef465a47bcc92bc995",
+                "reject"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "approveRequest",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTMyYTRlYTQzOThiZmJiNDZkY2RkZiIsInVzZXJuYW1lIjoidGVhY2hlcjEiLCJlbWFpbCI6IiIsInJvbGVzIjpbIlRFQUNIRVIiXSwiaWF0IjoxNzYzMjYyOTQ2LCJleHAiOjE3NjMyNjQxNDZ9.ZvPAhTFoVP9Cgjd6HYBM6tj6d7CKl23zI2s6kP9KrYc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:9000/api/enrollments/691940ef465a47bcc92bc995/approve",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9000",
+              "path": [
+                "api",
+                "enrollments",
+                "691940ef465a47bcc92bc995",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chapter",
+      "item": [
+        {
+          "name": "createChapterRoleTeacher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"SPM Chapter 1\",\r\n    \"classId\": \"691b6f3a74a0f6eb5812d231\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/chapters",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "chapters"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getChaptersByClassIdRoleTeacher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/chapters/class/691b6f3a74a0f6eb5812d231",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "chapters", "class", "691b6f3a74a0f6eb5812d231"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getChaptersByClassIdRoleAdmin",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4MyIsIm5hbWUiOiJRdeG6o24gdHLhu4sgaOG7hyB0aOG7kW5nIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVzIjpbIkFETUlOIl0sImlhdCI6MTc2MzQwNTUwNiwiZXhwIjoxNzYzNDEyNzA2fQ._2JaNF2NwKGSPDnBr3zblWUX7JIXCh4arnHpVcgjWiM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/chapters/class/691b6f3a74a0f6eb5812d231",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "chapters", "class", "691b6f3a74a0f6eb5812d231"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getChaptersByIdRoleTeacher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/chapters/691b706474a0f6eb5812d248",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "chapters", "691b706474a0f6eb5812d248"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delChapterRoleTeacher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/chapters/691b706474a0f6eb5812d248",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "chapters", "691b706474a0f6eb5812d248"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "updateChapter",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"kekeke\",\r\n    \"order\": \"2\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/chapters/691b706474a0f6eb5812d248",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "chapters", "691b706474a0f6eb5812d248"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Material",
+      "item": [
+        {
+          "name": "createMat",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/C:/Users/Ngoc Linh/OneDrive/HANU materials/Fall 2025/MUL/MUL key.pdf"
+                },
+                {
+                  "key": "title",
+                  "value": "mul ảnh chap 2",
+                  "type": "text"
+                },
+                {
+                  "key": "chapterId",
+                  "value": "691b706474a0f6eb5812d248",
+                  "type": "text"
+                },
+                {
+                  "key": "classId",
+                  "value": "691b6f3a74a0f6eb5812d231",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/materials",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "materials"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getMatByClassId",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/materials/class/691b6f3a74a0f6eb5812d231",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "materials", "class", "691b6f3a74a0f6eb5812d231"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getMatByMatId",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "updateMat",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"changed title\", \r\n    \"classId\": \"691b6f3a74a0f6eb5812d231\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/materials/691b725f74a0f6eb5812d265",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "materials", "691b725f74a0f6eb5812d265"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Quiz",
+      "item": [
+        {
+          "name": "genAiQuizRoleTeacher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"ai quiz mul\",\r\n    \"materialIds\": [\"691b725f74a0f6eb5812d265\"],\r\n    \"classId\": \"691b6f3a74a0f6eb5812d231\",\r\n    \"chapterIds\": [\"691b706474a0f6eb5812d248\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/ai/generate-quiz",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "ai", "generate-quiz"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getQuizById",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/quizzes/691b753874a0f6eb5812d293",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "quizzes", "691b753874a0f6eb5812d293"]
+            }
+          },
+          "response": [
+            {
+              "name": "lấy quiz để làm",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:9000/api/quizzes/6916f1b41e709068d004404e",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": ["api", "quizzes", "6916f1b41e709068d004404e"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "406"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"196-xwKQF5RsEwSUXz1Ae+hT+onWqdM\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 06:21:13 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"_id\": \"6916f1b41e709068d004404e\",\n        \"title\": \"Chuong2\",\n        \"classId\": \"6916eb6b8d97c280f241f4fb\",\n        \"chapters\": [\n            \"6916f0111e709068d0044028\"\n        ],\n        \"durationMinutes\": 5,\n        \"isPublic\": false,\n        \"isAIGenerated\": false,\n        \"questions\": [\n            {\n                \"question\": \"a\",\n                \"answers\": [\n                    \"a\",\n                    \"b\",\n                    \"c\",\n                    \"d\"\n                ],\n                \"correctAnswer\": 0\n            }\n        ],\n        \"deleted\": false,\n        \"createdAt\": \"2025-11-14T09:09:08.500Z\",\n        \"updatedAt\": \"2025-11-14T09:09:08.500Z\",\n        \"__v\": 0\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "genManualQuiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"kkk\",\r\n    \"classId\": \"691b6f3a74a0f6eb5812d231\",\r\n    \"chapters\": [\"691b706474a0f6eb5812d248\"],\r\n    \"durationMinutes\": \"5\",\r\n    \"questions\": [ {\r\n    \"question\": \"Thủ đô của Việt Nam là gì?\",\r\n    \"answers\": [\"Hà Nội\", \"TP. Hồ Chí Minh\", \"Đà Nẵng\"],\r\n    \"correctAnswer\": 0\r\n  },\r\n  {\r\n    \"question\": \"Kết quả của 2 + 2 bằng bao nhiêu?\",\r\n    \"answers\": [\"3\", \"4\", \"5\"],\r\n    \"correctAnswer\": 1\r\n  }]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/quizzes",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "quizzes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getquizbyclassid",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/quizzes/class/691b6f3a74a0f6eb5812d231",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "quizzes", "class", "691b6f3a74a0f6eb5812d231"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "submitQuiz",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "nộp quiz và xem kết quả",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"answers\": [\r\n        {\r\n            \"questionIndex\": 0,\r\n            \"selectedAnswer\": 0\r\n        }\r\n    ],\r\n    \"timeSpentMinutes\": 2\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:9000/api/quizzes/6916f1b41e709068d004404e/submit",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": [
+                    "api",
+                    "quizzes",
+                    "6916f1b41e709068d004404e",
+                    "submit"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "737"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"2e1-KFPdWT6UTMFuLkaOwpqI+i8HW+M\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 06:43:05 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Quiz submitted successfully\",\n    \"data\": {\n        \"attempt\": {\n            \"userId\": \"6916eb2d8d97c280f241f4d5\",\n            \"quizId\": \"6916f1b41e709068d004404e\",\n            \"classId\": \"6916eb6b8d97c280f241f4fb\",\n            \"answers\": [\n                {\n                    \"questionIndex\": 0,\n                    \"selectedAnswer\": 0,\n                    \"isCorrect\": true,\n                    \"correctAnswer\": 0\n                }\n            ],\n            \"score\": 100,\n            \"totalQuestions\": 1,\n            \"correctAnswers\": 1,\n            \"timeSpentMinutes\": 2,\n            \"startedAt\": \"2025-11-18T06:43:05.300Z\",\n            \"completedAt\": \"2025-11-18T06:43:05.331Z\",\n            \"_id\": \"691c1579a1f7ca810c1cb1cb\",\n            \"deleted\": false,\n            \"createdAt\": \"2025-11-18T06:43:05.342Z\",\n            \"updatedAt\": \"2025-11-18T06:43:05.342Z\",\n            \"__v\": 0\n        },\n        \"results\": {\n            \"score\": 100,\n            \"correctAnswers\": 1,\n            \"totalQuestions\": 1,\n            \"percentage\": 100,\n            \"passed\": true,\n            \"answers\": [\n                {\n                    \"questionIndex\": 0,\n                    \"selectedAnswer\": 0,\n                    \"isCorrect\": true,\n                    \"correctAnswer\": 0\n                }\n            ]\n        }\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "getLatestAttempt",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "xem lan lam cuoi cung",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/quizzes/6916f1b41e709068d004404e/latest-attempt",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": [
+                    "api",
+                    "quizzes",
+                    "6916f1b41e709068d004404e",
+                    "latest-attempt"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "862"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"35e-tAdbyVQwJ3SuWgSAe230AyoSA7U\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 06:48:22 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"_id\": \"691c1579a1f7ca810c1cb1cb\",\n        \"userId\": \"6916eb2d8d97c280f241f4d5\",\n        \"quizId\": {\n            \"_id\": \"6916f1b41e709068d004404e\",\n            \"title\": \"Chuong2\",\n            \"classId\": \"6916eb6b8d97c280f241f4fb\",\n            \"chapters\": [\n                \"6916f0111e709068d0044028\"\n            ],\n            \"durationMinutes\": 5,\n            \"isPublic\": false,\n            \"isAIGenerated\": false,\n            \"questions\": [\n                {\n                    \"question\": \"a\",\n                    \"answers\": [\n                        \"a\",\n                        \"b\",\n                        \"c\",\n                        \"d\"\n                    ],\n                    \"correctAnswer\": 0\n                }\n            ],\n            \"deleted\": false,\n            \"createdAt\": \"2025-11-14T09:09:08.500Z\",\n            \"updatedAt\": \"2025-11-14T09:09:08.500Z\",\n            \"__v\": 0\n        },\n        \"classId\": \"6916eb6b8d97c280f241f4fb\",\n        \"answers\": [\n            {\n                \"questionIndex\": 0,\n                \"selectedAnswer\": 0,\n                \"isCorrect\": true,\n                \"correctAnswer\": 0\n            }\n        ],\n        \"score\": 100,\n        \"totalQuestions\": 1,\n        \"correctAnswers\": 1,\n        \"timeSpentMinutes\": 2,\n        \"startedAt\": \"2025-11-18T06:43:05.300Z\",\n        \"completedAt\": \"2025-11-18T06:43:05.331Z\",\n        \"deleted\": false,\n        \"createdAt\": \"2025-11-18T06:43:05.342Z\",\n        \"updatedAt\": \"2025-11-18T06:43:05.342Z\",\n        \"__v\": 0\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "getMyQuizHistory",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "lich sử làm quiz",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/quizzes/attempts/my-history",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": ["api", "quizzes", "attempts", "my-history"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "664"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"298-GkxBLPGPPHUs8Bis/CUuKitTjjQ\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 06:54:52 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"attempts\": [\n            {\n                \"_id\": \"691c1579a1f7ca810c1cb1cb\",\n                \"userId\": {\n                    \"_id\": \"6916eb2d8d97c280f241f4d5\",\n                    \"name\": \"teacher10\"\n                },\n                \"quizId\": {\n                    \"_id\": \"6916f1b41e709068d004404e\",\n                    \"title\": \"Chuong2\",\n                    \"durationMinutes\": 5\n                },\n                \"classId\": \"6916eb6b8d97c280f241f4fb\",\n                \"answers\": [\n                    {\n                        \"questionIndex\": 0,\n                        \"selectedAnswer\": 0,\n                        \"isCorrect\": true,\n                        \"correctAnswer\": 0\n                    }\n                ],\n                \"score\": 100,\n                \"totalQuestions\": 1,\n                \"correctAnswers\": 1,\n                \"timeSpentMinutes\": 2,\n                \"startedAt\": \"2025-11-18T06:43:05.300Z\",\n                \"completedAt\": \"2025-11-18T06:43:05.331Z\",\n                \"deleted\": false,\n                \"createdAt\": \"2025-11-18T06:43:05.342Z\",\n                \"updatedAt\": \"2025-11-18T06:43:05.342Z\",\n                \"__v\": 0\n            }\n        ],\n        \"pagination\": {\n            \"page\": 1,\n            \"limit\": 20,\n            \"total\": 1,\n            \"pages\": 1\n        }\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "lịch sử làm quiz xem ai đã làm cái này",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "xemChiTietLanLam",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "xemChiTietLanLam",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/quizzes/attempts/691c1579a1f7ca810c1cb1cb",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": [
+                    "api",
+                    "quizzes",
+                    "attempts",
+                    "691c1579a1f7ca810c1cb1cb"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "889"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"379-0NJ0MuqIfSqikKJEo4I9FB5+qrg\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 07:04:02 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"_id\": \"691c1579a1f7ca810c1cb1cb\",\n        \"userId\": {\n            \"_id\": \"6916eb2d8d97c280f241f4d5\",\n            \"name\": \"teacher10\"\n        },\n        \"quizId\": {\n            \"_id\": \"6916f1b41e709068d004404e\",\n            \"title\": \"Chuong2\",\n            \"classId\": \"6916eb6b8d97c280f241f4fb\",\n            \"chapters\": [\n                \"6916f0111e709068d0044028\"\n            ],\n            \"durationMinutes\": 5,\n            \"isPublic\": false,\n            \"isAIGenerated\": false,\n            \"questions\": [\n                {\n                    \"question\": \"a\",\n                    \"answers\": [\n                        \"a\",\n                        \"b\",\n                        \"c\",\n                        \"d\"\n                    ],\n                    \"correctAnswer\": 0\n                }\n            ],\n            \"deleted\": false,\n            \"createdAt\": \"2025-11-14T09:09:08.500Z\",\n            \"updatedAt\": \"2025-11-14T09:09:08.500Z\",\n            \"__v\": 0\n        },\n        \"classId\": \"6916eb6b8d97c280f241f4fb\",\n        \"answers\": [\n            {\n                \"questionIndex\": 0,\n                \"selectedAnswer\": 0,\n                \"isCorrect\": true,\n                \"correctAnswer\": 0\n            }\n        ],\n        \"score\": 100,\n        \"totalQuestions\": 1,\n        \"correctAnswers\": 1,\n        \"timeSpentMinutes\": 2,\n        \"startedAt\": \"2025-11-18T06:43:05.300Z\",\n        \"completedAt\": \"2025-11-18T06:43:05.331Z\",\n        \"deleted\": false,\n        \"createdAt\": \"2025-11-18T06:43:05.342Z\",\n        \"updatedAt\": \"2025-11-18T06:43:05.342Z\",\n        \"__v\": 0\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "thongKeQuiz",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "thongKeQuiz",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/quizzes/6916f1b41e709068d004404e/statistics",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": [
+                    "api",
+                    "quizzes",
+                    "6916f1b41e709068d004404e",
+                    "statistics"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "125"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"7d-8mOYZ+HNL5zc+znt0ikLTB5yR0g\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 07:08:18 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"totalAttempts\": 2,\n        \"averageScore\": 50,\n        \"highestScore\": 100,\n        \"lowestScore\": 0,\n        \"passRate\": 50\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flashcard",
+      "item": [
+        {
+          "name": "getflashcardbychapterid",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/flashcards/chapter/691b706474a0f6eb5812d248",
+              "host": ["{{baseURL}}"],
+              "path": [
+                "api",
+                "flashcards",
+                "chapter",
+                "691b706474a0f6eb5812d248"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getfcbyclassid",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/flashcards/class/691b6f3a74a0f6eb5812d231",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "flashcards", "class", "691b6f3a74a0f6eb5812d231"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "genAiFlashCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"ai quiz mul\",\r\n    \"materialIds\": [\"691b725f74a0f6eb5812d265\"],\r\n    \"classId\": \"691b6f3a74a0f6eb5812d231\",\r\n    \"chapterIds\": [\"691b706474a0f6eb5812d248\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/ai/generate-flashcards",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "ai", "generate-flashcards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "genmanualfc",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWI2ZTY5NzRhMGY2ZWI1ODEyZDE4ZSIsIm5hbWUiOiJOZ3V54buFbiBWxINuIEEiLCJ1c2VybmFtZSI6InRlYWNoZXIxIiwicm9sZXMiOlsiVEVBQ0hFUiJdLCJpYXQiOjE3NjM0MDU3MzUsImV4cCI6MTc2MzQxMjkzNX0.bIuMohiOOloHK1SmH034V0yBeQPsDO52FQIFN5CyPZY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\r\n            \"classId\": \"691b6f3a74a0f6eb5812d231\",\r\n            \"chapters\": [\r\n                \"691b706474a0f6eb5812d248\"\r\n            ],\r\n            \"front\": \"2\",\r\n            \"back\": \"mot\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/flashcards",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "flashcards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "layBoFlashcard",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "layboflashcard",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/flashcards/69185840a51e97e2b1e84ab7",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": ["api", "flashcards", "69185840a51e97e2b1e84ab7"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "347"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"15b-SgQK4JT8ABIe0ONk5FlqYEChl60\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 07:54:35 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"_id\": \"69185840a51e97e2b1e84ab7\",\n        \"front\": \"a\",\n        \"back\": \"b\",\n        \"chapters\": [\n            \"691580dbfe4f3ab805bf2a3f\"\n        ],\n        \"classId\": \"6915800cf816d47aa786ad43\",\n        \"isAIGenerated\": false,\n        \"intervalDays\": 0,\n        \"easeFactor\": 2.5,\n        \"reviewCount\": 0,\n        \"deleted\": false,\n        \"__v\": 0,\n        \"createdAt\": \"2025-11-15T10:38:56.393Z\",\n        \"updatedAt\": \"2025-11-15T10:38:56.393Z\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "làm và nop, xem dáp án",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "làm và nop , xem dáp an",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"cards\": [\r\n    {\r\n      \"flashcardId\": \"691c24eda1f7ca810c1cb52f\",\r\n      \"cardIndex\": 0,\r\n      \"isCorrect\": true,\r\n      \"timeSpentSeconds\": 10\r\n    }\r\n  ],\r\n  \"timeSpentMinutes\": 5,\r\n  \"startedAt\": \"2025-11-18T10:00:00Z\",\r\n  \"sessionId\": \"session-12345\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:9000/api/flashcards/691c24eda1f7ca810c1cb52e/submit",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": [
+                    "api",
+                    "flashcards",
+                    "691c24eda1f7ca810c1cb52e",
+                    "submit"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "364"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"16c-kzvX4L9GvbkQ/qAAd3C2m9C/edI\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 08:05:06 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Flashcard attempt saved successfully\",\n    \"data\": {\n        \"attempt\": {\n            \"_id\": \"691c28b2a1f7ca810c1cb689\",\n            \"score\": 100,\n            \"correctCards\": 1,\n            \"incorrectCards\": 0,\n            \"totalCards\": 1,\n            \"timeSpentMinutes\": 5,\n            \"completedAt\": \"2025-11-18T08:05:06.002Z\",\n            \"cards\": [\n                {\n                    \"cardIndex\": 0,\n                    \"isCorrect\": true,\n                    \"timeSpentSeconds\": 10,\n                    \"difficulty\": \"medium\",\n                    \"_id\": \"691c28b2a1f7ca810c1cb68a\"\n                }\n            ]\n        }\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "xem lại noi dung flashcard",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "xem lai noi dung flashcard",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/flashcard-sets/691c24eda1f7ca810c1cb52e",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": ["api", "flashcard-sets", "691c24eda1f7ca810c1cb52e"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "556"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"22c-t1yMd7ZtcBgTtSNJ6tJMCtUBQ3I\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 08:11:27 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"_id\": \"691c24eda1f7ca810c1cb52e\",\n        \"title\": \"chương 1\",\n        \"classId\": \"6915800cf816d47aa786ad43\",\n        \"chapters\": [\n            {\n                \"_id\": \"691580dbfe4f3ab805bf2a3f\",\n                \"title\": \"chương 1\"\n            }\n        ],\n        \"createdBy\": {\n            \"_id\": \"69158009f816d47aa786ad07\",\n            \"name\": \"Nguyễn văn A\"\n        },\n        \"isAIGenerated\": false,\n        \"difficulty\": \"medium\",\n        \"flashcards\": [\n            {\n                \"front\": \"a\",\n                \"back\": \"v\",\n                \"intervalDays\": 0,\n                \"easeFactor\": 2.5,\n                \"reviewCount\": 0,\n                \"_id\": \"691c24eda1f7ca810c1cb52f\"\n            }\n        ],\n        \"totalCards\": 1,\n        \"deleted\": false,\n        \"createdAt\": \"2025-11-18T07:49:01.551Z\",\n        \"updatedAt\": \"2025-11-18T07:49:01.551Z\",\n        \"__v\": 0\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "xem lại lần ôn tập",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "xem lại lần ôn tập",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/flashcards/691c24eda1f7ca810c1cb52e/attempts",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": [
+                    "api",
+                    "flashcards",
+                    "691c24eda1f7ca810c1cb52e",
+                    "attempts"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "3505"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"db1-LRxhAKGk9rlMlEVWRzr1+ThERCU\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 08:13:52 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Attempts retrieved successfully\",\n    \"data\": {\n        \"attempts\": [\n            {\n                \"_id\": \"691c2a60a1f7ca810c1cb76a\",\n                \"score\": 100,\n                \"correctCards\": 1,\n                \"incorrectCards\": 0,\n                \"totalCards\": 1,\n                \"timeSpentMinutes\": 1,\n                \"completedAt\": \"2025-11-18T08:12:16.374Z\",\n                \"startedAt\": \"2025-11-18T08:12:12.739Z\",\n                \"flashcardSet\": {\n                    \"_id\": \"691c24eda1f7ca810c1cb52e\",\n                    \"title\": \"chương 1\",\n                    \"classId\": \"6915800cf816d47aa786ad43\",\n                    \"chapters\": [\n                        \"691580dbfe4f3ab805bf2a3f\"\n                    ],\n                    \"createdBy\": \"69158009f816d47aa786ad07\",\n                    \"isAIGenerated\": false,\n                    \"difficulty\": \"medium\",\n                    \"flashcards\": [\n                        {\n                            \"front\": \"a\",\n                            \"back\": \"v\",\n                            \"intervalDays\": 0,\n                            \"easeFactor\": 2.5,\n                            \"reviewCount\": 0,\n                            \"_id\": \"691c24eda1f7ca810c1cb52f\"\n                        }\n                    ],\n                    \"totalCards\": 1,\n                    \"deleted\": false,\n                    \"createdAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"updatedAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"__v\": 0\n                },\n                \"userId\": {\n                    \"_id\": \"6915800af816d47aa786ad10\",\n                    \"name\": \"Trần Thị F\"\n                },\n                \"cards\": [\n                    {\n                        \"cardIndex\": 0,\n                        \"isCorrect\": true,\n                        \"timeSpentSeconds\": 0,\n                        \"difficulty\": \"medium\",\n                        \"_id\": \"691c2a60a1f7ca810c1cb76b\"\n                    }\n                ]\n            },\n            {\n                \"_id\": \"691c298ba1f7ca810c1cb6fa\",\n                \"score\": 0,\n                \"correctCards\": 0,\n                \"incorrectCards\": 1,\n                \"totalCards\": 1,\n                \"timeSpentMinutes\": 1,\n                \"completedAt\": \"2025-11-18T08:08:43.324Z\",\n                \"startedAt\": \"2025-11-18T08:08:39.445Z\",\n                \"flashcardSet\": {\n                    \"_id\": \"691c24eda1f7ca810c1cb52e\",\n                    \"title\": \"chương 1\",\n                    \"classId\": \"6915800cf816d47aa786ad43\",\n                    \"chapters\": [\n                        \"691580dbfe4f3ab805bf2a3f\"\n                    ],\n                    \"createdBy\": \"69158009f816d47aa786ad07\",\n                    \"isAIGenerated\": false,\n                    \"difficulty\": \"medium\",\n                    \"flashcards\": [\n                        {\n                            \"front\": \"a\",\n                            \"back\": \"v\",\n                            \"intervalDays\": 0,\n                            \"easeFactor\": 2.5,\n                            \"reviewCount\": 0,\n                            \"_id\": \"691c24eda1f7ca810c1cb52f\"\n                        }\n                    ],\n                    \"totalCards\": 1,\n                    \"deleted\": false,\n                    \"createdAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"updatedAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"__v\": 0\n                },\n                \"userId\": {\n                    \"_id\": \"6915800af816d47aa786ad10\",\n                    \"name\": \"Trần Thị F\"\n                },\n                \"cards\": [\n                    {\n                        \"cardIndex\": 0,\n                        \"isCorrect\": false,\n                        \"timeSpentSeconds\": 0,\n                        \"difficulty\": \"medium\",\n                        \"_id\": \"691c298ba1f7ca810c1cb6fb\"\n                    }\n                ]\n            },\n            {\n                \"_id\": \"691c28b2a1f7ca810c1cb689\",\n                \"score\": 100,\n                \"correctCards\": 1,\n                \"incorrectCards\": 0,\n                \"totalCards\": 1,\n                \"timeSpentMinutes\": 5,\n                \"completedAt\": \"2025-11-18T08:05:06.002Z\",\n                \"startedAt\": \"2025-11-18T10:00:00.000Z\",\n                \"flashcardSet\": {\n                    \"_id\": \"691c24eda1f7ca810c1cb52e\",\n                    \"title\": \"chương 1\",\n                    \"classId\": \"6915800cf816d47aa786ad43\",\n                    \"chapters\": [\n                        \"691580dbfe4f3ab805bf2a3f\"\n                    ],\n                    \"createdBy\": \"69158009f816d47aa786ad07\",\n                    \"isAIGenerated\": false,\n                    \"difficulty\": \"medium\",\n                    \"flashcards\": [\n                        {\n                            \"front\": \"a\",\n                            \"back\": \"v\",\n                            \"intervalDays\": 0,\n                            \"easeFactor\": 2.5,\n                            \"reviewCount\": 0,\n                            \"_id\": \"691c24eda1f7ca810c1cb52f\"\n                        }\n                    ],\n                    \"totalCards\": 1,\n                    \"deleted\": false,\n                    \"createdAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"updatedAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"__v\": 0\n                },\n                \"userId\": {\n                    \"_id\": \"6916eb2d8d97c280f241f4d5\",\n                    \"name\": \"teacher10\"\n                },\n                \"cards\": [\n                    {\n                        \"cardIndex\": 0,\n                        \"isCorrect\": true,\n                        \"timeSpentSeconds\": 10,\n                        \"difficulty\": \"medium\",\n                        \"_id\": \"691c28b2a1f7ca810c1cb68a\"\n                    }\n                ]\n            },\n            {\n                \"_id\": \"691c2530a1f7ca810c1cb59f\",\n                \"score\": 100,\n                \"correctCards\": 1,\n                \"incorrectCards\": 0,\n                \"totalCards\": 1,\n                \"timeSpentMinutes\": 1,\n                \"completedAt\": \"2025-11-18T07:50:08.123Z\",\n                \"startedAt\": \"2025-11-18T07:49:19.584Z\",\n                \"flashcardSet\": {\n                    \"_id\": \"691c24eda1f7ca810c1cb52e\",\n                    \"title\": \"chương 1\",\n                    \"classId\": \"6915800cf816d47aa786ad43\",\n                    \"chapters\": [\n                        \"691580dbfe4f3ab805bf2a3f\"\n                    ],\n                    \"createdBy\": \"69158009f816d47aa786ad07\",\n                    \"isAIGenerated\": false,\n                    \"difficulty\": \"medium\",\n                    \"flashcards\": [\n                        {\n                            \"front\": \"a\",\n                            \"back\": \"v\",\n                            \"intervalDays\": 0,\n                            \"easeFactor\": 2.5,\n                            \"reviewCount\": 0,\n                            \"_id\": \"691c24eda1f7ca810c1cb52f\"\n                        }\n                    ],\n                    \"totalCards\": 1,\n                    \"deleted\": false,\n                    \"createdAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"updatedAt\": \"2025-11-18T07:49:01.551Z\",\n                    \"__v\": 0\n                },\n                \"userId\": {\n                    \"_id\": \"6915800af816d47aa786ad10\",\n                    \"name\": \"Trần Thị F\"\n                },\n                \"cards\": [\n                    {\n                        \"cardIndex\": 0,\n                        \"isCorrect\": true,\n                        \"timeSpentSeconds\": 0,\n                        \"difficulty\": \"medium\",\n                        \"_id\": \"691c2530a1f7ca810c1cb5a0\"\n                    }\n                ]\n            }\n        ]\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "lấy tất cả flashcard",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": [
+            {
+              "name": "lấy tất cả flashcard",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:9000/api/flashcard-sets",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "9000",
+                  "path": ["api", "flashcard-sets"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1572"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"624-0Ri9TZlMjDx5lOqI5gOoKdLvsIE\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 18 Nov 2025 08:19:40 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"OK\",\n    \"data\": {\n        \"items\": [\n            {\n                \"_id\": \"691c24eda1f7ca810c1cb52e\",\n                \"title\": \"chương 1\",\n                \"classId\": \"6915800cf816d47aa786ad43\",\n                \"chapters\": [\n                    {\n                        \"_id\": \"691580dbfe4f3ab805bf2a3f\",\n                        \"title\": \"chương 1\"\n                    }\n                ],\n                \"createdBy\": {\n                    \"_id\": \"69158009f816d47aa786ad07\",\n                    \"name\": \"Nguyễn văn A\",\n                    \"username\": \"teacher1\"\n                },\n                \"isAIGenerated\": false,\n                \"difficulty\": \"medium\",\n                \"flashcards\": [\n                    {\n                        \"front\": \"a\",\n                        \"back\": \"v\",\n                        \"intervalDays\": 0,\n                        \"easeFactor\": 2.5,\n                        \"reviewCount\": 0,\n                        \"_id\": \"691c24eda1f7ca810c1cb52f\"\n                    }\n                ],\n                \"totalCards\": 1,\n                \"deleted\": false,\n                \"createdAt\": \"2025-11-18T07:49:01.551Z\",\n                \"updatedAt\": \"2025-11-18T07:49:01.551Z\",\n                \"__v\": 0\n            },\n            {\n                \"_id\": \"691a05f33b8cfa9cac8f90cf\",\n                \"title\": \"Chương 2\",\n                \"classId\": \"6916eb6b8d97c280f241f4fb\",\n                \"chapters\": [\n                    {\n                        \"_id\": \"6916f0111e709068d0044028\",\n                        \"title\": \"Chương 2\"\n                    },\n                    {\n                        \"_id\": \"6916eb988d97c280f241f540\",\n                        \"title\": \"Chương 1\"\n                    }\n                ],\n                \"createdBy\": {\n                    \"_id\": \"6916eb2d8d97c280f241f4d5\",\n                    \"name\": \"teacher10\",\n                    \"username\": \"teacher10\"\n                },\n                \"isAIGenerated\": false,\n                \"difficulty\": \"medium\",\n                \"flashcards\": [\n                    {\n                        \"front\": \"Đạo hàm của hàm số y = ln(x) là\",\n                        \"back\": \"a\",\n                        \"intervalDays\": 0,\n                        \"easeFactor\": 2.5,\n                        \"reviewCount\": 0,\n                        \"_id\": \"691a05f33b8cfa9cac8f90d0\"\n                    },\n                    {\n                        \"front\": \"Đạo hàm của hàm số y = ln(x) là\",\n                        \"back\": \"c\",\n                        \"intervalDays\": 0,\n                        \"easeFactor\": 2.5,\n                        \"reviewCount\": 0,\n                        \"_id\": \"691a05f33b8cfa9cac8f90d1\"\n                    },\n                    {\n                        \"front\": \"Đạo hàm của hàm số y = ln(x) là\",\n                        \"back\": \"d\",\n                        \"intervalDays\": 0,\n                        \"easeFactor\": 2.5,\n                        \"reviewCount\": 0,\n                        \"_id\": \"691a05f33b8cfa9cac8f90d2\"\n                    }\n                ],\n                \"totalCards\": 3,\n                \"deleted\": false,\n                \"createdAt\": \"2025-11-16T17:12:19.415Z\",\n                \"updatedAt\": \"2025-11-16T17:12:19.415Z\",\n                \"__v\": 0\n            }\n        ],\n        \"pagination\": {\n            \"page\": 1,\n            \"limit\": 20,\n            \"total\": 2,\n            \"pages\": 1\n        }\n    }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}

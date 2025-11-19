@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Brain outline with gradient - Made larger -->
+  <path d="M50 10C25 10 10 25 10 50S25 90 50 90s40-15 40-40S75 10 50 10z" 
+        fill="url(#brainGradient)" 
+        stroke="#4F46E5" 
+        stroke-width="1.5"
+        style="filter: drop-shadow(0 3px 6px rgba(79, 70, 229, 0.4));" />
+        
+  <!-- Brain details with lighter shade - Scaled up -->
+  <path d="M30 40C30 30 40 20 50 20c10 0 20 10 20 20 0 10-10 20-20 20-10 0-20-10-20-20z" 
+        fill="rgba(255, 255, 255, 0.15)" />
+  <path d="M35 60C35 50 40 40 50 40c10 0 15 10 15 20 0 10-5 20-15 20-10 0-15-10-15-20z" 
+        fill="rgba(255, 255, 255, 0.15)" />
+        
+  <!-- Highlights - Scaled up -->
+  <circle cx="45" cy="40" r="3" fill="white" />
+  <circle cx="55" cy="40" r="3" fill="white" />
+  <path d="M42 50Q50 60 58 50" 
+        fill="none" 
+        stroke="white" 
+        stroke-width="2" 
+        stroke-linecap="round"
+        opacity="0.9" />
+</svg>

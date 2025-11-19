@@ -1,308 +1,384 @@
-import { React, useState, useRef, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
-import { Badge } from '../ui/badge'
-import { Avatar, AvatarFallback } from '../ui/avatar'
-import {
-  Send,
-  Brain,
-  Sparkles,
-  BookOpen,
-  MessageSquare,
-  RefreshCw,
-  Lightbulb,
-  Calculator,
-  FileText,
-  Zap
-} from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { GoogleGenAI, GoogleGenAi } from '@google/genai'
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_KEY
-
-console.log(GEMINI_API_KEY)
+// src/components/AITutor.tsx
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Send, Brain, Sparkles, RefreshCw, Calculator, Lightbulb, Zap, Pencil, Trash2, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { toast } from 'sonner';
+import { MessagesService } from '../../services/messages';
 
 interface ChatMessage {
-  id: string
-  type: 'user' | 'ai'
-  content: string
-  timestamp: Date
-  subject?: string
+  id: string;
+  type: 'user' | 'ai';
+  content: string;
+  timestamp: Date;
+  subject?: string;
 }
 
-const mockChatHistory: ChatMessage[] = [
-  {
-    id: '1',
-    type: 'ai',
-    content:
-      'Xin chào! Tôi là AI Tutor của bạn. Tôi có thể giúp bạn giải đáp thắc mắc về các môn học, giải bài tập, và hướng dẫn học tập. Bạn muốn học gì hôm nay?',
-    timestamp: new Date('2024-09-18T09:00:00')
-  },
-  {
-    id: '2',
-    type: 'user',
-    content: 'Giúp tôi giải phương trình bậc hai: x² - 5x + 6 = 0',
-    timestamp: new Date('2024-09-18T09:01:00'),
-    subject: 'Toán học'
-  },
-  {
-    id: '3',
-    type: 'ai',
-    content:
-      'Tôi sẽ giúp bạn giải phương trình bậc hai x² - 5x + 6 = 0.\n\n**Cách 1: Phân tích thành nhân tử**\nx² - 5x + 6 = 0\nTìm hai số có tích = 6 và tổng = 5: là 2 và 3\n(x - 2)(x - 3) = 0\n\nVậy x = 2 hoặc x = 3\n\n**Cách 2: Công thức nghiệm**\nVới a = 1, b = -5, c = 6\nΔ = b² - 4ac = 25 - 24 = 1\nx = (5 ± 1)/2\nVậy x₁ = 3, x₂ = 2\n\n**Kết luận:** Phương trình có hai nghiệm x = 2 và x = 3.',
-    timestamp: new Date('2024-09-18T09:01:30'),
-    subject: 'Toán học'
-  }
-]
+const GREETING: ChatMessage = {
+  id: `greet-${Date.now()}`,
+  type: 'ai',
+  content: 'Xin chào! Tôi là AI Tutor của bạn. Hãy đặt câu hỏi để bắt đầu nhé.',
+  timestamp: new Date(),
+};
 
-const mockSuggestions = [
+// Remove "practice" feature per request (Tạo bài tập)
+const aiFeatures = [
   {
-    id: '1',
-    text: 'Giải thích định luật Newton thứ 2',
-    subject: 'Vật lý',
-    icon: '⚡'
-  },
-  {
-    id: '2',
-    text: 'Hướng dẫn viết phương trình hóa học',
-    subject: 'Hóa học',
-    icon: '🧪'
-  },
-  {
-    id: '3',
-    text: 'Phân tích tác phẩm "Chí Phèo"',
-    subject: 'Văn học',
-    icon: '📚'
-  },
-  {
-    id: '4',
-    text: 'Giải bài tập về hàm số',
-    subject: 'Toán học',
-    icon: '📊'
-  }
-]
-
-const mockAIFeatures = [
-  {
-    id: '1',
+    id: 'solve',
     title: 'Giải bài tập',
-    description: 'AI sẽ hướng dẫn giải từng bước chi tiết',
+    description: 'AI hướng dẫn từng bước chi tiết',
     icon: Calculator,
-    color: 'bg-blue-100 text-blue-600'
+    color: 'bg-blue-100 text-blue-600',
   },
   {
-    id: '2',
+    id: 'explain',
     title: 'Giải thích khái niệm',
-    description: 'Giải thích lý thuyết một cách dễ hiểu',
+    description: 'Giải thích lý thuyết dễ hiểu',
     icon: Lightbulb,
-    color: 'bg-yellow-100 text-yellow-600'
+    color: 'bg-yellow-100 text-yellow-600',
   },
   {
-    id: '3',
-    title: 'Tạo bài tập',
-    description: 'Tạo bài tập luyện tập theo yêu cầu',
-    icon: FileText,
-    color: 'bg-green-100 text-green-600'
-  },
-  {
-    id: '4',
+    id: 'optimize',
     title: 'Tối ưu học tập',
     description: 'Gợi ý phương pháp học hiệu quả',
     icon: Zap,
-    color: 'bg-purple-100 text-purple-600'
+    color: 'bg-purple-100 text-purple-600',
+  },
+];
+
+const TEMPLATES: Record<string, string> = {
+  solve: `Giải bài tập theo từng bước:
+- Môn: 
+- Cấp độ/khối lớp: 
+- Đề bài gốc (nguyên văn):
+- Yêu cầu trình bày: 
+- Ràng buộc (nếu có): 
+- Định dạng đầu ra: `,
+  explain: `Giải thích khái niệm:
+- Khái niệm/Thuật ngữ:
+- Bối cảnh sử dụng:
+- Mức độ chi tiết:
+- Yêu cầu minh hoạ:
+- Nếu có công thức: trình bày và giải thích các ký hiệu`,
+  optimize: `Tối ưu kế hoạch học:
+- Môn/Chủ đề:
+- Mục tiêu:
+- Thời gian sẵn có:
+- Mức hiện tại:
+- Phong cách học:`,
+};
+
+function toText(val: any): string {
+  if (val == null) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') {
+    try { return JSON.stringify(val, null, 2); } catch { }
   }
-]
+  return String(val);
+}
+
+// Remove basic Markdown formatting to display clean text in chat
+function stripMarkdown(md: string): string {
+  if (!md) return '';
+  return md
+    // code blocks and inline code: drop backticks but keep code
+    .replace(/```[\s\S]*?```/g, (m) => m.replace(/```/g, ''))
+    .replace(/`([^`]+)`/g, '$1')
+    // headings
+    .replace(/^#{1,6}\s+/gm, '')
+    // bold/italic
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    // blockquotes
+    .replace(/^>\s?/gm, '')
+    // images [alt](url) and links -> keep text
+    .replace(/!\[[^\]]*\]\([^\)]*\)/g, '')
+    .replace(/\[([^\]]+)\]\([^\)]*\)/g, '$1')
+    // unordered lists -> bullet
+    .replace(/^\s*[-*+]\s+/gm, '• ')
+    // ordered lists keep number and dot
+    .replace(/^\s*(\d+)\.\s+/gm, '$1. ')
+    .trim();
+}
 
 export function AITutor() {
-  const [messages, setMessages] = useState<string | null>(null)
-  const [inputValue, setInputValue] = useState('')
-  const [selectedSubject, setSelectedSubject] = useState('all')
-  const [isTyping, setIsTyping] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [GREETING]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [aiConversations, setAiConversations] = useState<any[]>([]);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [targetConvId, setTargetConvId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef(new Map<string, HTMLDivElement | null>());
+  const allowAutoScroll = useRef(false);
+  const didInitialPosition = useRef(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  // Auto grow textarea
+  const autoGrow = (el?: HTMLTextAreaElement | null) => {
+    const node = el || textareaRef.current;
+    if (!node) return;
+    node.style.height = 'auto';
+    const max = 160; // px max-height (~10 lines)
+    const newH = Math.min(node.scrollHeight, max);
+    node.style.height = `${newH}px`;
+    node.style.overflowY = node.scrollHeight > max ? 'auto' : 'hidden';
+  };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date(),
-      subject: selectedSubject !== 'all' ? selectedSubject : undefined
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInputValue('')
-    setIsTyping(true)
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content:
-          'Tôi đang xử lý câu hỏi của bạn. Đây là một câu trả lời mẫu từ AI tutor. Trong thực tế, câu trả lời sẽ được tạo bởi mô hình AI dựa trên nội dung câu hỏi của bạn.',
-        timestamp: new Date(),
-        subject: selectedSubject !== 'all' ? selectedSubject : undefined
-      }
-      setMessages((prev) => [...prev, aiMessage])
-      setIsTyping(false)
-    }, 2000)
-  }
-
-  const handleSuggestionClick = (suggestion: any) => {
-    setInputValue(suggestion.text)
-    inputRef.current?.focus()
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSendMessage()
-    }
-  }
+  useEffect(() => { autoGrow(); }, [inputValue]);
 
   const formatTimestamp = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-  }
+    return timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  };
 
-  const ai = new GoogleGenAI({apiKey: GEMINI_API_KEY});
+  // Initial load: conversations list & load current messages (but keep greeting if none)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const convsRes: any = await MessagesService.getConversations();
+        const allConvs = Array.isArray(convsRes?.data) ? convsRes.data : (Array.isArray(convsRes) ? convsRes : []);
+        const aiConvs = allConvs.filter((c: any) => (c.conversationType === 'ai') || c.aiTutorId);
+        if (mounted) setAiConversations(aiConvs);
 
-  const sendMessageToGemini = async () => {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-001',
-      contents: inputValue,
-    });
-    setMessages(response.text)
-    setInputValue('')
-  }
+        // if there is an AI conv, pick the first but don't clobber greeting unless server has messages
+        if (aiConvs.length > 0) {
+          const firstId = aiConvs[0]._id || aiConvs[0].id;
+          setConversationId(firstId);
+          try {
+            const list: any = await MessagesService.getConversationMessages(firstId, { page: 1, limit: 50 });
+            const items = Array.isArray(list?.data) ? list.data : (Array.isArray(list?.items) ? list.items : []);
+            const mapped: ChatMessage[] = (items || []).map((m: any) => ({
+              id: m._id || m.id,
+              type: (m.type === 'ai' || m.sender?.role === 'system' || m.sender?.isAI) ? 'ai' : 'user',
+              content: toText(m.content ?? m.text),
+              timestamp: new Date(m.createdAt || Date.now()),
+            }));
+            if (mounted && mapped.length) setMessages(mapped);
+          } catch (e) {
+            // ignore, keep greeting
+          }
+        } else {
+          // ensure there's at least one server-side AI conversation available for create-on-send flows
+          // we intentionally don't add it to the sidebar until user sends the first message
+          try {
+            const created: any = await MessagesService.getOrCreateAi();
+            const convObj = created?.data || created;
+            const currentId = convObj?._id || convObj?.id || convObj?.conversationId || convObj?.conversation?._id || null;
+            if (mounted && currentId) {
+              setConversationId(currentId);
+              // do not add to aiConversations list yet (per requirement: only after first user message)
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+    const content = inputValue;
+    const tempId = `temp-${Date.now()}`;
+    const optimistic: ChatMessage = { id: tempId, type: 'user', content, timestamp: new Date() };
+
+    setMessages(prev => [...prev, optimistic]);
+    setInputValue('');
+    setIsTyping(true);
+
+    try {
+      // Ensure conversation exists (might have been created earlier but not in sidebar)
+      let convId = conversationId;
+      let convObj: any = null;
+      if (!convId) {
+        const convRes: any = await MessagesService.getOrCreateAi();
+        convObj = convRes?.data || convRes;
+        convId = convObj?.id || convObj?._id || convObj?.conversationId || convObj?.conversation?._id || null;
+        if (!convId) throw new Error('Không lấy được AI conversation');
+        setConversationId(convId);
+        // DO NOT add to sidebar yet; we'll add after successful message persist below
+      }
+
+      // Persist user message
+      await MessagesService.createMessage({ conversationId: convId, content, type: 'text' });
+
+      // Send to AI
+      await MessagesService.sendToAi({ prompt: content, conversationId: convId });
+
+      // Refresh messages from server
+      const list: any = await MessagesService.getConversationMessages(convId, { page: 1, limit: 50 });
+      const items = Array.isArray(list?.data) ? list.data : (Array.isArray(list?.items) ? list.items : []);
+      const mapped: ChatMessage[] = (items || []).map((m: any) => ({
+        id: m._id || m.id,
+        type: (m.type === 'ai' || m.sender?.role === 'system' || m.sender?.isAI) ? 'ai' : 'user',
+        content: toText(m.content ?? m.text),
+        timestamp: new Date(m.createdAt || Date.now()),
+      }));
+      setMessages(mapped);
+
+      // AFTER we confirmed messages exist, ensure conversation appears in sidebar
+      // If convObj not available (we didn't create it now) try to build a minimal convObj to add
+      if (convObj) {
+        const cid = convObj._id || convObj.id || convObj.conversationId || convObj.conversation?._id;
+        if (cid && !aiConversations.some((c: any) => (c._id || c.id) === cid)) {
+          setAiConversations(prev => [convObj, ...prev]);
+        }
+      } else {
+        // maybe conversation existed earlier but wasn't in sidebar for some reason
+        if (convId && !aiConversations.some((c: any) => (c._id || c.id) === convId)) {
+          // try to fetch conv meta from server list
+          try {
+            const convsRes: any = await MessagesService.getConversations();
+            const allConvs = Array.isArray(convsRes?.data) ? convsRes.data : (Array.isArray(convsRes) ? convsRes : []);
+            const found = allConvs.find((c: any) => (c._id || c.id) === convId);
+            if (found) setAiConversations(prev => [found, ...prev]);
+          } catch (e) {
+            // fallback: push a minimal placeholder
+            setAiConversations(prev => [{ _id: convId, name: 'AI Tutor' }, ...prev]);
+          }
+        }
+      }
+    } catch (e) {
+      // revert optimistic
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      toast.error('Gửi tin nhắn thất bại.');
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  // When clicking AI feature: prefill template and focus + autoGrow
+  const handleFeatureClick = (featureId: string) => {
+    const tpl = TEMPLATES[featureId] || '';
+    // place caret at end so user can edit
+    setInputValue(tpl);
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      autoGrow();
+      // move caret to end
+      if (textareaRef.current) {
+        const len = textareaRef.current.value.length;
+        textareaRef.current.setSelectionRange(len, len);
+      }
+    }, 0);
+  };
+
+  // Sidebar: create new conv but do NOT add to sidebar until first message (per requirement)
+  const handleCreateNewConversation = async () => {
+    setLoading(true);
+    try {
+      const newIdMarker = `ai-${Date.now()}`;
+      const created: any = await MessagesService.getOrCreateAi(newIdMarker);
+      const convObj = created?.data || created;
+      const cid = convObj?._id || convObj?.id || convObj?.conversationId || convObj?.conversation?._id;
+      if (cid) {
+        setConversationId(cid);
+        // do not add to aiConversations here — will be added after first user message
+        // but we can load its messages (likely none) and show greeting
+        setMessages([GREETING]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Derived simple usage stats from client-side messages (if you want real server stats, need backend endpoint)
+  const stats = (() => {
+    const now = new Date();
+    const isSameDay = (d: Date) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    const questionsToday = messages.filter(m => m.type === 'user' && isSameDay(m.timestamp)).length;
+    const solvedExercises = messages.filter(m => m.type === 'ai' && /giải bài|bài tập|đáp án/i.test(m.content)).length;
+    const approxMinutes = Math.max(0, Math.floor(messages.length * 0.5)); // heuristic: 30s per message -> minutes
+    // favourite topic naive: find most used keyword from messages (simple heuristic)
+    const subjectGuess = (() => {
+      const bucket: Record<string, number> = {};
+      messages.forEach(m => {
+        const txt = m.content.toLowerCase();
+        ['toán', 'vật lý', 'hóa', 'văn', 'tin', 'anh'].forEach(k => { if (txt.includes(k)) bucket[k] = (bucket[k] || 0) + 1; });
+      });
+      const sorted = Object.entries(bucket).sort((a, b) => b[1] - a[1]);
+      return sorted[0]?.[0] || '—';
+    })();
+    return { questionsToday, solvedExercises, approxMinutes, subjectGuess };
+  })();
 
   return (
-    <div className='space-y-6'>
-      {/* Header */}
-      <div>
-        <h1 className='flex items-center gap-3'>
-          <Brain className='h-8 w-8 text-primary' />
-          Gia sư AI
-          <Badge className='gap-1'>
-            <Sparkles className='h-3 w-3' />
-            Beta
-          </Badge>
-        </h1>
-        <p className='text-muted-foreground'>Trợ lý AI thông minh hỗ trợ học tập 24/7</p>
-      </div>
+    <div className="min-h-screen flex">
 
-      <div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
-        {/* Chat Interface */}
-        <div className='lg:col-span-3'>
-          <Card className='h-[600px] flex flex-col'>
-            <CardHeader className='pb-3'>
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center gap-3'>
-                  <Avatar className='h-8 w-8'>
-                    <AvatarFallback className='bg-primary text-primary-foreground'>
-                      <Brain className='h-4 w-4' />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className='text-lg'>AI Tutor</CardTitle>
-                    <CardDescription>Trợ lý học tập thông minh</CardDescription>
-                  </div>
-                </div>
-
-                <div className='flex items-center gap-2'>
-                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                    <SelectTrigger className='w-40'>
-                      <SelectValue placeholder='Môn học' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='all'>Tất cả môn</SelectItem>
-                      <SelectItem value='math'>Toán học</SelectItem>
-                      <SelectItem value='physics'>Vật lý</SelectItem>
-                      <SelectItem value='chemistry'>Hóa học</SelectItem>
-                      <SelectItem value='literature'>Văn học</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant='outline' size='sm'>
-                    <RefreshCw className='h-4 w-4' />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-
-            {/* Messages */}
-            <CardContent className='flex-1 overflow-y-auto p-4 space-y-4'>
-              {/* {Array.from(messages || []).map((message) => (
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full min-h-0">
+        {/* Chat Interface - centered */}
+        <div className="lg:col-span-3 flex flex-col justify-start h-full min-h-0 overflow-hidden">
+          <Card className="w-full max-w-4xl flex flex-col min-h-0 max-h-[90vh]">
+            {/* Messages inside scrollable area (inside chat box) */}
+            <CardContent ref={messagesContainerRef} className="overflow-y-auto min-h-0 p-4 space-y-4">
+              {messages.map((message) => (
                 <div
                   key={message.id}
+                  ref={(el) => { messageRefs.current.set(message.id, el); }}
                   className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {message.type === 'ai' && (
-                    <Avatar className='h-8 w-8 mt-1'>
-                      <AvatarFallback className='bg-primary text-primary-foreground'>
-                        <Brain className='h-4 w-4' />
+                    <Avatar className="h-8 w-8 mt-1">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Brain className="h-4 w-4" />
                       </AvatarFallback>
                     </Avatar>
                   )}
 
                   <div className={`max-w-[80%] space-y-1`}>
                     <div
-                      className={`p-3 rounded-lg ${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                        }`}
+                      className={`p-3 rounded-lg ${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
                     >
-                      <p className='whitespace-pre-wrap'>{message.content}</p>
+                      <p className="whitespace-pre-wrap">{message.type === 'ai' ? stripMarkdown(message.content) : message.content}</p>
                     </div>
 
-                    <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatTimestamp(message.timestamp)}</span>
-                      {message.subject && (
-                        <>
-                          <span>•</span>
-                          <Badge variant='outline' className='text-xs'>
-                            {message.subject}
-                          </Badge>
-                        </>
-                      )}
                     </div>
                   </div>
 
                   {message.type === 'user' && (
-                    <Avatar className='h-8 w-8 mt-1'>
+                    <Avatar className="h-8 w-8 mt-1">
                       <AvatarFallback>HS</AvatarFallback>
                     </Avatar>
                   )}
                 </div>
-              ))} */}
-              <p>{messages}</p>
+              ))}
 
               {isTyping && (
-                <div className='flex gap-3 justify-start'>
-                  <Avatar className='h-8 w-8 mt-1'>
-                    <AvatarFallback className='bg-primary text-primary-foreground'>
-                      <Brain className='h-4 w-4' />
+                <div className="flex gap-3 justify-start">
+                  <Avatar className="h-8 w-8 mt-1">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      <Brain className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className='bg-muted p-3 rounded-lg'>
-                    <div className='flex items-center gap-1'>
-                      <div className='flex space-x-1'>
-                        <div className='w-2 h-2 bg-primary rounded-full animate-bounce'></div>
-                        <div
-                          className='w-2 h-2 bg-primary rounded-full animate-bounce'
-                          style={{ animationDelay: '0.1s' }}
-                        ></div>
-                        <div
-                          className='w-2 h-2 bg-primary rounded-full animate-bounce'
-                          style={{ animationDelay: '0.2s' }}
-                        ></div>
+                  <div className="bg-muted p-3 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                      <span className='text-sm text-muted-foreground ml-2'>AI đang suy nghĩ...</span>
+                      <span className="text-sm text-muted-foreground ml-2">AI đang suy nghĩ...</span>
                     </div>
                   </div>
                 </div>
@@ -311,101 +387,154 @@ export function AITutor() {
               <div ref={messagesEndRef} />
             </CardContent>
 
-            {/* Input */}
-            <div className='p-4 border-t'>
-              <div className='flex gap-2'>
-                <Input
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder='Hỏi AI tutor bất cứ điều gì...'
-                  onKeyPress={handleKeyPress}
-                  disabled={isTyping}
-                />
-                <Button onClick={sendMessageToGemini} disabled={!inputValue.trim() || isTyping} className='gap-2'>
-                  <Send className='h-4 w-4' />
-                </Button>
+            {/* Prompt inside chat box at the bottom */}
+            <div className="border-t p-1">
+              <div className="mx-auto w-full">
+                <div className="bg-background p-3">
+                  <div className="flex gap-2 items-end">
+                    <textarea
+                      ref={textareaRef}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="Hỏi AI tutor bất cứ điều gì..."
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                      className="w-full resize-none rounded-md border p-2 text-sm focus:outline-none focus:ring"
+                      style={{ minHeight: 38, maxHeight: 140 }}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!inputValue.trim() || isTyping || loading}
+                      className="gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Sidebar */}
-        <div className='space-y-4'>
+        {/* Sidebar - scrollable only */}
+        <div className="lg:col-span-1 space-y-4 h-screen overflow-y-auto">
+          {/* AI conversations list */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Cuộc trò chuyện</CardTitle>
+                <Button size="icon" onClick={handleCreateNewConversation}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-1">
+                {aiConversations.map((c: any) => {
+                  const cid = c._id || c.id;
+                  const title = c.name || c.aiTutorId || 'AI Tutor';
+                  return (
+                    <div key={cid} className={`p-3 border-b ${conversationId === cid ? 'bg-muted' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <button className="text-left flex-1 truncate" onClick={async () => {
+                          setConversationId(cid);
+                          setLoading(true);
+                          try {
+                            const list: any = await MessagesService.getConversationMessages(cid, { page: 1, limit: 50 });
+                            const items = Array.isArray(list?.data) ? list.data : (Array.isArray(list?.items) ? list.items : []);
+                            const mapped: ChatMessage[] = (items || []).map((m: any) => ({
+                              id: m._id || m.id,
+                              type: (m.type === 'ai' || m.sender?.role === 'system' || m.sender?.isAI) ? 'ai' : 'user',
+                              content: toText(m.content ?? m.text),
+                              timestamp: new Date(m.createdAt || Date.now()),
+                            }));
+                            setMessages(mapped.length ? mapped : [GREETING]);
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}>
+                          <div className="font-medium text-sm truncate">{title}</div>
+                        </button>
+                        <div className="flex items-center gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => { setTargetConvId(cid); setRenameValue(title); setRenameOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => { setTargetConvId(cid); setDeleteOpen(true); }}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {aiConversations.length === 0 && (
+                  <div className="p-3 text-sm text-muted-foreground">Chưa có cuộc trò chuyện. Nhấn + để tạo (sẽ xuất hiện trong danh sách sau khi gửi tin nhắn đầu tiên).</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* AI Features */}
           <Card>
             <CardHeader>
-              <CardTitle className='text-lg'>Tính năng AI</CardTitle>
+              <CardTitle className="text-lg">Tính năng AI</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-3'>
-              {mockAIFeatures.map((feature) => (
-                <div key={feature.id} className='flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50'>
-                  <div className={`p-2 rounded ${feature.color}`}>
-                    <feature.icon className='h-4 w-4' />
-                  </div>
-                  <div>
-                    <h4 className='font-medium text-sm'>{feature.title}</h4>
-                    <p className='text-xs text-muted-foreground'>{feature.description}</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Quick Suggestions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className='text-lg'>Gợi ý câu hỏi</CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-2'>
-              {mockSuggestions.map((suggestion) => (
-                <Button
-                  key={suggestion.id}
-                  variant='outline'
-                  size='sm'
-                  className='w-full justify-start text-left h-auto p-3'
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  <div className='flex items-start gap-2'>
-                    <span className='text-lg'>{suggestion.icon}</span>
+            <CardContent className="space-y-3">
+              {aiFeatures.map((feature) => (
+                <button key={feature.id} onClick={() => handleFeatureClick(feature.id)} className="w-full text-left">
+                  <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50">
+                    <div className={`p-2 rounded ${feature.color}`}>
+                      <feature.icon className="h-4 w-4" />
+                    </div>
                     <div>
-                      <p className='text-sm font-medium'>{suggestion.text}</p>
-                      <Badge variant='secondary' className='text-xs mt-1'>
-                        {suggestion.subject}
-                      </Badge>
+                      <h4 className="font-medium text-sm">{feature.title}</h4>
+                      <p className="text-xs text-muted-foreground">{feature.description}</p>
                     </div>
                   </div>
-                </Button>
+                </button>
               ))}
-            </CardContent>
-          </Card>
-
-          {/* Usage Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className='text-lg'>Thống kê sử dụng</CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-3'>
-              <div className='flex justify-between text-sm'>
-                <span>Câu hỏi hôm nay</span>
-                <span className='font-medium'>12</span>
-              </div>
-              <div className='flex justify-between text-sm'>
-                <span>Bài tập đã giải</span>
-                <span className='font-medium'>45</span>
-              </div>
-              <div className='flex justify-between text-sm'>
-                <span>Thời gian trò chuyện</span>
-                <span className='font-medium'>2.5h</span>
-              </div>
-              <div className='flex justify-between text-sm'>
-                <span>Môn học yêu thích</span>
-                <span className='font-medium'>Toán học</span>
-              </div>
             </CardContent>
           </Card>
         </div>
       </div>
-    </div>
-  )
+
+      {/* Rename Dialog */}
+      <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đổi tên cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <input value={renameValue} onChange={(e) => setRenameValue(e.target.value)} placeholder="Nhập tên mới" className="w-full rounded border p-2" />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRenameOpen(false)}>Hủy</Button>
+              <Button onClick={async () => {
+                if (!targetConvId) return;
+                await MessagesService.updateConversation(targetConvId, { name: renameValue.trim() });
+                setAiConversations((prev) => prev.map((x: any) => (x._id || x.id) === targetConvId ? { ...x, name: renameValue.trim() } : x));
+                setRenameOpen(false);
+                toast.success('Đổi tên cuộc trò chuyện thành công!');
+              }}>Lưu</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <p>Bạn có chắc chắn muốn xóa cuộc trò chuyện này?</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Hủy</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (!targetConvId) return;
+              await MessagesService.deleteConversation(targetConvId);
+              setAiConversations((prev) => prev.filter((x: any) => (x._id || x.id) !== targetConvId));
+              if (conversationId === targetConvId) setConversationId(null);
+              setDeleteOpen(false);
+              toast.success('Xóa cuộc trò chuyện thành công!');
+            }}>Xóa</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div >
+  );
 }

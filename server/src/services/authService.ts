@@ -1,81 +1,88 @@
-import { User } from '~/models/User'
-import { TokenResponse } from '~/types/TokenResponse'
-import { LoginType, RegisterType } from '~/types/UserInterface'
-import { compareHashed } from '~/utils/BcryptUtils'
-import { ValidatedToken, ValidatedTokenStatus } from '~/models/ValidatedToken'
-import { Role, RoleName } from '~/models/Role'
-import emailService from './emailService'
-import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils'
-import { ForgotPassword } from '~/models/ForgotPassword'
+import { User } from '~/models/User.js'
+import { LoginType, RegisterType } from '~/types/UserInterface.js'
+import { compareHashed } from '~/utils/BcryptUtils.js'
+import { ValidatedToken, ValidatedTokenStatus } from '~/models/ValidatedToken.js'
+import { Role, RoleName } from '~/models/Role.js'
+import { createLoginResponse, generateAccessToken } from '~/utils/JwtUtils.js'
+import { ForgotPassword } from '~/models/ForgotPassword.js'
 
 const authService = {
-  authenticate: async ({ email, password }: LoginType) => {
+  authenticate: async ({ username, password }: LoginType) => {
     try {
-      const user = await User.findOne({ email }).populate('roles', 'name')
+      console.log('Login attempt:', { username })
+
+      const user = await User.findOne({ username }).populate('roles', 'name')
 
       if (!user) {
+        console.log('User not found:', username)
         throw new Error('Invalid credentials')
       }
+
+      console.log('User found:', {
+        id: user._id,
+        username: user.username,
+        roles: user.roles,
+        hasPassword: !!user.password
+      })
 
       const isValid = await compareHashed(password as string, user.password as string)
 
       if (!isValid) {
+        console.log('Invalid password for:', username)
         throw new Error('Invalid credentials')
       }
 
-      await User.updateOne(
-        {
-          _id: user._id
-        },
-        {
-          isActive: true,
-          lastLogin: new Date()
-        }
-      )
+      await User.updateOne({ _id: user._id }, { $set: { isActive: true, lastLogin: Date.now() } })
 
-      return createLoginResponse(user)
+      console.log('Password valid, creating login response')
+      return await createLoginResponse(user)
     } catch (error: any) {
-      throw new Error('Error in login: ' + error?.message)
+      console.error('Login error (authService.authenticate):', error)
+
+      // Sai tài khoản / mật khẩu → ném đúng message đó cho controller xử lý 401
+      if (error?.message === 'Invalid credentials') {
+        throw error
+      }
+
+      // Các lỗi khác (JWT, DB, v.v.) → để controller trả 500
+      throw new Error('Internal login error')
     }
   },
 
-  createUser: async ({ email, username, password, roles }: RegisterType) => {
+  createUser: async ({ name, username, password, roles }: RegisterType) => {
     try {
-      // 1. Kiểm tra user tồn tại
-      const existingUser = await User.findOne({ email })
-      if (existingUser) {
-        throw new Error('User already exists')
+      let user = await User.findOne({ username })
+
+      if (user) {
+        throw new Error('User already have been existed')
       }
 
-      // 2. Lấy danh sách roles hợp lệ (ngoại trừ SUPER_ADMIN)
-      const roleDocs = await Role.find({
-        _id: { $in: roles },
-        name: { $ne: RoleName.SUPER_ADMIN }
+      const rolePromises = Array.from(roles).map(async (r) => {
+        const role = await Role.findOne({
+          _id: r,
+          name: { $ne: RoleName.ADMIN }
+        })
+        return role._id
       })
 
-      if (!roleDocs.length) {
-        throw new Error('No valid roles found')
-      }
+      const newRoles = (await Promise.all(rolePromises)).filter(Boolean)
 
-      const roleIds = roleDocs.map((role) => role._id)
+      console.log(`newRoles: `, newRoles)
 
-      // 3. Tạo user
-      const user = await User.create({
-        username,
-        email,
-        password,
-        roles: roleIds
-      })
+      user = await User.create({ name, username, password, roles: newRoles })
 
-      // 4. Cập nhật roles để gán user (nếu Role có field "users")
-      await Role.updateMany({ _id: { $in: roleIds } }, { $addToSet: { users: user._id } })
+      // await emailService.sendEmail({
+      //   from: 'Tranhunghp22112004@gmail.com',
+      //   to: user.email as string,
+      //   subject: 'Welcome to LearningAssistant',
+      //   template: 'welcome',
+      //   context: { username: user.username }
+      // })
 
-      // 5. Populate role name cho user
       await user.populate('roles', 'name')
-
       return user
     } catch (error: any) {
-      throw new Error(`Error in register: ${error.message}`)
+      throw new Error('Error in register: ' + error?.message)
     }
   },
 
@@ -132,15 +139,6 @@ const authService = {
       throw new Error('Invalid userId')
     }
 
-    await User.updateOne(
-      {
-        _id: user._id
-      },
-      {
-        isActive: false
-      }
-    )
-
     oldRefreshToken.status = ValidatedTokenStatus.REVOKED
     await oldRefreshToken.save()
   },
@@ -155,32 +153,32 @@ const authService = {
     })
   },
 
-  sendOtp: async (email: string) => {
-    const user = await User.findOne({ email })
+  // sendOtp: async (email: string) => {
+  //   const user = await User.findOne({ email })
 
-    if (!user) {
-      throw new Error('Email is wrong')
-    }
+  //   if (!user) {
+  //     throw new Error('Email is wrong')
+  //   }
 
-    const otp = Math.floor(100000 + Math.random() * 900000)
+  //   const otp = Math.floor(100000 + Math.random() * 900000)
 
-    await emailService.sendEmail({
-      from: 'Tranhunghp22112004@gmail.com',
-      to: user.email as string,
-      subject: 'Forgot password',
-      text: `Your otp is ${otp}`
-      // template: 'otp',
-      // context: { otp: otp }
-    })
+  //   await emailService.sendEmail({
+  //     from: 'Tranhunghp22112004@gmail.com',
+  //     to: user.email as string,
+  //     subject: 'Forgot password',
+  //     text: `Your otp is ${otp}`
+  //     // template: 'otp',
+  //     // context: { otp: otp }
+  //   })
 
-    await ForgotPassword.create({
-      otp,
-      userId: user.id,
-      expired: new Date(Date.now() + 30 * 1000)
-    })
+  //   await ForgotPassword.create({
+  //     otp,
+  //     userId: user.id,
+  //     expired: new Date(Date.now() + 30 * 1000)
+  //   })
 
-    return otp
-  },
+  //   return otp
+  // },
 
   verifyOtp: async (otp: string, email: string) => {
     try {

@@ -8,12 +8,22 @@ export function useGetUsers(searchTerm: string) {
     isLoading: userLoading,
     error: errorUser
   } = useQuery({
-    queryKey: ['users', { searchTerm }],
+    queryKey: ['users'],
     queryFn: async () => {
-      const url = searchTerm ? `/users/list?search=${searchTerm}` : '/users/list'
-      const res = await handleApi({ url, method: 'GET', withCredentials: true })
-      console.log(res.data)
+      const res = await handleApi({ 
+        url: '/users/list', 
+        method: 'GET', 
+        withCredentials: true 
+      })
       return res?.data.data
+    },
+    select: (data) => {
+      if (!searchTerm) return data;
+      const searchLower = searchTerm.toLowerCase();
+      return data.filter((user: any) => 
+        (user.username?.toLowerCase().includes(searchLower) ||
+         user.name?.toLowerCase().includes(searchLower))
+      );
     },
     placeholderData: keepPreviousData
   })
@@ -28,9 +38,9 @@ export function useFetchCountUserByUserRole() {
     isLoading: userCountLoading,
     error: userCountError
   } = useQuery({
-    queryKey: ['userCount'],
+    queryKey: ['studentCount'],
     queryFn: async () => {
-      const res = await handleApi({ url: `/users/count-by-role/USER`, method: 'GET' })
+      const res = await handleApi({ url: `/users/count-by-role/STUDENT`, method: 'GET' })
       return res.data
     }
   })
@@ -39,17 +49,15 @@ export function useFetchCountUserByUserRole() {
 }
 
 export function useFetchCountUserByTeacherRole() {
-  const {
-    data: teacherCount,
-    isLoading: teacherCountLoading,
-    error: teacherCountError
-  } = useQuery({
-    queryKey: ['userCount'],
+  const { data } = useQuery({
+    queryKey: ['teacherCount'],
     queryFn: async () => {
       const res = await handleApi({ url: `/users/count-by-role/TEACHER`, method: 'GET' })
-      return res.data
+      const payload = res.data
+      const value = (payload?.data ?? payload?.count) as number | undefined
+      return typeof value === 'number' ? value : 0
     }
   })
 
-  return teacherCount
+  return data
 }

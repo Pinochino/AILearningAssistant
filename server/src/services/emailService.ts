@@ -1,5 +1,5 @@
-import { transporter } from '~/configs/emailConfig'
-import { EmailInterface } from '~/types/EmailInterface'
+import { transporter } from '../configs/emailConfig.js'
+import { EmailInterface } from '~/types/EmailInterface.js'
 
 const emailService = {
   sendEmail: async ({ from, to, html, text, subject, template }: EmailInterface) => {

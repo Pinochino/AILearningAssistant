@@ -1,51 +1,97 @@
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Badge } from './ui/badge'
 import { Avatar, AvatarFallback } from './ui/avatar'
-import { Save, Edit, Camera, User, Mail, Phone, MapPin, Calendar, GraduationCap } from 'lucide-react'
-// import { useAuth } from '../hooks/useAuth'
+import { Save, Edit, Camera, Calendar, ArrowLeft } from 'lucide-react'
 import { useNavigation } from '../hooks/useNavigation'
 import { toast } from 'sonner'
+import { useAppSelector } from '../redux/hooks'
+import { RootState } from '../redux/store'
+import { useAuth } from '../hooks/useAuth'
+import { handleApi } from '../api/handleApi'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 export function Profile() {
-  // const { user } = useAuth()
   const { navigateTo } = useNavigation()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
-  // Mock data - trong thực tế sẽ fetch từ API
-  const mockProfileData = {
-    // id: user?.id || '1',
-    // name: user?.name || 'Nguyễn Văn A',
-    // email: user?.email || 'user@example.com',
-    // role: user?.role || 'student',
-    // avatar: user?.avatar,
-    phone: '0123456789',
-    address: 'Hà Nội, Việt Nam',
-    bio: 'Sinh viên năm 3 chuyên ngành Công nghệ thông tin',
-    studentId: 'SV2024001',
-    joinDate: '2024-01-15',
-    lastLogin: '2024-09-18',
-    subjects: ['Toán học', 'Vật lý', 'Hóa học', 'Tin học'],
-    achievements: [
-      { id: '1', title: 'Học sinh giỏi', date: '2024-06-15', description: 'Đạt danh hiệu học sinh giỏi học kỳ 2' },
-      { id: '2', title: 'Tham gia cuộc thi', date: '2024-08-20', description: 'Tham gia cuộc thi lập trình cấp trường' }
-    ]
-  }
+  // const { user } = useAppSelector((state: RootState) => state.auth.login)
+  const { user, setUser } = useAuth()
+
+  const [userData, setUserData] = useState({
+    name: user?.name || '',
+    username: user?.username || '',
+    role: user?.role || 'student',
+    isActive: user?.isActive ?? true,
+    createdAt: user?.createdAt || new Date(),
+    lastLogin: user?.lastLogin || null,
+    avatar: user?.avatar || ''
+  });
+
+
+  console.log('user login', user)
+
+  const queryClient = useQueryClient()
 
   // Form data
   const [formData, setFormData] = useState({
-    // name: mockProfileData.name,
-    // email: mockProfileData.email,
-    phone: mockProfileData.phone,
-    address: mockProfileData.address,
-    bio: mockProfileData.bio,
-    studentId: mockProfileData.studentId
+    name: '',
+    username: ''
+  })
+
+  const handleEditUser = () => {
+    if (!formData.username || !formData.name) {
+      toast.error('Họ tên và Username là bắt buộc')
+      return
+    }
+    console.log('Sending update: ', formData)
+    updateUser()
+  }
+
+  const {
+    isLoading: editUserLoading,
+    mutate: updateUser,
+    error: editUserError
+  } = useMutation({
+    mutationFn: async () => {
+      const res = await handleApi({
+        url: `/users/update/${user?.id}`,
+        method: 'PUT',
+        data: formData,
+        withCredentials: true
+      })
+
+      const result = await res.data
+      return result
+    },
+    onSuccess: (updatedData) => {
+      const userFromServer = updatedData?.data; // <-- Lấy data bên trong response
+      if (!userFromServer) return;
+
+      queryClient.invalidateQueries({ queryKey: [`detail-infor-${user?.id}`, user?.id] });
+      queryClient.invalidateQueries({ queryKey: [`users`] });
+
+      console.log("updated user: ", userFromServer);
+
+      setUser((prev: any) => ({
+        ...prev!,
+        name: userFromServer.name,
+        username: userFromServer.username,
+        avatar: userFromServer.avatar || prev?.avatar,
+      }));
+
+      toast.success('Cập nhật người dùng thành công!');
+    },
+
+    onError: (err: any) => {
+      console.error('Update failed', err)
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật')
+    }
   })
 
   const handleInputChange = (field: string, value: string) => {
@@ -77,12 +123,8 @@ export function Profile() {
 
   const handleCancel = () => {
     setFormData({
-      // name: mockProfileData.name,
-      // email: mockProfileData.email,
-      phone: mockProfileData.phone,
-      address: mockProfileData.address,
-      bio: mockProfileData.bio,
-      studentId: mockProfileData.studentId
+      name: '',
+      username: ''
     })
     setHasChanges(false)
     setIsEditing(false)
@@ -101,6 +143,8 @@ export function Profile() {
     }
   }
 
+
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'admin':
@@ -114,33 +158,38 @@ export function Profile() {
     }
   }
 
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        name: user.name || '',
+        username: user.username || '',
+        role: user.role || 'student',
+        isActive: user.isActive ?? true,
+        createdAt: user.createdAt || new Date(),
+        lastLogin: user.lastLogin || null,
+        avatar: user.avatar || ''
+      });
+    }
+  }, [user]);
+
+
   return (
     <div className='space-y-6'>
       {/* Header */}
       <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold'>Hồ sơ cá nhân</h1>
-          <p className='text-muted-foreground'>Quản lý thông tin cá nhân và cài đặt tài khoản</p>
+        <div className='flex justify-between items-center '>
+          <Button onClick={() => navigateTo('dashboard')}>
+            <ArrowLeft className='h-4 w-4 mr-2' />
+            Quay lại danh sách
+          </Button>
+          <div style={{
+            marginLeft: 20
+          }}>
+            <h1 className='text-2xl font-bold'>Hồ sơ cá nhân</h1>
+            <p className='text-muted-foreground'>Quản lý thông tin cá nhân và cài đặt tài khoản</p>
+          </div>
         </div>
 
-        <div className='flex items-center gap-2'>
-          {isEditing ? (
-            <>
-              <Button variant='outline' onClick={handleCancel}>
-                Hủy
-              </Button>
-              <Button onClick={handleSave} disabled={!hasChanges || isSaving} className='gap-2'>
-                <Save className='h-4 w-4' />
-                {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => setIsEditing(true)} className='gap-2'>
-              <Edit className='h-4 w-4' />
-              Chỉnh sửa
-            </Button>
-          )}
-        </div>
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
@@ -153,45 +202,38 @@ export function Profile() {
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='flex flex-col items-center text-center'>
-                <div className='relative'>
-                  <Avatar className='h-24 w-24 mb-4'>
-                    {/* <AvatarFallback className='text-xl'>
-                      {mockProfileData.name
+                <Avatar className='h-20 w-20 mb-4'>
+                  <AvatarFallback className='text-lg '>
+                    {user?.name
+                      ? user.name
                         .split(' ')
                         .map((n) => n[0])
                         .join('')
-                        .toUpperCase()}
-                    </AvatarFallback> */}
-                  </Avatar>
-                  {isEditing && (
-                    <Button size='sm' className='absolute -bottom-2 -right-2 h-8 w-8 rounded-full' variant='secondary'>
-                      <Camera className='h-4 w-4' />
-                    </Button>
-                  )}
-                </div>
-                {/* <h3 className='font-semibold text-lg'>{mockProfileData.name}</h3>
-                <p className='text-sm text-muted-foreground'>{mockProfileData.email}</p>
-                {mockProfileData.role === 'student' && mockProfileData.studentId && (
-                  <p className='text-sm text-muted-foreground font-medium'>Mã sinh viên: {mockProfileData.studentId}</p>
-                )} */}
+                        .toUpperCase()
+                      : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className='font-semibold text-lg'>{userData?.name}</h3>
+                <p className='text-sm text-muted-foreground mb-3'>{userData?.username}</p>
+                {/* {formData.role === 'student' && formData.studentId && (
+                        <p className='text-sm text-muted-foreground font-medium'>Mã sinh viên: {formData._id}</p>
+                      )} */}
                 <div className='flex gap-2 mt-2'>
-                  {/* <Badge variant={getRoleBadgeVariant(mockProfileData.role)}>
-                    {getRoleLabel(mockProfileData.role)}
-                  </Badge> */}
-                  <Badge variant='secondary'>Hoạt động</Badge>
+                  <Badge variant={getRoleBadgeVariant(userData?.role)}>{getRoleLabel(userData?.role)}</Badge>
+                  <Badge variant={userData?.isActive === 'active' ? 'secondary' : 'outline'}>
+                    {userData?.isActive === true ? 'Hoạt động' : 'Không hoạt động'}
+                  </Badge>
                 </div>
               </div>
 
               <div className='space-y-2 text-sm'>
-                <div className='flex items-center gap-2'>
-                  <Calendar className='h-4 w-4 text-muted-foreground' />
+                <div className='flex justify-between'>
                   <span className='text-muted-foreground'>Tham gia:</span>
-                  <span>{new Date(mockProfileData.joinDate).toLocaleDateString('vi-VN')}</span>
+                  <span>{new Date(user?.createdAt).toLocaleDateString('vi-VN')}</span>
                 </div>
-                <div className='flex items-center gap-2'>
-                  <Calendar className='h-4 w-4 text-muted-foreground' />
+                <div className='flex justify-between'>
                   <span className='text-muted-foreground'>Đăng nhập cuối:</span>
-                  <span>{new Date(mockProfileData.lastLogin).toLocaleDateString('vi-VN')}</span>
+                  <span>{user?.lastLogin ? new Date(user?.lastLogin).toLocaleDateString('vi-VN') : '8/11/2025'}</span>
                 </div>
               </div>
             </CardContent>
@@ -208,123 +250,32 @@ export function Profile() {
             <CardContent className='space-y-6'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='name'>Họ và tên *</Label>
-                  {/* <Input
-                    id='name'
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder='Nhập họ và tên'
-                    disabled={!isEditing || mockProfileData.role === 'student' || mockProfileData.role === 'teacher'}
-                  /> */}
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='email'>Email *</Label>
-                  {/* <Input
-                    id='email'
-                    type='email'
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder='Nhập email'
-                    disabled={!isEditing}
-                  /> */}
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='phone'>Số điện thoại</Label>
+                  <Label htmlFor='username'>Tên đăng nhập *</Label>
                   <Input
-                    id='phone'
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder='Nhập số điện thoại'
-                    disabled={!isEditing}
+                    id='username'
+                    placeholder={user?.username}
+                    disabled
+                    style={{
+                      fontWeight: "bolder"
+                    }}
                   />
                 </div>
 
-                {/* {mockProfileData.role === 'student' && (
-                  <div className='space-y-2'>
-                    <Label htmlFor='studentId'>Mã sinh viên *</Label>
-                    <Input
-                      id='studentId'
-                      value={formData.studentId}
-                      onChange={(e) => handleInputChange('studentId', e.target.value)}
-                      placeholder='Nhập mã sinh viên'
-                      disabled={true} // luôn luôn disable
-                    />
-                  </div>
-                )} */}
+                <div className='space-y-2'>
+                  <Label htmlFor='name'>Họ và tên *</Label>
+                  <Input
+                    id='name'
+                    type='name'
+                    placeholder={user?.name}
+                    disabled
+                    style={{
+                      fontWeight: "bolder"
+                    }}
+                  />
+                </div>
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='address'>Địa chỉ</Label>
-                <Input
-                  id='address'
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder='Nhập địa chỉ'
-                  disabled={!isEditing}
-                />
-              </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='bio'>Giới thiệu</Label>
-                <textarea
-                  id='bio'
-                  className='w-full min-h-[100px] px-3 py-2 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50'
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder='Nhập giới thiệu về bản thân'
-                  disabled={!isEditing}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Subjects Card */}
-          <Card className='mt-6'>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <GraduationCap className='h-5 w-5' />
-                Môn học
-              </CardTitle>
-              <CardDescription>
-                {/* {mockProfileData.role === 'teacher'
-                  ? 'Các môn học mà bạn giảng dạy'
-                  : 'Các môn học mà bạn đang theo học'} */}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='flex flex-wrap gap-2'>
-                {mockProfileData.subjects?.map((subject: string, index: number) => (
-                  <Badge key={index} variant='outline' className='text-sm'>
-                    {subject}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Achievements Card */}
-          <Card className='mt-6'>
-            <CardHeader>
-              <CardTitle>Thành tích</CardTitle>
-              <CardDescription>Các thành tích và chứng chỉ đã đạt được</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-4'>
-                {mockProfileData.achievements?.map((achievement) => (
-                  <div key={achievement.id} className='flex items-start gap-3 p-3 border rounded-lg'>
-                    <div className='h-2 w-2 bg-primary rounded-full mt-2 flex-shrink-0' />
-                    <div className='flex-1'>
-                      <h4 className='font-medium'>{achievement.title}</h4>
-                      <p className='text-sm text-muted-foreground'>{achievement.description}</p>
-                      <p className='text-xs text-muted-foreground mt-1'>
-                        {new Date(achievement.date).toLocaleDateString('vi-VN')}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </div>

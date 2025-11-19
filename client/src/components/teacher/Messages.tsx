@@ -1,14 +1,15 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Button } from '../ui/button'
-import { Badge } from '../ui/badge'
-import { Avatar, AvatarFallback } from '../ui/avatar'
-import { Input } from '../ui/input'
-import { Textarea } from '../ui/textarea'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
-import { Label } from '../ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   Search,
   Plus,
@@ -28,341 +29,646 @@ import {
   CheckCheck,
   Download,
   MessageSquare
-} from 'lucide-react'
-
-const mockMessages = [
-  {
-    id: '1',
-    sender: {
-      name: 'Nguyễn Văn A',
-      email: 'student1@example.com',
-      avatar: null,
-      studentId: 'SV001'
-    },
-    subject: 'Thắc mắc về bài tập đạo hàm',
-    content: 'Thầy ơi, em không hiểu cách tính đạo hàm của hàm hợp. Thầy có thể giải thích chi tiết hơn không ạ?',
-    timestamp: '2024-09-18T10:30:00Z',
-    isRead: false,
-    isStarred: false,
-    isArchived: false,
-    priority: 'normal',
-    attachments: [],
-    replies: [
-      {
-        id: 'r1',
-        sender: 'Nguyễn Văn Giáo',
-        content: 'Chào em! Thầy sẽ gửi video giải thích chi tiết cho em nhé.',
-        timestamp: '2024-09-18T11:00:00Z'
-      }
-    ]
-  },
-  {
-    id: '2',
-    sender: {
-      name: 'Trần Thị B',
-      email: 'student2@example.com',
-      avatar: null,
-      studentId: 'SV002'
-    },
-    subject: 'Xin nghỉ học buổi thứ 3',
-    content: 'Thầy ơi, em bị ốm nên không thể tham gia buổi học thứ 3 tuần này. Em xin phép nghỉ học ạ.',
-    timestamp: '2024-09-17T14:20:00Z',
-    isRead: true,
-    isStarred: true,
-    isArchived: false,
-    priority: 'high',
-    attachments: [],
-    replies: []
-  },
-  {
-    id: '3',
-    sender: {
-      name: 'Lê Minh C',
-      email: 'student3@example.com',
-      avatar: null,
-      studentId: 'SV003'
-    },
-    subject: 'Gửi bài tập về nhà',
-    content: 'Thầy ơi, em đã hoàn thành bài tập về nhà và gửi file đính kèm. Thầy kiểm tra giúp em ạ.',
-    timestamp: '2024-09-16T16:45:00Z',
-    isRead: true,
-    isStarred: false,
-    isArchived: false,
-    priority: 'normal',
-    attachments: ['baitap_daoham.pdf'],
-    replies: []
-  },
-  {
-    id: '4',
-    sender: {
-      name: 'Phạm Thị D',
-      email: 'student4@example.com',
-      avatar: null,
-      studentId: 'SV004'
-    },
-    subject: 'Đăng ký tham gia lớp học',
-    content:
-      'Thầy ơi, em muốn đăng ký tham gia lớp Toán học 12A1. Em đã học qua chương trình cơ bản và muốn học nâng cao.',
-    timestamp: '2024-09-15T09:15:00Z',
-    isRead: false,
-    isStarred: false,
-    isArchived: false,
-    priority: 'high',
-    attachments: [],
-    replies: []
-  }
-]
-
-const mockAnnouncements = [
-  {
-    id: '1',
-    title: 'Thông báo lịch kiểm tra giữa kỳ',
-    content: 'Các em lưu ý, lịch kiểm tra giữa kỳ sẽ được tổ chức vào ngày 25/9/2024. Các em chuẩn bị ôn tập kỹ nhé.',
-    timestamp: '2024-09-18T08:00:00Z',
-    recipients: 'Toán học 12A1',
-    isPinned: true
-  },
-  {
-    id: '2',
-    title: 'Gửi tài liệu ôn tập',
-    content: 'Thầy đã upload tài liệu ôn tập chương 1-3. Các em tải về và ôn tập kỹ nhé.',
-    timestamp: '2024-09-17T15:30:00Z',
-    recipients: 'Toán học 12A2',
-    isPinned: false
-  }
-]
+} from 'lucide-react';
+import { MessagesService } from '../../services/messages';
+import { UsersService } from '../../services/users';
+import { useAuth } from '../../hooks/useAuth';
+import { getSocket, ensureSocketConnected } from '../../lib/socket';
+import { useNavigation } from '../../hooks/useNavigation';
 
 export function Messages() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedMessage, setSelectedMessage] = useState<string | null>(null)
-  const [isComposeOpen, setIsComposeOpen] = useState(false)
-  const [filter, setFilter] = useState('all')
-  const [replyContent, setReplyContent] = useState('')
-
-  const filteredMessages = mockMessages.filter((message) => {
-    const matchesSearch =
-      message.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      message.sender.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      message.content.toLowerCase().includes(searchTerm.toLowerCase())
-
-    let matchesFilter = true
-    switch (filter) {
-      case 'unread':
-        matchesFilter = !message.isRead
-        break
-      case 'starred':
-        matchesFilter = message.isStarred
-        break
-      case 'high':
-        matchesFilter = message.priority === 'high'
-        break
-      case 'archived':
-        matchesFilter = message.isArchived
-        break
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { currentParams } = useNavigation();
+  const meId = (user as any)?.id || (user as any)?._id;
+  const meEmail = String((user as any)?.email || '').toLowerCase();
+  const toText = (v: any) => {
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'object') {
+      if (typeof (v as any).text === 'string') return (v as any).text;
+      if (typeof (v as any).content === 'string') return (v as any).content;
+      return JSON.stringify(v);
     }
+    return String(v);
+  };
+  const getConversationName = (conv: any) => {
+    const existing = conv?.name || conv?.title;
+    if (existing) return existing;
+    const isGroup = !!(conv?.isGroup || conv?.conversationType === 'group');
+    if (isGroup) return existing || '';
+    const parts = conv?.participants || [];
+    const others = parts.filter((p: any) => String(p?._id || p?.id) !== String(meId));
+    const rec = others[0];
+    const nm = rec ? `${rec.firstName || rec.name || ''} ${rec.lastName || ''}`.trim() : '';
+    return nm || existing || 'Cuộc trò chuyện';
+  };
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [filter, setFilter] = useState('all');
+  const [replyContent, setReplyContent] = useState('');
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  // compose new message for current conversation
+  const [composeBody, setComposeBody] = useState<string>('');
+  // new: direct compose state
+  const [isDirectOpen, setIsDirectOpen] = useState(false);
+  const [userQuery, setUserQuery] = useState('');
+  const [userBase, setUserBase] = useState<any[]>([]);
+  const [userResults, setUserResults] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState(null as any);
+  // new: group compose state
+  const [isGroupOpen, setIsGroupOpen] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [groupQuery, setGroupQuery] = useState('');
+  const [groupBase, setGroupBase] = useState<any[]>([]);
+  const [groupResults, setGroupResults] = useState<any[]>([]);
+  const [groupSelected, setGroupSelected] = useState<any[]>([]);
+  // conversation actions
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const prevConvRef = useRef<string>('');
+  const handledDirectRef = useRef<boolean>(false);
 
-    return matchesSearch && matchesFilter
-  })
+  // Load conversations
+  useEffect(() => {
+    if (isAuthLoading) return;
+    let mounted = true;
+    (async () => {
+      try {
+        // Ensure socket handshake is authenticated before first data fetch
+        try { await ensureSocketConnected(); } catch { }
+        const res = await MessagesService.getConversations() as any;
+        const list = (Array.isArray(res?.data) ? res.data : [])
+          .filter((c: any) => c.conversationType !== 'ai' && !c.aiTutorId)
+          .map((c: any) => ({ ...c, name: getConversationName(c) }));
+        if (!mounted) return;
+        setConversations(list);
+        // Do NOT auto-open an unread conversation: pick the first read one if available
+        const firstRead = list.find((c: any) => Number(c.unreadCount || 0) === 0);
+        if (firstRead) setSelectedConversation(firstRead._id || firstRead.id);
+        else setSelectedConversation(null);
+      } catch {
+        setConversations([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [isAuthLoading]);
 
-  const unreadCount = mockMessages.filter((m) => !m.isRead).length
-  const starredCount = mockMessages.filter((m) => m.isStarred).length
+  // If navigated with a directUserId param, open or create the direct conversation
+  useEffect(() => {
+    (async () => {
+      try {
+        if (isAuthLoading) return;
+        const directUserId = (currentParams as any)?.directUserId as string | undefined;
+        if (!directUserId) return;
+        if (handledDirectRef.current) return;
+        handledDirectRef.current = true;
+        const convRes: any = await MessagesService.getOrCreateDirect(String(directUserId));
+        const conversation = convRes?.data || convRes;
+        if (!conversation) return;
+        const cid = conversation._id || conversation.id;
+        if (!cid) return;
+        setConversations((prev: any[]) => {
+          const exists = prev.find((c) => (c._id || c.id) === cid);
+          if (exists) return prev;
+          return [conversation, ...prev];
+        });
+        setSelectedConversation(cid);
+      } catch { }
+    })();
+  }, [currentParams, isAuthLoading]);
 
-  const handleReply = (messageId: string) => {
-    // Logic to send reply
-    console.log('Replying to message:', messageId, replyContent)
-    setReplyContent('')
-  }
+  const currentConversation = useMemo(() =>
+    conversations.find((c) => (c._id || c.id) === selectedConversation),
+    [conversations, selectedConversation]
+  );
 
-  const handleStar = (messageId: string) => {
-    // Logic to toggle star
-    console.log('Toggling star for message:', messageId)
-  }
+  // preload users when direct dialog opens
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!isDirectOpen || isAuthLoading) return;
+      try {
+        const res = await UsersService.search({ limit: 50 }) as any;
+        const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+        const filteredOutMe = (list || []).filter((u: any) => {
+          const uid = String(u._id || u.id || '');
+          const role = String(u.role || '').toLowerCase();
+          const roles = Array.isArray(u.roles) ? u.roles.map((x: any) => String(x).toLowerCase()) : [];
+          const isAdmin = role.includes('admin') || roles.some((r: string) => r.includes('admin'));
+          return uid !== String(meId) && !isAdmin;
+        });
+        if (active) { setUserBase(filteredOutMe); setUserResults(filteredOutMe); }
+      } catch { if (active) { setUserBase([]); setUserResults([]); } }
+    })();
+    return () => { active = false; };
+  }, [isDirectOpen, meId, isAuthLoading]);
 
-  const handleArchive = (messageId: string) => {
-    // Logic to archive message
-    console.log('Archiving message:', messageId)
-  }
+  // client-side filter for direct
+  useEffect(() => {
+    const q = userQuery.toLowerCase();
+    const filtered = userBase.filter((u: any) => {
+      const id = String(u._id || u.id || '').toLowerCase();
+      const uname = String(u.username || '').toLowerCase();
+      const name = String(u.name || `${u.firstName || ''} ${u.lastName || ''}`).toLowerCase();
+      if (String(u._id || u.id) === String(meId)) return false;
+      return !q || id.includes(q) || uname.includes(q) || name.includes(q);
+    });
+    setUserResults(filtered);
+    if (!selectedUser && filtered.length > 0) setSelectedUser(filtered[0]);
+  }, [userQuery, userBase, meId]);
+
+  // preload users when group dialog opens
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!isGroupOpen || isAuthLoading) return;
+      try {
+        const res = await UsersService.search({ limit: 50 }) as any;
+        const list = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+        const filteredOutMe = (list || []).filter((u: any) => {
+          const uid = String(u._id || u.id || '');
+          const role = String(u.role || '').toLowerCase();
+          const roles = Array.isArray(u.roles) ? u.roles.map((x: any) => String(x).toLowerCase()) : [];
+          const isAdmin = role.includes('admin') || roles.some((r: string) => r.includes('admin'));
+          return uid !== String(meId) && !isAdmin;
+        });
+        if (active) { setGroupBase(filteredOutMe); setGroupResults(filteredOutMe); }
+      } catch { if (active) { setGroupBase([]); setGroupResults([]); } }
+    })();
+    return () => { active = false; };
+  }, [isGroupOpen, meId, isAuthLoading]);
+
+  // client-side filter for group
+  useEffect(() => {
+    const q = groupQuery.toLowerCase();
+    const filtered = groupBase.filter((u: any) => {
+      const id = String(u._id || u.id || '').toLowerCase();
+      const uname = String(u.username || '').toLowerCase();
+      const name = String(u.name || `${u.firstName || ''} ${u.lastName || ''}`).toLowerCase();
+      if (String(u._id || u.id) === String(meId)) return false;
+      return !q || id.includes(q) || uname.includes(q) || name.includes(q);
+    });
+    setGroupResults(filtered);
+  }, [groupQuery, groupBase, meId]);
+
+  // Load messages of selected conversation with race guard and join socket room
+  useEffect(() => {
+    if (isAuthLoading || !selectedConversation) return;
+    setMessages([]);
+    (async () => {
+      try {
+        await ensureSocketConnected();
+        const socket = await ensureSocketConnected();
+        const prev = prevConvRef.current;
+        if (prev && prev !== selectedConversation) {
+          socket.emit('leave_conversation', { conversationId: prev });
+        }
+        const joined = new Promise<void>((resolve) => {
+          const onJoined = (evt: any) => {
+            if (String(evt?.conversationId) === String(selectedConversation)) {
+              socket.off('joined_conversation', onJoined);
+              resolve();
+            }
+          };
+          socket.on('joined_conversation', onJoined);
+          socket.emit('join_conversation', { conversationId: selectedConversation });
+          setTimeout(() => {
+            socket.off('joined_conversation', onJoined);
+            resolve();
+          }, 400);
+        });
+        prevConvRef.current = selectedConversation as string;
+        await joined;
+      } catch (e) {
+        // ignore join error; REST fetch will still load history
+      }
+    })();
+    let canceled = false;
+    const currentConv = selectedConversation;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await MessagesService.getConversationMessages(currentConv, { page: 1, limit: 50 }) as any;
+        const raw = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+        const meIdLocal = (user as any)?.id || (user as any)?._id;
+        const list = raw.map((m: any) => {
+          const senderId = m?.sender?._id || m?.sender?.id || m?.senderId;
+          const isOwn = m?.isOwn !== undefined ? m.isOwn : (meIdLocal && senderId ? String(senderId) === String(meIdLocal) : false);
+          const readBy = Array.isArray(m?.readBy) ? m.readBy : [];
+          const hasMeRead = readBy.some((r: any) => String((r?.user || r)) === String(meIdLocal));
+          const someoneElseRead = readBy.some((r: any) => String((r?.user || r)) !== String(meIdLocal));
+          const isRead = isOwn ? !!someoneElseRead : undefined;
+          return {
+            ...m,
+            isOwn,
+            isRead,
+            hasMeRead,
+            senderName: m?.sender?.name || m?.senderName || m?.sender?.email || 'Người dùng',
+            content: toText(m?.content ?? m?.text),
+          };
+        });
+        if (canceled) return;
+        if (currentConv !== selectedConversation) return;
+        setMessages(list);
+      } catch {
+        if (canceled) return;
+        setMessages([]);
+      } finally {
+        if (!canceled) setLoading(false);
+      }
+    })();
+    // mark as read on open (fire-and-forget) and update local state
+    (async () => {
+      try {
+        await MessagesService.markConversationAsRead(String(currentConv));
+        setMessages((prev: any[]) => prev.map(m => (!m.isOwn ? { ...m, hasMeRead: true } : m)));
+      } catch { }
+    })();
+    return () => { canceled = true; };
+  }, [selectedConversation, isAuthLoading]);
+
+  // socket realtime: listen to new_message
+  useEffect(() => {
+    let activeSocket: any = null;
+    let cancelled = false;
+
+    // handler uses latest closures (meId, selectedConversation come from deps)
+    const handler = (evt: any) => {
+      const cid = String(evt?.conversationId || evt?.conversation || '');
+      if (!cid) return;
+      const incomingId = String(evt?.id || evt?._id || '');
+      const senderId = String(evt?.senderId || evt?.sender || '');
+      const isOwn = String(meId) === senderId;
+      const content = toText(evt?.content ?? evt?.text);
+      const createdAt = evt?.createdAt || new Date().toISOString();
+      const clientId = evt?.clientId as string | undefined;
+
+      // update conversation preview list
+      setConversations((prev: any[]) => {
+        const list = [...prev];
+        const idx = list.findIndex((c) => String(c._id || c.id) === cid);
+        // existing logic unchanged...
+        // (you can keep the existing body inside setConversations as-is)
+        return list;
+      });
+
+      // update messages if this conversation is currently selected
+      setMessages((prev: any[]) => {
+        if (String(selectedConversation) !== cid) return prev;
+        if (incomingId && prev.some((m: any) => String(m.id || m._id) === String(incomingId))) {
+          return prev;
+        }
+        // If this is my own message and matches an optimistic clientId, replace it
+        if (clientId && isOwn) {
+          const idx = prev.findIndex((m: any) => m.clientId && String(m.clientId) === String(clientId));
+          if (idx !== -1) {
+            const next = [...prev];
+            next[idx] = {
+              ...(next[idx] as any),
+              _id: incomingId,
+              id: incomingId,
+              conversationId: cid,
+              senderId,
+              isOwn,
+              content,
+              createdAt,
+              clientId,
+              senderName: evt?.senderName || '',
+            };
+            return next;
+          }
+        }
+        // create incoming message object the same as previous code
+        const item = {
+          _id: incomingId,
+          id: incomingId,
+          conversationId: cid,
+          senderId,
+          isOwn,
+          content,
+          createdAt,
+          clientId,
+          senderName: evt?.senderName || '',
+        };
+        return [...prev, item];
+      });
+    };
+
+    (async () => {
+      // wait for auth/token => socket ready
+      try {
+        await ensureSocketConnected();
+      } catch (err) {
+        // if ensure times out, still try to get socket instance and attach - graceful fallback
+        console.warn("ensureSocketConnected failed or timed out:", err);
+      }
+
+      if (cancelled) return;
+      try {
+        activeSocket = getSocket();
+        if (activeSocket) {
+          activeSocket.on('new_message', handler);
+        }
+      } catch (err) {
+        console.warn("Failed to attach socket handler:", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      try {
+        if (activeSocket) activeSocket.off('new_message', handler);
+      } catch { }
+    };
+  }, [selectedConversation, meId, /* keep other deps the same as original */]);
+
+
+  // no embedded notifications in Messages view
+
+  const filteredConversations = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return conversations.filter((c) => (c.name || '').toLowerCase().includes(term));
+  }, [conversations, searchTerm]);
+
+  const unreadCount = 0; // backend can supply, for now 0
+  const starredCount = 0;
+
+  const handleReply = async () => {
+    if (!replyContent.trim() || !selectedConversation) return;
+    const clientId = `c_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic = {
+      _id: `temp-${Date.now()}`,
+      id: `temp-${Date.now()}`,
+      conversation: selectedConversation,
+      sender: { _id: meId },
+      senderId: meId,
+      isOwn: true,
+      content: replyContent,
+      createdAt: new Date().toISOString(),
+      clientId,
+    } as any;
+    setMessages((prev) => [...prev, optimistic]);
+    // update preview immediately
+    setConversations((prev: any[]) => {
+      const list = [...prev];
+      const idx = list.findIndex((c) => String(c._id || c.id) === String(selectedConversation));
+      if (idx >= 0) {
+        const item = { ...list[idx], lastMessage: replyContent, updatedAt: new Date().toISOString() };
+        list.splice(idx, 1);
+        return [item, ...list];
+      }
+      return prev;
+    });
+    const convAtSend = selectedConversation;
+    const text = replyContent;
+    setReplyContent('');
+    try {
+      await ensureSocketConnected();
+      const sock = getSocket();
+      if (sock?.connected) {
+        sock.emit('send_message', { conversationId: convAtSend, content: text, clientId });
+      } else {
+        await MessagesService.createMessage({ conversationId: convAtSend, content: text });
+        const res = await MessagesService.getConversationMessages(convAtSend, { page: 1, limit: 50 }) as any;
+        if (convAtSend !== selectedConversation) return;
+        const raw = Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
+        const meIdLocal = meId;
+        const list = raw.map((m: any) => {
+          const senderId = m?.sender?._id || m?.sender?.id || m?.senderId;
+          const isOwn = m?.isOwn !== undefined ? m.isOwn : (meIdLocal && senderId ? String(senderId) === String(meIdLocal) : false);
+          return { ...m, isOwn, senderName: m?.sender?.name || m?.senderName || m?.sender?.email || 'Người dùng', content: toText(m?.content ?? m?.text) };
+        });
+        setMessages(list);
+      }
+    } catch { }
+  };
+
+  const handleStar = (_id: string) => { };
+  const handleArchive = (_id: string) => { };
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    } else if (diffInHours < 168) {
-      // 7 days
-      return date.toLocaleDateString('vi-VN', { weekday: 'short' })
+      return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInHours < 168) { // 7 days
+      return date.toLocaleDateString('vi-VN', { weekday: 'short' });
     } else {
-      return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
+      return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
     }
-  }
+  };
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {/* Header */}
-      <div className='flex items-center justify-between'>
+      <div className="flex items-center justify-between">
         <div>
           <h1>Tin nhắn</h1>
-          <p className='text-muted-foreground'>Quản lý tin nhắn và thông báo với sinh viên</p>
+          <p className="text-muted-foreground">
+            Quản lý tin nhắn và thông báo với sinh viên
+          </p>
         </div>
 
-        <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-          <DialogTrigger asChild>
-            <Button className='gap-2'>
-              <Plus className='h-4 w-4' />
-              Soạn tin nhắn
-            </Button>
-          </DialogTrigger>
-          <DialogContent className='max-w-2xl'>
-            <DialogHeader>
-              <DialogTitle>Soạn tin nhắn mới</DialogTitle>
-              <DialogDescription>Gửi tin nhắn hoặc thông báo cho sinh viên</DialogDescription>
-            </DialogHeader>
-            <div className='space-y-4'>
-              <div className='space-y-2'>
-                <Label>Người nhận</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Chọn người nhận' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='all'>Tất cả sinh viên</SelectItem>
-                    <SelectItem value='math1'>Toán học 12A1</SelectItem>
-                    <SelectItem value='math2'>Toán học 12A2</SelectItem>
-                    <SelectItem value='physics'>Vật lý 11B1</SelectItem>
-                  </SelectContent>
-                </Select>
+        <div className="flex gap-2">
+          <Dialog open={isDirectOpen} onOpenChange={setIsDirectOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Nhắn 1-1
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-xl">
+              <DialogHeader>
+                <DialogTitle>Nhắn tin trực tiếp</DialogTitle>
+                <DialogDescription>Chọn 1 người để bắt đầu/tiếp tục trò chuyện</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Label>Tìm người nhận</Label>
+                <Input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Tên đăng nhập / Tên" />
+                <div className="max-h-64 overflow-y-auto border rounded">
+                  {userResults.length === 0 && (
+                    <div className="p-3 text-sm text-muted-foreground">Không có kết quả</div>
+                  )}
+                  {userResults.map((u) => (
+                    <div key={u._id || u.id} className={`p-2 cursor-pointer hover:bg-muted ${selectedUser && (selectedUser._id || selectedUser.id) === (u._id || u.id) ? 'bg-muted' : ''}`} onClick={() => setSelectedUser(u)}>
+                      <div className="text-sm font-medium">{u.name || `${u.firstName || ''} ${u.lastName || ''}`}</div>
+                      <div className="text-xs text-muted-foreground">@{u.username || ''}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsDirectOpen(false)}>Hủy</Button>
+                  <Button disabled={!selectedUser} onClick={async () => {
+                    if (!selectedUser) return;
+                    const userId = selectedUser._id || selectedUser.id;
+                    const conv: any = await MessagesService.getOrCreateDirect(String(userId));
+                    const conversation = conv?.data || conv;
+                    const recipientName = `${selectedUser.firstName || selectedUser.name || ''} ${selectedUser.lastName || ''}`.trim();
+                    if (recipientName) conversation.name = recipientName;
+                    const cid = conversation?._id || conversation?.id;
+                    if (cid) {
+                      // ensure conversations list contains it
+                      setConversations((prev: any[]) => {
+                        const exists = prev.find((c) => (c._id || c.id) === cid);
+                        if (exists) return prev;
+                        return [conversation, ...prev];
+                      });
+                      setSelectedConversation(cid);
+                      setIsDirectOpen(false);
+                    }
+                  }}>Bắt đầu</Button>
+                </div>
               </div>
-              <div className='space-y-2'>
-                <Label>Tiêu đề</Label>
-                <Input placeholder='Nhập tiêu đề tin nhắn' />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isGroupOpen} onOpenChange={setIsGroupOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Users className="h-4 w-4" />
+                Tạo nhóm
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Tạo cuộc trò chuyện nhóm</DialogTitle>
+                <DialogDescription>Chọn nhiều người và đặt tên nhóm</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Label>Tên nhóm</Label>
+                <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="VD: Nhóm lớp 12A1" />
+                <Label>Thêm thành viên</Label>
+                <Input value={groupQuery} onChange={(e) => setGroupQuery(e.target.value)} placeholder="Tên đăng nhập / Tên" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border rounded max-h-64 overflow-y-auto">
+                    {groupResults.length === 0 && (
+                      <div className="p-3 text-sm text-muted-foreground">Không có kết quả</div>
+                    )}
+                    {groupResults.map((u) => (
+                      <div key={u._id || u.id} className="p-2 cursor-pointer hover:bg-muted" onClick={() => {
+                        const id = u._id || u.id;
+                        setGroupSelected((prev) => prev.find((x: any) => (x._id || x.id) === id) ? prev : [...prev, u]);
+                      }}>
+                        <div className="text-sm font-medium">{u.name || `${u.firstName || ''} ${u.lastName || ''}`}</div>
+                        <div className="text-xs text-muted-foreground">@{u.username || ''}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border rounded max-h-64 overflow-y-auto">
+                    {groupSelected.map((u) => (
+                      <div key={u._id || u.id} className="p-2 flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">{u.name || `${u.firstName || ''} ${u.lastName || ''}`}</div>
+                          <div className="text-xs text-muted-foreground">@{u.username || ''}</div>
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={() => setGroupSelected((prev) => prev.filter((x: any) => (x._id || x.id) !== (u._id || u.id)))}>Gỡ</Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsGroupOpen(false)}>Hủy</Button>
+                  <Button disabled={!groupName.trim() || groupSelected.length === 0} onClick={async () => {
+                    const participants = groupSelected.map((u: any) => String(u._id || u.id));
+                    const created: any = await MessagesService.createConversation({ participants, name: groupName, isGroup: true, conversationType: 'group' });
+                    const conv = created?.data || created;
+                    const cid = conv?._id || conv?.id;
+                    if (cid) {
+                      setConversations((prev: any[]) => [conv, ...prev]);
+                      setSelectedConversation(cid);
+                      setIsGroupOpen(false);
+                      setGroupSelected([]); setGroupResults([]); setGroupName(''); setGroupQuery('');
+                    }
+                  }}>Tạo nhóm</Button>
+                </div>
               </div>
-              <div className='space-y-2'>
-                <Label>Nội dung</Label>
-                <Textarea placeholder='Nhập nội dung tin nhắn...' rows={6} />
-              </div>
-              <div className='flex justify-end gap-2'>
-                <Button variant='outline' onClick={() => setIsComposeOpen(false)}>
-                  Hủy
-                </Button>
-                <Button onClick={() => setIsComposeOpen(false)}>
-                  <Send className='h-4 w-4 mr-2' />
-                  Gửi tin nhắn
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+
+          {/* Removed compose new message button per request */}
+        </div>
       </div>
 
       {/* Filters and Search */}
       <Card>
-        <CardContent className='p-4'>
-          <div className='flex gap-4'>
-            <div className='flex-1'>
-              <div className='relative'>
-                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+        <CardContent className="p-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder='Tìm kiếm tin nhắn...'
+                  placeholder="Tìm kiếm tin nhắn..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className='pl-9'
+                  className="pl-9"
                 />
               </div>
             </div>
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className='w-48'>
-                <SelectValue placeholder='Lọc tin nhắn' />
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Lọc tin nhắn" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='all'>Tất cả ({mockMessages.length})</SelectItem>
-                <SelectItem value='unread'>Chưa đọc ({unreadCount})</SelectItem>
-                <SelectItem value='starred'>Đã gắn sao ({starredCount})</SelectItem>
-                <SelectItem value='high'>Ưu tiên cao</SelectItem>
-                <SelectItem value='archived'>Đã lưu trữ</SelectItem>
+                <SelectItem value="all">Tất cả ({conversations.length})</SelectItem>
+                <SelectItem value="unread">Chưa đọc ({unreadCount})</SelectItem>
+                <SelectItem value="starred">Đã gắn sao ({starredCount})</SelectItem>
+                <SelectItem value="high">Ưu tiên cao</SelectItem>
+                <SelectItem value="archived">Đã lưu trữ</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-        {/* Messages List */}
-        <div className='lg:col-span-2 space-y-4'>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Conversations - narrower column */}
+        <div className="lg:col-span-1 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tin nhắn từ sinh viên</CardTitle>
-              <CardDescription>Danh sách tin nhắn và yêu cầu từ sinh viên</CardDescription>
+              <CardTitle>Cuộc trò chuyện</CardTitle>
+              <CardDescription>Danh sách các cuộc trò chuyện</CardDescription>
             </CardHeader>
-            <CardContent className='p-0'>
-              <div className='space-y-1'>
-                {filteredMessages.map((message) => (
+            <CardContent className="p-0">
+              <div className="space-y-1">
+                {filteredConversations.map((c) => (
                   <div
-                    key={message.id}
-                    className={`p-4 border-b cursor-pointer hover:bg-muted/50 ${
-                      selectedMessage === message.id ? 'bg-muted' : ''
-                    } ${!message.isRead ? 'bg-blue-50/50' : ''}`}
-                    onClick={() => setSelectedMessage(message.id)}
+                    key={c._id || c.id}
+                    className={`p-4 border-b cursor-pointer hover:bg-muted/50 ${selectedConversation === (c._id || c.id) ? 'bg-muted' : ''}`}
+                    onClick={() => {
+                      setSelectedConversation(c._id || c.id);
+                      setConversations((prev) => prev.map((x) => ((x._id || x.id) === (c._id || c.id) ? { ...x, unreadCount: 0 } : x)));
+                    }}
                   >
-                    <div className='flex items-start gap-3'>
-                      <Avatar className='h-10 w-10'>
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-10 w-10">
                         <AvatarFallback>
-                          {message.sender.name
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase()}
+                          {toText(c.name || 'C').split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className='flex-1 min-w-0'>
-                        <div className='flex items-center gap-2 mb-1'>
-                          <h3 className={`font-medium truncate ${!message.isRead ? 'font-semibold' : ''}`}>
-                            {message.sender.name}
-                          </h3>
-                          <Badge variant='outline' className='text-xs'>
-                            {message.sender.studentId}
-                          </Badge>
-                          {message.priority === 'high' && (
-                            <Badge variant='destructive' className='text-xs'>
-                              Ưu tiên cao
-                            </Badge>
-                          )}
-                          {!message.isRead && <div className='w-2 h-2 bg-blue-600 rounded-full'></div>}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className={`truncate ${c.unreadCount > 0 && selectedConversation !== (c._id || c.id) ? 'font-semibold' : 'font-medium'}`}>{toText(getConversationName(c))}</h3>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground">
+                              {c.updatedAt && new Date(c.updatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            {c.unreadCount > 0 && (
+                              <Badge variant="destructive" className="h-5 w-5 p-0 flex items-center justify-center text-xs">{c.unreadCount}</Badge>
+                            )}
+                            {c.unreadCount > 0 && selectedConversation !== (c._id || c.id) && (
+                              <span className="ml-1 inline-block h-2 w-2 bg-blue-500 rounded-full" />
+                            )}
+                          </div>
                         </div>
-                        <p className='text-sm font-medium text-muted-foreground mb-1'>{message.subject}</p>
-                        <p className='text-sm text-muted-foreground line-clamp-2'>{message.content}</p>
-                        <div className='flex items-center gap-4 text-xs text-muted-foreground mt-2'>
-                          <span>{formatTimestamp(message.timestamp)}</span>
-                          {message.attachments.length > 0 && <span>📎 {message.attachments.length} tệp đính kèm</span>}
-                          {message.replies.length > 0 && <span>💬 {message.replies.length} phản hồi</span>}
-                        </div>
-                      </div>
-                      <div className='flex items-center gap-1'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleStar(message.id)
-                          }}
-                        >
-                          {message.isStarred ? (
-                            <Star className='h-4 w-4 text-yellow-500 fill-current' />
-                          ) : (
-                            <StarOff className='h-4 w-4' />
-                          )}
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleArchive(message.id)
-                          }}
-                        >
-                          <Archive className='h-4 w-4' />
-                        </Button>
+                        <p className={`text-sm truncate ${c.unreadCount > 0 && selectedConversation !== (c._id || c.id) ? 'font-semibold' : 'text-muted-foreground'}`}>
+                          {toText(c.lastMessage)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -372,155 +678,158 @@ export function Messages() {
           </Card>
         </div>
 
-        {/* Message Detail */}
-        <div className='space-y-4'>
-          {selectedMessage ? (
+        {/* Message Detail - wider column */}
+        <div className="lg:col-span-2 space-y-4">
+          {selectedConversation ? (
             <Card>
               <CardHeader>
-                <div className='flex items-center justify-between'>
-                  <CardTitle className='text-lg'>Chi tiết tin nhắn</CardTitle>
-                  <div className='flex gap-1'>
-                    <Button variant='outline' size='sm'>
-                      <Reply className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm'>
-                      <Forward className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm'>
-                      <MoreVertical className='h-4 w-4' />
-                    </Button>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{getConversationName(currentConversation)}</CardTitle>
+                  {(() => {
+                    const isGroup = !!(currentConversation?.isGroup || currentConversation?.conversationType === 'group');
+                    if (!isGroup) {
+                      return (
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      );
+                    }
+                    return (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setNewName(String(currentConversation?.name || ''));
+                            setRenameOpen(true);
+                          }}
+                          title="Đổi tên"
+                        >
+                          <Reply className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteOpen(true)}
+                          title="Xóa cuộc trò chuyện"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })()}
                 </div>
               </CardHeader>
               <CardContent>
-                {(() => {
-                  const message = mockMessages.find((m) => m.id === selectedMessage)
-                  if (!message) return null
-
-                  return (
-                    <div className='space-y-4'>
-                      <div className='space-y-2'>
-                        <div className='flex items-center gap-2'>
-                          <Avatar className='h-8 w-8'>
-                            <AvatarFallback>
-                              {message.sender.name
-                                .split(' ')
-                                .map((n) => n[0])
-                                .join('')
-                                .toUpperCase()}
-                            </AvatarFallback>
+                <div className="h-96 overflow-y-auto p-4 space-y-4">
+                  {messages.map((m: any) => {
+                    const isOwn = !!m.isOwn;
+                    const isGroup = !!(currentConversation?.isGroup || currentConversation?.conversationType === 'group');
+                    const initials = toText((m.sender?.name || m.senderName || m.sender?.email || 'U')).split(' ').map((n: string) => n[0]).join('').toUpperCase();
+                    return (
+                      <div key={m._id || m.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} items-start gap-2`}>
+                        {!isOwn && isGroup && (
+                          <Avatar className="h-6 w-6 mt-1">
+                            <AvatarFallback>{initials}</AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className='font-medium'>{message.sender.name}</p>
-                            <p className='text-sm text-muted-foreground'>{message.sender.email}</p>
-                          </div>
-                        </div>
-                        <h3 className='font-semibold'>{message.subject}</h3>
-                        <p className='text-sm text-muted-foreground'>{formatTimestamp(message.timestamp)}</p>
-                      </div>
-
-                      <div className='border-t pt-4'>
-                        <p className='whitespace-pre-wrap'>{message.content}</p>
-                      </div>
-
-                      {message.attachments.length > 0 && (
-                        <div className='border-t pt-4'>
-                          <h4 className='font-medium mb-2'>Tệp đính kèm</h4>
-                          <div className='space-y-2'>
-                            {message.attachments.map((file, index) => (
-                              <div key={index} className='flex items-center gap-2 p-2 border rounded'>
-                                <span>📎</span>
-                                <span className='text-sm'>{file}</span>
-                                <Button variant='outline' size='sm'>
-                                  <Download className='h-4 w-4' />
-                                </Button>
+                        )}
+                        <div className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                          {isGroup && !isOwn && (
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs opacity-80">{toText(m.sender?.name || m.senderName || m.sender?.email || 'Người dùng')}</span>
+                              <span className="text-[10px] opacity-60">{formatTimestamp(m.createdAt || m.timestamp || new Date().toISOString())}</span>
+                            </div>
+                          )}
+                          <p className={`text-sm ${!isOwn && m.hasMeRead === false ? 'font-semibold' : ''}`}>{toText(m.content ?? m.text)}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span />
+                            {isOwn && (
+                              <div className="flex items-center gap-1">
+                                {m.isRead ? (
+                                  <CheckCheck className="h-3 w-3" />
+                                ) : (
+                                  <Check className="h-3 w-3" />
+                                )}
                               </div>
-                            ))}
+                            )}
                           </div>
-                        </div>
-                      )}
-
-                      {message.replies.length > 0 && (
-                        <div className='border-t pt-4'>
-                          <h4 className='font-medium mb-2'>Phản hồi</h4>
-                          <div className='space-y-2'>
-                            {message.replies.map((reply) => (
-                              <div key={reply.id} className='p-3 bg-muted/50 rounded'>
-                                <div className='flex items-center gap-2 mb-1'>
-                                  <span className='font-medium text-sm'>{reply.sender}</span>
-                                  <span className='text-xs text-muted-foreground'>
-                                    {formatTimestamp(reply.timestamp)}
-                                  </span>
-                                </div>
-                                <p className='text-sm'>{reply.content}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className='border-t pt-4'>
-                        <div className='space-y-2'>
-                          <Label>Phản hồi</Label>
-                          <Textarea
-                            placeholder='Nhập phản hồi...'
-                            value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
-                            rows={3}
-                          />
-                          <Button size='sm' onClick={() => handleReply(message.id)} disabled={!replyContent.trim()}>
-                            <Send className='h-4 w-4 mr-2' />
-                            Gửi phản hồi
-                          </Button>
                         </div>
                       </div>
-                    </div>
-                  )
-                })()}
+                    )
+                  })}
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="Nhập phản hồi..."
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      rows={2}
+                    />
+                    <Button size="sm" onClick={() => handleReply()} disabled={!replyContent.trim()}>
+                      <Send className="h-4 w-4 mr-2" />
+                      Gửi
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ) : (
             <Card>
-              <CardContent className='p-8 text-center text-muted-foreground'>
-                <MessageSquare className='h-12 w-12 mx-auto mb-4 opacity-50' />
+              <CardContent className="p-8 text-center text-muted-foreground">
+                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Chọn một tin nhắn để xem chi tiết</p>
               </CardContent>
             </Card>
           )}
 
-          {/* Announcements */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Thông báo đã gửi</CardTitle>
-              <CardDescription>Các thông báo đã gửi cho sinh viên</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-3'>
-                {mockAnnouncements.map((announcement) => (
-                  <div key={announcement.id} className='p-3 border rounded-lg'>
-                    <div className='flex items-start justify-between'>
-                      <div className='space-y-1'>
-                        <div className='flex items-center gap-2'>
-                          <h4 className='font-medium text-sm'>{announcement.title}</h4>
-                          {announcement.isPinned && (
-                            <Badge variant='secondary' className='text-xs'>
-                              Ghim
-                            </Badge>
-                          )}
-                        </div>
-                        <p className='text-xs text-muted-foreground'>
-                          {announcement.recipients} • {formatTimestamp(announcement.timestamp)}
-                        </p>
-                        <p className='text-sm text-muted-foreground line-clamp-2'>{announcement.content}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Announcements removed from Messages view */}
         </div>
       </div>
-    </div>
-  )
+      {/* Rename Dialog */}
+      <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đổi tên cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label>Tên mới</Label>
+            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nhập tên mới" />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRenameOpen(false)}>Hủy</Button>
+              <Button onClick={async () => {
+                if (!selectedConversation) return;
+                const name = newName.trim();
+                if (!name) return;
+                await MessagesService.updateConversation(selectedConversation, { name });
+                setConversations((prev) => prev.map((c) => ((c._id || c.id) === selectedConversation ? { ...c, name } : c)));
+                setRenameOpen(false);
+              }}>Lưu</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa cuộc trò chuyện</DialogTitle>
+          </DialogHeader>
+          <p>Bạn có chắc chắn muốn xóa cuộc trò chuyện này?</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Hủy</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (!selectedConversation) return;
+              await MessagesService.deleteConversation(selectedConversation);
+              setConversations((prev) => prev.filter((c) => (c._id || c.id) !== selectedConversation));
+              setSelectedConversation(null);
+              setMessages([]);
+              setDeleteOpen(false);
+            }}>Xóa</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div >
+  );
 }
